@@ -8,6 +8,7 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import { defaultRelays } from '../nostr/Relays';
 import { sanitizeString, sanitizeUrl } from '../util';
+import * as secp from "@noble/secp256k1";
 
 interface ProfileContent {
     name: string;
@@ -85,7 +86,7 @@ const StyledToolbar = smallScreen ? SmallScreenAvatar : MediumToLargeAvatar;
 
 
 useEffect(() => {
-  if (!privateKey || privateKey === "") navigate("/", {replace: true});
+    if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/", {replace: true});
   
   const getUserProfile = async () => {
       let prof = await pool.list(relays, [{kinds: [0], authors: [getPublicKey(privateKey!)], limit: 1 }])
