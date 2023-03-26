@@ -1,46 +1,47 @@
-# Getting Started with Create React App
+# Jiyou
+### JiYou is a Nostr Client built using React.js and MaterialUI and Nostr Tools https://github.com/nbd-wtf/nostr-tools
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+Nostr is a simple, open protocol that enables global, decentralized, and censorship-resistant social media.
 
-In the project directory, you can run:
+Learn more about Nostr here https://nostr.how/
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Jiyou supports the following NIP's:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+  - [ ] NIP-01: Basic protocol flow description
+  - [ ] NIP-02: Contact List and Petnames (No petname support)
+  - [ ] NIP-03: OpenTimestamps Attestations for Events
+  - [ ] NIP-04: Encrypted Direct Message
+  - [ ] NIP-05: Mapping Nostr keys to DNS-based internet identifiers
+  - [ ] NIP-06: Basic key derivation from mnemonic seed phrase
+  - [ ] NIP-07: window.nostr capability for web browsers
+  - [ ] NIP-08: Handling Mentions
+  - [ ] NIP-09: Event Deletion
+  - [ ] NIP-10: Conventions for clients' use of e and p tags in text events
+  - [ ] NIP-11: Relay Information Document
+  - [ ] NIP-12: Generic Tag Queries
+  - [ ] NIP-13: Proof of Work
+  - [ ] NIP-14: Subject tag in text events
+  - [ ] NIP-15: End of Stored Events Notice
+  - [ ] NIP-19: bech32-encoded entities
+  - [ ] NIP-20: Command Results
+  - [ ] NIP-21: nostr: Protocol handler (web+nostr)
+  - [ ] NIP-25: Reactions
+  - [ ] NIP-26: Delegated Event Signing (Display delegated signings only)
+  - [ ] NIP-28: Public Chat
+  - [ ] NIP-36: Sensitive Content
+  - [ ] NIP-40: Expiration Timestamp
+  - [ ] NIP-42: Authentication of clients to relays
+  - [ ] NIP-50: Search
+  - [ ] NIP-51: Lists
+  - [ ] NIP-58: Badges
+  - [ ] NIP-65: Relay List Metadata
+  
+---
+To run the application, use
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+$ npm install
+$ npm start
