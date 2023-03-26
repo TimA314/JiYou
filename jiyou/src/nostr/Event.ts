@@ -1,3 +1,5 @@
+import * as secp from "@noble/secp256k1";
+
 export type Event = {
     id?: string
     sig?: string
@@ -28,7 +30,7 @@ export enum Kind {
     ReplaceableByTag = 30000,
   }
 
-  export function getNewEvent(): Event {
+  export function getEmptyEvent(): Event {
     return {
       kind: 0,
       pubkey: '',
@@ -39,16 +41,17 @@ export enum Kind {
   }
 
   export function isEventValid(event: Event): boolean {
-    if (typeof event.content !== 'string') return false
-    if (typeof event.created_at !== 'number') return false
-    if (typeof event.pubkey !== 'string') return false
-    if (!event.pubkey.match(/^[a-f0-9]{64}$/)) return false
-    if (!Array.isArray(event.tags)) return false
+    if (typeof event.content !== 'string') return false;
+    if (typeof event.created_at !== 'number') return false;
+    if (typeof event.pubkey !== 'string') return false;
+    if (!event.pubkey.match(/^[a-f0-9]{64}$/)) return false;
+    if (!secp.utils.isValidPrivateKey(event.pubkey)) return false;
+    if (!Array.isArray(event.tags)) return false;
     for (let i = 0; i < event.tags.length; i++) {
       let tag = event.tags[i]
-      if (!Array.isArray(tag)) return false
+      if (!Array.isArray(tag)) return false;
       for (let j = 0; j < tag.length; j++) {
-        if (typeof tag[j] === 'object') return false
+        if (typeof tag[j] === 'object') return false;
       }
     }
     return true

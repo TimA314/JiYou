@@ -16,6 +16,8 @@
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "@types/react-router-dom": "^5.3.3",
+    "bech32": "^2.0.0",
+    "noble-secp256k1": "^1.2.14",
     "nostr-tools": "^1.7.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
