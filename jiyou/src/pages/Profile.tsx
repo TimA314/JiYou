@@ -7,6 +7,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import { defaultRelays } from '../nostr/Relays';
+import { sanitizeString, sanitizeUrl } from '../util';
 
 interface ProfileContent {
     name: string;
@@ -68,7 +69,7 @@ const SmallScreenAvatar = styled('div')(({ theme }) => ({
 const styles = {
   banner: {
       height: 350,
-    //   backgroundImage: `url(${profileRef.current.banner})`,
+      backgroundImage: `url(${profileRef.current.banner})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       //width: `calc(100vw + 48px)`,
@@ -95,8 +96,15 @@ useEffect(() => {
           
           if (!parsedProf || parsedProf.length < 1) return;
           
-          profileRef.current = parsedProf;
-          console.log(parsedProf)
+          const sanitizedProfileContent: ProfileContent = {
+            name: sanitizeString(parsedProf.name),
+            picture: sanitizeUrl(sanitizeString(parsedProf.picture)),
+            about: sanitizeString(parsedProf.about),
+            banner: sanitizeUrl(sanitizeString(parsedProf.banner))
+          }
+
+          profileRef.current = sanitizedProfileContent;
+          console.log(sanitizedProfileContent)
           setGetProfileEvent(false)
         }
     }
@@ -162,16 +170,16 @@ useEffect(() => {
     }
 
     const handleLogout = () => {
-    alert("Logged out.");
-    window.localStorage.clear();
-    navigate("/signin", {replace: true});
+        alert("Logged out.");
+        window.localStorage.clear();
+        navigate("/", {replace: true});
     }
 
     return (
         <Box width="100%">
             {privateKey && (
                 <Box>
-                    <Paper>
+                    <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Box>
                             <Button type="button" onClick={handleLogout}>Logout</Button>
