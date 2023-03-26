@@ -1,12 +1,12 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import { Container } from '@mui/system';
-import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import './App.css';
 import { Route, Routes} from 'react-router-dom';
 import SignIn from './pages/SignIn';
 import Profile from './pages/Profile';
+import Relays from './pages/Relays';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -42,8 +42,9 @@ function App() {
   <CssBaseline />
   <Container>
     <Routes>
-      <Route path="/profile" element={<Profile/>}/>
       <Route path="/" element={<SignIn/>} />
+      <Route path="/profile" element={<Profile/>}/>
+      <Route path="/relays" element={<Relays />} />
     </Routes>
   </Container>
 </ThemeProvider>

@@ -1,6 +1,6 @@
 import { AppBar, Avatar, Box, Button, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar, useMediaQuery} from '@mui/material'
 import { styled } from '@mui/system';
-import { EventTemplate, getEventHash, getPublicKey, signEvent, SimplePool, UnsignedEvent, validateEvent, verifySignature, Event} from 'nostr-tools';
+import { EventTemplate, getEventHash, getPublicKey, signEvent, SimplePool, UnsignedEvent, validateEvent, verifySignature, Event, Kind} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router';
 import ImageIcon from '@mui/icons-material/Image';
@@ -135,12 +135,13 @@ useEffect(() => {
         const newContent = JSON.stringify(updatedProfileContent);  
 
         const newProfileEvent: EventTemplate | UnsignedEvent | Event = {
-            kind: 0,
+            kind: Kind.Metadata,
             tags: [],
             content: newContent,
             created_at: Math.floor(Date.now() / 1000),
             pubkey: getPublicKey(privateKey!)
         }
+
         const signedEvent: Event = {
             ...newProfileEvent,
             id: getEventHash(newProfileEvent),
@@ -155,7 +156,6 @@ useEffect(() => {
         console.log("Event is valid")
 
         let pubs = pool.publish(relays, signedEvent);
-        console.log("pubs: " + JSON.stringify(pubs));
     
         pubs.on("ok", () => {
             console.log(`Published Event`);
