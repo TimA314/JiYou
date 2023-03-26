@@ -1,11 +1,20 @@
 import "./SignIn.css";
 import { Button, Container, Divider, Input, InputAdornment, InputLabel, Stack, styled, Typography } from "@mui/material"
 import KeyIcon from '@mui/icons-material/Key';
+import { generatePrivateKey } from "nostr-tools";
+import { MouseEvent } from "react";
 
 type Props = {}
 
 const SignIn = (props: Props) => {
+  console.log("loaded")
 
+  const handleNewUserClicked = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const newKey = generatePrivateKey();
+    let skInput:HTMLInputElement = document.getElementById("privateKey-input") as HTMLInputElement;
+    skInput.value = newKey;
+  }
 
   return (
 
@@ -34,7 +43,7 @@ const SignIn = (props: Props) => {
           OR
       </Typography>
       </Divider>
-      <Button fullWidth size="large" color="warning" variant="outlined" >
+      <Button fullWidth size="large" color="warning" variant="outlined" onClick={handleNewUserClicked}>
           New User? Generate Private Key
       </Button>
     </div>
