@@ -9,17 +9,21 @@ import { bech32ToHex } from "../util";
 import { getPublicKey } from "noble-secp256k1";
 import { useNavigate } from "react-router-dom";
 
-type Props = {}
+type Props = {
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>
+}
 
 const SignIn = (props: Props) => {
   const [open, setOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const privateKey = window.localStorage.getItem("localSk");
   const navigate = useNavigate();
+  props.setIsLoggedIn(false);
 
   useEffect(() => {
     if (privateKey && secp.utils.isValidPrivateKey(privateKey)){
         console.log(getPublicKey(privateKey));
+        props.setIsLoggedIn(true);
         navigate("/profile", {replace: true});
     }
   })
@@ -45,6 +49,7 @@ const SignIn = (props: Props) => {
 
     if (secp.utils.isValidPrivateKey(sk)){
       window.localStorage.setItem("localSk", sk);
+      props.setIsLoggedIn(true);
       navigate("/profile", {replace: true});
       return;
     }
@@ -53,8 +58,7 @@ const SignIn = (props: Props) => {
 
     if (secp.utils.isValidPrivateKey(hexKey)) {
       window.localStorage.setItem("localSk", hexKey);
-
-      console.log(getPublicKey(hexKey));
+      props.setIsLoggedIn(true);
       navigate("/profile", {replace: true});
       return
     }
