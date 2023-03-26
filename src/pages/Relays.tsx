@@ -14,7 +14,7 @@ export default function Relays() {
     const [errorMessage, setErrorMessage] = useState("");
     const [relayList, setRelayList] = useState<string[]>([]);
     const privateKey = window.localStorage.getItem("localSk");
-    let localRelays: string | null = localStorage.getItem('relays');
+    const localRelays: string | null = localStorage.getItem('relays');
     const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
     const navigate = useNavigate();
     const pool = new SimplePool();

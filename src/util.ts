@@ -1,5 +1,6 @@
 import { bech32 } from "bech32";
 import * as secp from "@noble/secp256k1";
+import { EventWithProfile } from "./nostr/Types";
 
 
 export const sanitizeString = (str: string) => {
@@ -29,4 +30,42 @@ export const bech32ToHex = (str: string) => {
     } catch {
         return "";
     }
+}
+
+export const GetImageFromPost = (content: string) => {
+  if(!content) return null;
+  const sanitizedContent = sanitizeString(content);
+  const validExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+  let splitArray = splitByUrl(sanitizedContent);
+  if(!splitArray || splitArray.length === 0) return null;
+
+  for (let i = 0; i < splitArray.length; i++){
+      if (validExtensions.includes(splitArray[i])){
+          return splitArray[i];
+      }
+  }
+  return null;
+}
+
+export function splitByUrl(str: string) {
+  if (!str) return null;
+    const urlRegex =
+        /((?:http|ftp|https):\/\/(?:[\w+?.\w+])+(?:[a-zA-Z0-9~!@#$%^&*()_\-=+\\/?.:;',]*)?(?:[-A-Za-z0-9+&@#/%=~_|]))/i;
+    return str.split(urlRegex)[0];
+}
+
+export const DiceBears = () => {
+  let dicebearArray = [
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Bubba&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Snowball&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Baby&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Misty&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Missy&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Pumpkin&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Simon&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    "https://api.dicebear.com/5.x/bottts/svg?seed=Lucky&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01"
+  ]
+
+  return dicebearArray[Math.floor(Math.random() * dicebearArray.length)]
 }

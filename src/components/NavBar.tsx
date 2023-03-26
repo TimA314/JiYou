@@ -13,7 +13,6 @@ interface NavBarProps {
 }
 
 const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
-  const privateKey = window.localStorage.getItem('localPk');
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -30,8 +29,8 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
     <Box sx={{ pb: 7 }} ref={ref}>
       <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
         <BottomNavigation showLabels>
-          {/* <BottomNavigationAction label="Feed" href="/feed" icon={<PublicIcon />} />
-          <BottomNavigationAction label="Follows" href="/follows" icon={<Diversity1Icon />} /> */}
+          {/* <BottomNavigationAction label="Feed" href="/feed" icon={<PublicIcon />} /> */}
+          <BottomNavigationAction label="Follows" href="/follower-feed" icon={<Diversity1Icon />} />
           <BottomNavigationAction label="Relays" href="/relays" icon={<CellTowerIcon />} />
           <BottomNavigationAction label="Profile" href="/profile" icon={<AccountCircleIcon />} />
         </BottomNavigation>

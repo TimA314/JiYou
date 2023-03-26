@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useState } from 'react';
+import FollowerFeed from './pages/FollowerFeed';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -48,6 +49,7 @@ const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
       <Route path="/" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/relays" element={<Relays />} />
+      <Route path="/follower-feed" element={<FollowerFeed />} />
     </Routes>
     <NavBar isLoggedIn={isLoggedIn}/>
   </Container>
