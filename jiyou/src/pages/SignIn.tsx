@@ -5,7 +5,6 @@ import { generatePrivateKey } from "nostr-tools";
 import * as secp from "@noble/secp256k1";
 import Snackbar from "@mui/material/Snackbar";
 import {useEffect, useState } from 'react';
-import { defaultRelays } from "../nostr/Relays"
 import { bech32ToHex } from "../util";
 import { getPublicKey } from "noble-secp256k1";
 import { useNavigate } from "react-router-dom";
