@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import './App.css';
 import { Route, Routes} from 'react-router-dom';
 import SignIn from './pages/SignIn';
+import Profile from './pages/Profile';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -41,6 +42,7 @@ function App() {
   <CssBaseline />
   <Container>
     <Routes>
+      <Route path="/profile" element={<Profile/>}/>
       <Route path="/" element={<SignIn/>} />
     </Routes>
   </Container>
