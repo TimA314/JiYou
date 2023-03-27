@@ -21,12 +21,15 @@ export default function Profile() {
 const smallScreen = useMediaQuery('(max-width:600px)');
 const privateKey = window.localStorage.getItem("localSk");
 const [getProfileEvent, setGetProfileEvent] = useState(true);
-const profileRef = useRef<ProfileContent>({
+const defaultProfile: ProfileContent = {
     name: "User",
     picture: "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
     about: "about",
     banner: "banner",
-});
+};
+const profileString = window.localStorage.getItem("profile") ?? "";
+const parsedProfile = profileString ? JSON.parse(profileString) : defaultProfile;
+const profileRef = useRef<ProfileContent>(parsedProfile);
 const navigate = useNavigate();
 console.log(smallScreen ? "small screen" : "larger screen")
 const pool = new SimplePool();
@@ -70,12 +73,17 @@ const SmallScreenAvatar = styled('div')(({ theme }) => ({
 const styles = {
   banner: {
       height: 350,
-      backgroundImage: `url(${profileRef.current.banner})`,
+      backgroundImage: `url(${sanitizeUrl(sanitizeString(profileRef.current.banner))})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      //width: `calc(100vw + 48px)`,
       margin: -24,
       padding: 24,
+      background: -moz-linear-gradient(top,  rgba(255,255,255,0) 0%, rgba(255,255,255,1) 70%),
+      backgroundImage: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0)), color-stop(70%,rgba(255,255,255,1)));
+      backgroundImage: -webkit-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 70%);
+      backgroundImage: -o-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 70%);
+      backgroundImage: -ms-linear-gradient(top,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 70%);
+      backgroundImage: linear-gradient(to bottom,  rgba(255,255,255,0) 0%,rgba(255,255,255,1) 70%);
   }
 };
 
@@ -105,8 +113,9 @@ useEffect(() => {
           }
 
           profileRef.current = sanitizedProfileContent;
+          window.localStorage.setItem("profile", JSON.stringify(sanitizedProfileContent));
           console.log(sanitizedProfileContent)
-          setGetProfileEvent(false)
+          setGetProfileEvent(!getProfileEvent)
         }
     }
     
@@ -160,13 +169,14 @@ useEffect(() => {
     
         pubs.on("ok", () => {
             console.log(`Published Event`);
+            window.localStorage.setItem("profile", newContent)
             setGetProfileEvent(true);
-            return "ok";
+            return;
         })
 
         pubs.on("failed", (reason: string) => {
             console.log("failed: " + reason);
-            return "failed";
+            return;
         })
     }
 
@@ -192,7 +202,7 @@ useEffect(() => {
                         </Toolbar>
                         <StyledToolbar>
                             <Avatar
-                                src={profileRef.current.picture ? profileRef.current.picture : "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01"}
+                                src={profileRef.current.picture ? sanitizeUrl(sanitizeString(profileRef.current.picture)) : "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01"}
                                 sx={{ width: 200, height: 200}}
                                 />
                         </StyledToolbar>
