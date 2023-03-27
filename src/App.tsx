@@ -39,7 +39,7 @@ const theme = createTheme({
 });
 
 function App() {
-const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   return (
 
 <ThemeProvider theme={theme}>

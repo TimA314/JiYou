@@ -6,6 +6,8 @@ import { defaultRelays } from '../nostr/Relays';
 import * as secp from "@noble/secp256k1";
 import { EventWithProfile } from '../nostr/Types';
 import { sanitizeString } from '../util';
+import Loading from '../components/Loading';
+import { Box } from '@mui/system';
 
 
 function FollowerFeed() {
@@ -24,6 +26,7 @@ function FollowerFeed() {
             try{
 
                 let followerPks = await getUserFollowers()
+                console.log("followers " + JSON.stringify(followerPks))
                 let poolOfEvents = await pool.list(relays, [{kinds: [1], authors: followerPks, limit: 100 }])
 
                 if(!poolOfEvents) {
@@ -41,7 +44,7 @@ function FollowerFeed() {
                             profileEvent: prof[0],
                             isFollowing: Array.isArray(followerPks) && followerPks.some(followPk => followPk === prof[0].pubkey)
                         }
-                        
+                        console.log(Array.isArray(followerPks))
                         setEvents((prevEvents) => {
                             return [...prevEvents, newPost];
                         });
@@ -55,14 +58,15 @@ function FollowerFeed() {
 
         const getUserFollowers = async() => {
             const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [getPublicKey(privateKey!)], limit: 1 }])
-
+            let followerPks: string[] = [];
+            console.log(userFollowerEvent)
             if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return;
 
             const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === "p");
-            let followerPks: string[] = [];
             for(let i=0; i<followerArray.length;i++){
                 if(secp.utils.isValidPrivateKey(followerArray[i][1])){
                     followerPks.push(followerArray[i][1]);
+                    console.log("followerArrayItem " + followerArray[i][1])
                 }
             }
             return followerPks;
@@ -73,7 +77,7 @@ function FollowerFeed() {
     
     if (events && events.length > 0) {
         return (
-            <>
+            <Box >
                 {events
                 .filter((event, index, self) => {
                     return index === self.findIndex((e) => (
@@ -82,13 +86,13 @@ function FollowerFeed() {
                 })
                 .map((event) => {
                     return (
-                    <Note key={sanitizeString(event.sig)} event={event} />
+                        <Note event={event} key={sanitizeString(event.sig)}/>
                     )
                 })}
-            </>
+            </Box>
         )
     } else {
-        return <></>
+        return <Loading />
     }
 }
 

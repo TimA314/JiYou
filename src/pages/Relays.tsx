@@ -12,10 +12,10 @@ import { sanitizeString } from "../util";
 export default function Relays() {
     const [open, setOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [relayList, setRelayList] = useState<string[]>([]);
     const privateKey = window.localStorage.getItem("localSk");
     const localRelays: string | null = localStorage.getItem('relays');
     const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
+    const [relayList, setRelayList] = useState<string[]>(relays);
     const navigate = useNavigate();
     const pool = new SimplePool();
     

@@ -15,9 +15,9 @@ import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { GetImageFromPost, sanitizeString, sanitizeUrl } from '../util';
-import DropDown from './DropDown';
 import { DiceBears } from '../util';
 import { EventWithProfile } from '../nostr/Types';
+import { Box, Button } from '@mui/material';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
     const { expand, ...other } = props;
@@ -61,9 +61,6 @@ export default function Note(props: NoteProps) {
           <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={sanitizeUrl(sanitizeString(profilePicture))}>
           </Avatar>
         }
-        action={
-            <DropDown event={props.event} />
-        }
         title={profileContent ? profileContent.display_name : "Unknown"}
         subheader={profileContent?.nip05 ? profileContent.nip05 : ""}
       />
@@ -101,6 +98,9 @@ export default function Note(props: NoteProps) {
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{}}>
+          <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
+            <Button variant="outlined" color={props.event.isFollowing ? "primary" : "success"}>{props.event.isFollowing ? "UnFollow" : "Follow"}</Button>
+          </Box>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
             Event Id: {sanitizeString(props.event.id)}
