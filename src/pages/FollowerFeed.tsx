@@ -5,6 +5,7 @@ import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import * as secp from "@noble/secp256k1";
 import { EventWithProfile } from '../nostr/Types';
+import { sanitizeString } from '../util';
 
 
 function FollowerFeed() {
@@ -25,13 +26,13 @@ function FollowerFeed() {
                 let followerPks = await getUserFollowers()
                 let poolOfEvents = await pool.list(relays, [{kinds: [1], authors: followerPks, limit: 100 }])
 
-                console.log("poolEvents" + JSON.stringify(poolOfEvents))
-
                 if(!poolOfEvents) {
                     return;
                 }
 
                 for(let i=0;i<poolOfEvents.length;i++) {
+                    if (events.find(e => e.sig === poolOfEvents[i].sig) !== undefined) continue;
+
                     let prof: Event[] = await pool.list(relays, [{kinds: [0], authors: [poolOfEvents[i].pubkey], limit: 1 }])
 
                     if(prof){
@@ -44,7 +45,6 @@ function FollowerFeed() {
                         setEvents((prevEvents) => {
                             return [...prevEvents, newPost];
                         });
-
                     }
                 }
 
@@ -65,7 +65,6 @@ function FollowerFeed() {
                     followerPks.push(followerArray[i][1]);
                 }
             }
-            console.log("follower pubkeys: " + followerPks)
             return followerPks;
         }
 
@@ -75,9 +74,15 @@ function FollowerFeed() {
     if (events && events.length > 0) {
         return (
             <>
-                {events.map(e => {
+                {events
+                .filter((event, index, self) => {
+                    return index === self.findIndex((e) => (
+                    e.sig === event.sig
+                    ))
+                })
+                .map((event) => {
                     return (
-                        <Note key={e.sig} event={e}/>
+                    <Note key={sanitizeString(event.sig)} event={event} />
                     )
                 })}
             </>

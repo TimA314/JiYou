@@ -14,7 +14,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { GetImageFromPost } from '../util';
+import { GetImageFromPost, sanitizeString, sanitizeUrl } from '../util';
 import DropDown from './DropDown';
 import { DiceBears } from '../util';
 import { EventWithProfile } from '../nostr/Types';
@@ -58,7 +58,7 @@ export default function Note(props: NoteProps) {
     <Card sx={{ maxWidth: "100%", margin: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={profilePicture}>
+          <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={sanitizeUrl(sanitizeString(profilePicture))}>
           </Avatar>
         }
         action={
@@ -76,7 +76,7 @@ export default function Note(props: NoteProps) {
       }
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-        {props.event.content}
+        {sanitizeString(props.event.content)}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -103,10 +103,10 @@ export default function Note(props: NoteProps) {
         <CardContent sx={{}}>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
-            Event Id: {props.event.id}
+            Event Id: {sanitizeString(props.event.id)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey hex: {props.event.pubkey}
+            PubKey hex: {sanitizeString(props.event.pubkey)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             Created: {moment.unix(props.event.created_at).format("LLLL")}
@@ -115,7 +115,7 @@ export default function Note(props: NoteProps) {
             UnixTime: {props.event.created_at}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Sig: {props.event.sig}
+            Sig: {sanitizeString(props.event.sig)}
           </Typography>
         </CardContent>
       </Collapse>
