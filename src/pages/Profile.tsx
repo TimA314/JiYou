@@ -89,7 +89,7 @@ const StyledToolbar = smallScreen ? SmallScreenAvatar : MediumToLargeAvatar;
 
 
 useEffect(() => {
-    if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/", {replace: true});
+    if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/signin", {replace: true});
   
   const getUserProfile = async () => {
       let prof = await pool.list(relays, [{kinds: [0], authors: [getPublicKey(privateKey!)], limit: 1 }])

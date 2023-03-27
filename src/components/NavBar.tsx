@@ -7,6 +7,7 @@ import CellTowerIcon from '@mui/icons-material/CellTower';
 import PublicIcon from '@mui/icons-material/Public';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
+import { Link } from 'react-router-dom';
 
 interface NavBarProps {
   isLoggedIn: boolean;
@@ -26,16 +27,21 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
   }
 
   return (
-    <Box sx={{ pb: 7 }} ref={ref}>
-      <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-        <BottomNavigation showLabels>
-          {/* <BottomNavigationAction label="Feed" href="/feed" icon={<PublicIcon />} /> */}
-          <BottomNavigationAction label="Follows" href="/follower-feed" icon={<Diversity1Icon />} />
-          <BottomNavigationAction label="Relays" href="/relays" icon={<CellTowerIcon />} />
-          <BottomNavigationAction label="Profile" href="/profile" icon={<AccountCircleIcon />} />
-        </BottomNavigation>
-      </Paper>
-    </Box>
+<Box sx={{ pb: 7 }} ref={ref}>
+  <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+    <BottomNavigation showLabels>
+      <Link to="/follower-feed">
+        <BottomNavigationAction label="Follows" icon={<Diversity1Icon />} />
+      </Link>
+      <Link to="/relays">
+        <BottomNavigationAction label="Relays" icon={<CellTowerIcon />} />
+      </Link>
+      <Link to="/profile">
+        <BottomNavigationAction label="Profile" icon={<AccountCircleIcon />} />
+      </Link>
+    </BottomNavigation>
+  </Paper>
+</Box>
   );
 };
 

@@ -27,7 +27,7 @@ export default function Relays() {
       };
 
     useEffect(() => {
-        if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/", {replace: true});
+        if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/signin", {replace: true});
 
         const getEvents = async () => {
             let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [getPublicKey(privateKey!)], limit: 1 }])
