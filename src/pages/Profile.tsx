@@ -33,7 +33,8 @@ const profileRef = useRef<ProfileContent>(parsedProfile);
 const navigate = useNavigate();
 console.log(smallScreen ? "small screen" : "larger screen")
 const pool = new SimplePool();
-const relays = defaultRelays;
+const localRelays: string | null = localStorage.getItem('relays');
+const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
 
 // ----------------------------------------------------------------------
 

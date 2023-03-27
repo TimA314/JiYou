@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { styled } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
@@ -18,6 +17,9 @@ import { GetImageFromPost, sanitizeString, sanitizeUrl } from '../util';
 import { DiceBears } from '../util';
 import { EventWithProfile } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
+import { useState } from 'react';
+import { getPublicKey, SimplePool, Event, EventTemplate, UnsignedEvent, Kind, getEventHash, signEvent, validateEvent, verifySignature } from 'nostr-tools';
+import { defaultRelays } from '../nostr/Relays';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
     const { expand, ...other } = props;
@@ -39,8 +41,14 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 
 export default function Note(props: NoteProps) {
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [isFollowing, setIsFollowing] = useState<Boolean>(props.event.isFollowing ?? false)
   const imageFromPost = GetImageFromPost(props.event.content);
+  const localRelays: string | null = localStorage.getItem('relays');
+  const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
+  const privateKey = window.localStorage.getItem("localSk");
+  const pool = new SimplePool()
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -53,6 +61,68 @@ export default function Note(props: NoteProps) {
     if (profileContent.picture) profilePicture = profileContent.picture;
   } 
 
+  const handleFollowButtonClicked = () => {
+    setIsFollowing(!isFollowing);
+    updateFollowerEvent();
+  }
+
+  const getUserFollowers = async(userFollowerEvent: Event[]) => {
+    if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return;
+
+    return userFollowerEvent[0].tags;
+  }
+
+  const updateFollowerEvent = async () => {
+
+    let followerEvent = await pool.list(relays, [{kinds: [3], authors: [getPublicKey(privateKey!)], limit: 1 }])
+
+    let prevTags: string[][] = await getUserFollowers(followerEvent) ?? [];
+    
+    let exists: boolean = prevTags?.find(tag => tag[1] === props.event.pubkey) !== undefined
+
+    if (exists) return;
+
+    let newTags: string[][] = []
+
+    if (prevTags.length > 0){
+      newTags = [...prevTags, ["p", props.event.pubkey]]
+    } else {
+      newTags = [["p", props.event.pubkey]]
+    }
+
+    const newFollowerEvent: EventTemplate | UnsignedEvent | Event = {
+        kind: Kind.Contacts,
+        tags: newTags,
+        content: "",
+        created_at: Math.floor(Date.now() / 1000),
+        pubkey: getPublicKey(privateKey!)
+    }
+
+    const signedEvent: Event = {
+        ...newFollowerEvent,
+        id: getEventHash(newFollowerEvent),
+        sig: signEvent(newFollowerEvent, privateKey!),
+    };
+    
+    if(!validateEvent(signedEvent) || !verifySignature(signedEvent)) {
+        console.log("Event is Invalid")
+        return;
+    }
+
+    console.log("Event is valid")
+
+    let pubs = pool.publish(relays, signedEvent);
+
+    pubs.on("ok", () => {
+        console.log(`Published Event`);
+        return;
+    })
+
+    pubs.on("failed", (reason: string) => {
+        console.log("failed: " + reason);
+        return;
+    })
+  }
   
   return (
     <Card sx={{ maxWidth: "100%", margin: "10px", alignItems: "flex-start"}}>
@@ -99,7 +169,9 @@ export default function Note(props: NoteProps) {
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent sx={{}}>
           <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
-            <Button variant="outlined" color={props.event.isFollowing ? "primary" : "success"}>{props.event.isFollowing ? "UnFollow" : "Follow"}</Button>
+            <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
+              {isFollowing ? "UnFollow" : "Follow"}
+            </Button>
           </Box>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
