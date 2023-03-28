@@ -14,6 +14,7 @@ export interface FullEventData {
       nip05: string;
       pubKey: string;
     }
+    hashtags: string[];
     eventId: string;
     sig: string;
     isFollowing: boolean; 

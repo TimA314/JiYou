@@ -102,6 +102,7 @@ function GlobalFeed() {
                 })
                 .map((event) => {
                     // console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
+                    const hashtagsFromEvent = event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]);
                     const fullEventData: FullEventData = {
                         content: event.content,
                         user: {
@@ -111,6 +112,7 @@ function GlobalFeed() {
                           nip05: metaData[event.pubkey]?.nip05 ?? "",
                           pubKey: event.pubkey,
                         },
+                        hashtags: hashtagsFromEvent,
                         eventId: event.id,
                         sig: event.sig,
                         isFollowing: false,

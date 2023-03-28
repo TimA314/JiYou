@@ -13,8 +13,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { GetImageFromPost, sanitizeString, sanitizeUrl } from '../util';
-import { DiceBears } from '../util';
+import { GetImageFromPost, sanitizeString } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
@@ -136,8 +135,15 @@ export default function Note(props: NoteProps) {
       }
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-        {sanitizeString(props.eventData.content)}
+        {props.eventData.content}
         </Typography>
+      </CardContent>
+      <CardContent>
+        {props.eventData.hashtags
+          .filter((tag) => props.eventData.hashtags.indexOf(tag) === props.eventData.hashtags.lastIndexOf(tag))
+          .map((tag) => (
+          <Typography variant="overline" color="primary" key={tag}> #{tag}</Typography>
+        ))}
       </CardContent>
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
@@ -160,7 +166,7 @@ export default function Note(props: NoteProps) {
         </ExpandMore>
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent sx={{}}>
+        <CardContent>
           <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
             <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
               {isFollowing ? "UnFollow" : "Follow"}
