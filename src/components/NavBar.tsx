@@ -1,6 +1,4 @@
 import * as React from 'react';
-import BottomNavigation from '@mui/material/BottomNavigation';
-import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import Diversity1Icon from '@mui/icons-material/Diversity1';
 import CellTowerIcon from '@mui/icons-material/CellTower';
@@ -8,6 +6,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
+import "./NavBar.css";
 
 interface NavBarProps {
   isLoggedIn: boolean;
@@ -28,18 +27,19 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
 
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
-  <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-    <BottomNavigation showLabels>
-      <Link to="/follower-feed">
-        <BottomNavigationAction label="Follows" icon={<Diversity1Icon />} />
+  <Paper className="navbar" >
+      <Link  className="nav-link" to="/follower-feed">
+        <Diversity1Icon />
       </Link>
-      <Link to="/relays">
-        <BottomNavigationAction label="Relays" icon={<CellTowerIcon />} />
+      <Link  className="nav-link" to="/relays">
+        <CellTowerIcon />
       </Link>
-      <Link to="/profile">
-        <BottomNavigationAction label="Profile" icon={<AccountCircleIcon />} />
+      <Link  className="nav-link" to="/profile">
+     <AccountCircleIcon />
       </Link>
-    </BottomNavigation>
+      <Link className="nav-link" to="/global-feed">
+        <PublicIcon />
+      </Link>
   </Paper>
 </Box>
   );

@@ -20,7 +20,7 @@ function FollowerFeed() {
     const pool = new SimplePool();
     
     useEffect(() => {
-        if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/signin", {replace: true});
+        if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/", {replace: true});
 
         const loadEvents = async () => {
             try{
