@@ -15,7 +15,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { GetImageFromPost, sanitizeString, sanitizeUrl } from '../util';
 import { DiceBears } from '../util';
-import { EventWithProfile } from '../nostr/Types';
+import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
 import { getPublicKey, SimplePool, Event, EventTemplate, UnsignedEvent, Kind, getEventHash, signEvent, validateEvent, verifySignature } from 'nostr-tools';
@@ -32,18 +32,18 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
     }),
   }));
 
-interface ExpandMoreProps extends IconButtonProps {
+  interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
   }
 
   interface NoteProps {
-    event: EventWithProfile;
+    eventData: FullEventData;
 }
 
 export default function Note(props: NoteProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isFollowing, setIsFollowing] = useState<Boolean>(props.event.isFollowing ?? false)
-  const imageFromPost = GetImageFromPost(props.event.content);
+  const [isFollowing, setIsFollowing] = useState<Boolean>(props.eventData.isFollowing ?? false)
+  const imageFromPost = GetImageFromPost(props.eventData.content);
   const localRelays: string | null = localStorage.getItem('relays');
   const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
   const privateKey = window.localStorage.getItem("localSk");
@@ -54,12 +54,10 @@ export default function Note(props: NoteProps) {
   };
 
   //Set Profile Content and Profile Picture
-  let profileContent = null;
-  let profilePicture = DiceBears();
-  if (props && props.event.profileEvent && props.event.profileEvent.content){
-    profileContent = JSON.parse(props.event.profileEvent.content);
-    if (profileContent.picture) profilePicture = profileContent.picture;
-  } 
+  let profilePicture = 
+  if(props.eventData.user.picture) {
+    profilePicture = props.eventData.user.picture;
+  }
 
   const handleFollowButtonClicked = () => {
     setIsFollowing(!isFollowing);
@@ -78,16 +76,16 @@ export default function Note(props: NoteProps) {
 
     let prevTags: string[][] = await getUserFollowers(followerEvent) ?? [];
     
-    let exists: boolean = prevTags?.find(tag => tag[1] === props.event.pubkey) !== undefined
+    let exists: boolean = prevTags?.find(tag => tag[1] === props.eventData.user.pubKey) !== undefined
 
     if (exists) return;
 
     let newTags: string[][] = []
 
     if (prevTags.length > 0){
-      newTags = [...prevTags, ["p", props.event.pubkey]]
+      newTags = [...prevTags, ["p", props.eventData.user.pubKey]]
     } else {
-      newTags = [["p", props.event.pubkey]]
+      newTags = [["p", props.eventData.user.pubKey]]
     }
 
     const newFollowerEvent: EventTemplate | UnsignedEvent | Event = {
@@ -131,8 +129,8 @@ export default function Note(props: NoteProps) {
           <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={sanitizeUrl(sanitizeString(profilePicture))}>
           </Avatar>
         }
-        title={profileContent ? profileContent.display_name : "Unknown"}
-        subheader={profileContent?.nip05 ? profileContent.nip05 : ""}
+        title={props.eventData.user.name ? props.eventData.user.name : "Satoshi"}
+        subheader={props.eventData.user.nip05 ? props.eventData.user.nip05 : ""}
       />
       {imageFromPost && (
         <CardMedia
@@ -143,7 +141,7 @@ export default function Note(props: NoteProps) {
       }
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-        {sanitizeString(props.event.content)}
+        {sanitizeString(props.eventData.content)}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -154,7 +152,7 @@ export default function Note(props: NoteProps) {
           <ShareIcon />
         </IconButton>
         <Typography variant="subtitle2">
-        {moment.unix(props.event.created_at).fromNow()}
+        {moment.unix(props.eventData.created_at).fromNow()}
         </Typography>
 
         <ExpandMore
@@ -175,19 +173,19 @@ export default function Note(props: NoteProps) {
           </Box>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
-            Event Id: {sanitizeString(props.event.id)}
+            Event Id: {sanitizeString(props.eventData.eventId)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey hex: {sanitizeString(props.event.pubkey)}
+            PubKey hex: {sanitizeString(props.eventData.user.pubKey)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Created: {moment.unix(props.event.created_at).format("LLLL")}
+            Created: {moment.unix(props.eventData.created_at).format("LLLL")}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            UnixTime: {props.event.created_at}
+            UnixTime: {props.eventData.created_at}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Sig: {sanitizeString(props.event.sig)}
+            Sig: {sanitizeString(props.eventData.sig)}
           </Typography>
         </CardContent>
       </Collapse>
