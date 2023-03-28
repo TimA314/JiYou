@@ -1,6 +1,7 @@
 import { bech32 } from "bech32";
 import * as secp from "@noble/secp256k1";
 import { EventWithProfile } from "./nostr/Types";
+import { Event } from "nostr-tools";
 
 
 export const sanitizeString = (str: string) => {
@@ -21,6 +22,19 @@ export const sanitizeString = (str: string) => {
       parser.hash;
     return sanitizedUrl;
   }
+
+  export const sanitizeEvent = (event: Event) => {
+    return { 
+      id: sanitizeString(event.id),
+      content: sanitizeString(event.content),
+      sig: sanitizeString(event.sig),
+      pubkey: sanitizeString(event.pubkey),
+      tags: event.tags.map(tag => [sanitizeString(tag[0]), sanitizeString(tag[1])]),
+      kind: typeof(event.kind) === "number" ? event.kind : 0,
+      created_at: typeof(event.created_at) === "number" ? event.created_at : 0,
+    }
+ }  
+ 
 
 export const bech32ToHex = (str: string) => {
     try {

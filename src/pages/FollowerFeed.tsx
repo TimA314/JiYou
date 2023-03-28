@@ -78,7 +78,7 @@ function FollowerFeed() {
     if (events && events.length > 0) {
         return (
             <Box >
-                {events
+                {/* {events
                 .filter((event, index, self) => {
                     return index === self.findIndex((e) => (
                     e.sig === event.sig
@@ -86,9 +86,9 @@ function FollowerFeed() {
                 })
                 .map((event) => {
                     return (
-                        <Note event={event} key={sanitizeString(event.sig)}/>
+                        // <Note event={event} key={sanitizeString(event.sig)}/>
                     )
-                })}
+                })} */}
             </Box>
         )
     } else {
