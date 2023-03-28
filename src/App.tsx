@@ -46,7 +46,7 @@ function App() {
   <CssBaseline />
   <Container>
     <Routes>
-      <Route path="/signin" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
+      <Route path="/" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/relays" element={<Relays />} />
       <Route path="/follower-feed" element={<FollowerFeed />} />
