@@ -53,11 +53,6 @@ export default function Note(props: NoteProps) {
     setExpanded(!expanded);
   };
 
-  //Set Profile Content and Profile Picture
-  let profilePicture = 
-  if(props.eventData.user.picture) {
-    profilePicture = props.eventData.user.picture;
-  }
 
   const handleFollowButtonClicked = () => {
     setIsFollowing(!isFollowing);
@@ -123,10 +118,10 @@ export default function Note(props: NoteProps) {
   }
   
   return (
-    <Card sx={{ maxWidth: "100%", margin: "10px", alignItems: "flex-start"}}>
+    <Card sx={{ maxWidth: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={sanitizeUrl(sanitizeString(profilePicture))}>
+          <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={props.eventData.user.picture}>
           </Avatar>
         }
         title={props.eventData.user.name ? props.eventData.user.name : "Satoshi"}

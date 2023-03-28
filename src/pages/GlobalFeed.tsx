@@ -1,11 +1,11 @@
 import { Box } from '@mui/material';
-import { Event, getPublicKey, SimplePool } from 'nostr-tools'
-import React, { useEffect, useState } from 'react'
+import { Event, SimplePool } from 'nostr-tools'
+import { useEffect, useState } from 'react'
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import { FullEventData } from '../nostr/Types';
-import { DiceBears, sanitizeEvent, sanitizeString } from '../util';
+import { DiceBears, insertEventIntoDescendingList, sanitizeEvent, sanitizeString } from '../util';
 
 interface MetaData {
     name?: string,
@@ -18,6 +18,7 @@ function GlobalFeed() {
     const [pool, setPool] = useState<SimplePool | null>(null);
     const [events, setEvents] = useState<Event[]>([]);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
+    const defaultAvatar = DiceBears();
 
     useEffect(() => {
         //setup pool
@@ -27,7 +28,7 @@ function GlobalFeed() {
         return () => {
             pool?.close(defaultRelays)
         }
-    },[pool])
+    },[])
 
     useEffect(() => {
         //subscribe to events
@@ -35,7 +36,7 @@ function GlobalFeed() {
 
         const sub = pool.sub(defaultRelays, [{
             kinds: [1],
-            limit: 100,
+            limit: 50,
             "#t": ["nostr"]
         }])
 
@@ -44,14 +45,13 @@ function GlobalFeed() {
 
             const sanitizedEvent: Event = sanitizeEvent(event);
 
-            setEvents((prevEvents) => {
-                return [...prevEvents, sanitizedEvent]
-            })
+            setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
         })
 
         return () => {
             sub.unsub();
         }
+
     },[pool])
 
     useEffect(() => {
@@ -70,6 +70,8 @@ function GlobalFeed() {
 
             const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
 
+            console.log("metaDataParsedSanitized: " + JSON.stringify(metaDataParsedSanitized))
+
             setMetaData((prevMetaData) => ({
                 ...prevMetaData,
                 [sanitizedEvent.pubkey]: {
@@ -87,12 +89,11 @@ function GlobalFeed() {
         })
 
     },[events, pool])
-    console.log(metaData)
 
     //render
     if (events && events.length > 0) {
         return (
-            <Box >
+            <Box>
                 {events
                 .filter((event, index, self) => {
                     return index === self.findIndex((e) => (
@@ -100,11 +101,12 @@ function GlobalFeed() {
                     ))
                 })
                 .map((event) => {
+                    // console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
                     const fullEventData: FullEventData = {
                         content: event.content,
                         user: {
                           name: metaData[event.pubkey]?.name ?? "Satoshi",
-                          picture: metaData[event.pubkey]?.picture ?? DiceBears(),
+                          picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
                           about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
                           nip05: metaData[event.pubkey]?.nip05 ?? "",
                           pubKey: event.pubkey,

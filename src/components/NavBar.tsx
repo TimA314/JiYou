@@ -28,6 +28,9 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
+      <Link className="nav-link" to="/global-feed">
+        <PublicIcon />
+      </Link>
       <Link  className="nav-link" to="/follower-feed">
         <Diversity1Icon />
       </Link>
@@ -36,9 +39,6 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
       </Link>
       <Link  className="nav-link" to="/profile">
      <AccountCircleIcon />
-      </Link>
-      <Link className="nav-link" to="/global-feed">
-        <PublicIcon />
       </Link>
   </Paper>
 </Box>
