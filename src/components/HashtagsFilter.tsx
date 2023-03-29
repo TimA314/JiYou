@@ -1,0 +1,52 @@
+import { Button, Chip, IconButton, InputBase, Paper, Stack, TextField } from "@mui/material";
+import { useState } from "react";
+import SearchIcon from '@mui/icons-material/Search';
+import "./HashtagsFilter.css";
+
+interface Props {
+  hashtags: string[];
+  onChange: (hashtags: string[]) => void;
+}
+
+export default function HashtagsFilter({ hashtags, onChange }: Props) {
+  const [input, setInput] = useState("");
+
+  const onAddHashTag = () => {
+    onChange([...hashtags, input.toLowerCase()]);
+    setInput("");
+  };
+
+  const removeHashtag = (hashtag: string) => {
+    onChange(hashtags.filter((h) => h !== hashtag));
+  };
+
+  return (
+    <div className="hashTagFilterContainer">
+      <Paper className="hashtagChips">
+        <Stack direction="row" spacing={1}>
+          {hashtags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
+              <Chip size="small" key={tag} label={tag} onDelete={() => removeHashtag(tag)} />
+          ))}
+        </Stack>
+      </Paper>
+      <Paper sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400 }} >
+        <InputBase
+          size="small"
+          placeholder="Search By Topic"
+          value={input}
+          inputProps={{ 'aria-label': 'search google maps' }}
+          onChange={(e) => setInput(e.target.value)}
+          sx={{ 
+            width: "100%",
+            marginTop: "10px",
+            ml: 1,
+            flex: 1
+          }}
+          />
+        <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={onAddHashTag}>
+          <SearchIcon />
+        </IconButton>
+      </Paper>
+    </div>
+  );
+}
