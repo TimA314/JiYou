@@ -11,6 +11,7 @@ import NavBar from './components/NavBar';
 import { useState } from 'react';
 import FollowerFeed from './pages/FollowerFeed';
 import GlobalFeed from './pages/GlobalFeed';
+import CreateNote from './pages/CreateNote';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -52,6 +53,7 @@ function App() {
       <Route path="/relays" element={<Relays />} />
       <Route path="/follower-feed" element={<FollowerFeed />} />
       <Route path="/global-feed" element={<GlobalFeed />} />
+      <Route path="/newNote" element={<CreateNote />} />
     </Routes>
     <NavBar isLoggedIn={isLoggedIn}/>
   </Container>

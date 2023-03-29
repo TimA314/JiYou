@@ -1,0 +1,6 @@
+.newNoteContainer {
+    max-width: 600px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
