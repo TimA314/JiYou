@@ -7,7 +7,6 @@
     justify-content: space-around;
     align-items: center;
     height: 60px;
-    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .navbar a {
@@ -16,14 +15,15 @@
     align-items: center;
     text-decoration: none;
     font-size: 12px;
+    color: #7337ff;
 }
 
 .navbar a:hover {
-    color: #7f0cc2;
+    color: #5300d8;
 }
 
 .navbar a.active {
-    color: #aa00f9;
+    color: #8000ff;
 }
 
 .navbar .icon {
