@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Checkbox, Collapse, FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
+import { FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { defaultRelays } from '../nostr/Relays';
@@ -21,7 +21,6 @@ interface Props {
 
 
 function CreateNote({pool}: Props) {
-  const [openAlert, setOpenAlert] = useState(false);
   const relaylist = defaultRelays.reduce((obj, relay) => {
     obj[relay] = true;
     return obj;
@@ -39,10 +38,6 @@ function CreateNote({pool}: Props) {
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPost({ ...post, title: event.target.value });
-  };
-
-  const handleContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPost({ ...post, content: event.target.value });
   };
 
   const handlePostToRelaysClick = async () => {
@@ -87,6 +82,7 @@ function CreateNote({pool}: Props) {
         if (clearedInput) return;
         const noteContent = document.getElementById('noteContent') as HTMLInputElement;
         noteContent.value = "";
+        clearedInput = true;
       })
 
     } catch (error) {
@@ -105,14 +101,11 @@ function CreateNote({pool}: Props) {
           variant="outlined"
           fullWidth
           multiline
+          focused 
           rows={12}
           margin="normal"
-          value={post.title}
           onChange={handleTitleChange}
         />
-        <Collapse in={openAlert}>
-          <Alert severity="error">'You need to install the Nostr extension to post to the relays'</Alert>
-        </Collapse>
         <Button type="button" variant="contained" color='warning' onClick={handlePostToRelaysClick}>Post To Relays</Button>
         <div className='relayListContainer'>
           {defaultRelays.map((relay) => (

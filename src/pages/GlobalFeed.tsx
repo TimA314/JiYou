@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { Event, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
+import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
@@ -24,12 +25,13 @@ function GlobalFeed({pool}: Props) {
     const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({}); //used to prevent duplicate fetches
+    const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
 
     useEffect(() => {
         //subscribe to events
         if (!pool) return;
-
+        
         const sub = pool.sub(defaultRelays, [{
             kinds: [1],
             limit: 50,
@@ -95,7 +97,8 @@ function GlobalFeed({pool}: Props) {
     //render
     if (events && events.length > 0) {
         return (
-            <Box>
+            <Box sx={{marginTop: "52px"}}>
+                <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
                 {events
                 .filter((event, index, self) => {
                     return index === self.findIndex((e) => (

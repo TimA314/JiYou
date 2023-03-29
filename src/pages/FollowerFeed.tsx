@@ -1,11 +1,9 @@
 import {useEffect, useState } from 'react';
 import { getPublicKey, SimplePool, Event } from 'nostr-tools';
 import { useNavigate } from 'react-router';
-import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import * as secp from "@noble/secp256k1";
 import { EventWithProfile } from '../nostr/Types';
-import { sanitizeString } from '../util';
 import Loading from '../components/Loading';
 import { Box } from '@mui/system';
 

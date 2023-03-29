@@ -1,0 +1,31 @@
+@media screen and (max-width: 600px) {
+    .hashTagFilterContainer {
+        overflow: "visible";
+        position: fixed;
+        max-width: "600px";
+        display: block;
+        align-items: 'center';
+        justify-content: center;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .hashtagChips {
+        display: inside;
+    }
+}
+
+@media screen and (min-width: 601px) {
+    .hashTagFilterContainer {
+        position: fixed;
+        max-width: "800px";
+        display: 'flex';
+        align-items: 'center';
+        justify-content: center;
+        top: 0;
+        left: 0;
+        right: 0;
+
+    }
+}
