@@ -15,23 +15,16 @@ interface MetaData {
     nip05?: string,
 }
 
-function GlobalFeed() {
-    const [pool, setPool] = useState<SimplePool | null>(null);
+interface Props {
+    pool: SimplePool | null;
+}
+
+function GlobalFeed({pool}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({}); //used to prevent duplicate fetches
     const defaultAvatar = DiceBears();
-
-    useEffect(() => {
-        //setup pool
-        const _pool = new SimplePool()
-        setPool(_pool);
-
-        return () => {
-            pool?.close(defaultRelays)
-        }
-    },[])
 
     useEffect(() => {
         //subscribe to events

@@ -1,4 +1,4 @@
-import { Event } from "nostr-tools";
+import { Event, EventTemplate } from "nostr-tools";
 
 export type EventWithProfile = Event & {
     profileEvent?: Event;
@@ -19,4 +19,15 @@ export interface FullEventData {
     sig: string;
     isFollowing: boolean; 
     created_at: number;
+}
+
+declare global {
+  interface Window {
+    nostr: Nostr;
+  }
+}
+
+type Nostr = {
+  getPublicKey(): Promise<string>;
+  signEvent(event: EventTemplate): Promise<Event>;
 }
