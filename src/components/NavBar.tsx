@@ -6,6 +6,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
+import RateReviewIcon from '@mui/icons-material/RateReview';
 import "./NavBar.css";
 
 interface NavBarProps {
@@ -28,6 +29,9 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
+      <Link className="nav-link" to="/newNote">
+        <RateReviewIcon/>
+      </Link>
       <Link className="nav-link" to="/global-feed">
         <PublicIcon />
       </Link>

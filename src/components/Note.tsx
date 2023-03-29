@@ -17,7 +17,7 @@ import { GetImageFromPost, sanitizeString } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
-import { getPublicKey, SimplePool, Event, EventTemplate, UnsignedEvent, Kind, getEventHash, signEvent, validateEvent, verifySignature } from 'nostr-tools';
+import { getPublicKey, SimplePool, Event, EventTemplate, UnsignedEvent, Kind, getEventHash, signEvent, validateEvent, verifySignature, nip19 } from 'nostr-tools';
 import { defaultRelays } from '../nostr/Relays';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -142,7 +142,7 @@ export default function Note(props: NoteProps) {
         {props.eventData.hashtags
           .filter((tag) => props.eventData.hashtags.indexOf(tag) === props.eventData.hashtags.lastIndexOf(tag))
           .map((tag) => (
-          <Typography variant="overline" color="primary" key={tag}> #{tag}</Typography>
+          <Typography variant="caption" color="primary" key={tag}> #{tag}</Typography>
         ))}
       </CardContent>
       <CardActions disableSpacing>
@@ -175,6 +175,9 @@ export default function Note(props: NoteProps) {
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
             Event Id: {sanitizeString(props.eventData.eventId)}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom>
+            PubKey: {sanitizeString(nip19.npubEncode(props.eventData.user.pubKey))}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             PubKey hex: {sanitizeString(props.eventData.user.pubKey)}

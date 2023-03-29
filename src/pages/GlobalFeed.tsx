@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import { Event, SimplePool } from 'nostr-tools'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useDebounce } from 'use-debounce';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
@@ -16,8 +17,10 @@ interface MetaData {
 
 function GlobalFeed() {
     const [pool, setPool] = useState<SimplePool | null>(null);
-    const [events, setEvents] = useState<Event[]>([]);
+    const [eventsImmediate, setEvents] = useState<Event[]>([]);
+    const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
+    const metaDataFetched = useRef<Record<string,boolean>>({}); //used to prevent duplicate fetches
     const defaultAvatar = DiceBears();
 
     useEffect(() => {
@@ -44,8 +47,8 @@ function GlobalFeed() {
             if (typeof(event.kind) !== "number" || typeof(event.created_at) !== "number") return;
 
             const sanitizedEvent: Event = sanitizeEvent(event);
-
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
+            window.localStorage.setItem('globalEvents', JSON.stringify(insertEventIntoDescendingList(eventsImmediate, sanitizedEvent)));
         })
 
         return () => {
@@ -58,7 +61,11 @@ function GlobalFeed() {
         //subscribe to metadata
         if (!pool) return;
 
-        const pubkeysToFetch = events.map(e => e.pubkey);
+        const pubkeysToFetch = events
+            .filter((event) => metaDataFetched.current[event.pubkey] !== true)   //filter out already fetched)
+            .map((event) => event.pubkey);
+
+        pubkeysToFetch.forEach((pubkey) => metaDataFetched.current[pubkey] = true);
 
         const sub = pool.sub(defaultRelays, [{
             kinds: [0],
@@ -71,7 +78,7 @@ function GlobalFeed() {
             const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
 
             console.log("metaDataParsedSanitized: " + JSON.stringify(metaDataParsedSanitized))
-
+            
             setMetaData((prevMetaData) => ({
                 ...prevMetaData,
                 [sanitizedEvent.pubkey]: {
@@ -81,6 +88,8 @@ function GlobalFeed() {
                     nip05: metaDataParsedSanitized.nip05
                 }
             }))
+ 
+            window.localStorage.setItem('globalMetaData', JSON.stringify(metaData))
         })
         
         sub.on("eose", () => {
