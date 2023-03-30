@@ -1,17 +1,31 @@
 import { bech32 } from "bech32";
 import * as secp from "@noble/secp256k1";
 import { Event } from "nostr-tools";
+import * as validator from 'validator';
+
 
 
 export const sanitizeString = (str: string) => {
+  const correctTypeInput = str + "";
+
+  const blacklistedInput = validator.default.blacklist(correctTypeInput, "<>'\"();");
+  if (blacklistedInput !== correctTypeInput) return "";
+
+  const escaped = validator.default.escape(blacklistedInput);
+  if (escaped !== blacklistedInput) return "";
+
+  //final check to make sure no html tags are present
   const tempDiv = document.createElement('div');
-  tempDiv.textContent = str;
-  return tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  tempDiv.textContent = escaped;
+  const finalCheck = tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (finalCheck !== escaped) return "";
+  return finalCheck;
 }
   
 export const sanitizeUrl = (url: string) => {
+  const sanitizedString = sanitizeString(url);
   const parser = document.createElement("a");
-  parser.href = url;
+  parser.href = sanitizedString;
   const sanitizedUrl =
     parser.protocol +
     "//" +

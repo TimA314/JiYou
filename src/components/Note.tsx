@@ -120,11 +120,11 @@ export default function Note(props: NoteProps) {
     <Card sx={{ maxWidth: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: purple[500] }} aria-label="recipe" src={props.eventData.user.picture}>
+          <Avatar aria-label="recipe" src={props.eventData.user.picture}>
           </Avatar>
         }
-        title={props.eventData.user.name ? props.eventData.user.name : "Satoshi"}
-        subheader={props.eventData.user.nip05 ? props.eventData.user.nip05 : ""}
+        title={props.eventData.user.name}
+        subheader={props.eventData.user.nip05}
       />
       {imageFromPost && (
         <CardMedia
@@ -174,13 +174,13 @@ export default function Note(props: NoteProps) {
           </Box>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
-            Event Id: {sanitizeString(props.eventData.eventId)}
+            Event Id: {props.eventData.eventId}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey: {sanitizeString(nip19.npubEncode(props.eventData.user.pubKey))}
+            PubKey: {nip19.npubEncode(props.eventData.user.pubKey)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey hex: {sanitizeString(props.eventData.user.pubKey)}
+            PubKey hex: {props.eventData.user.pubKey}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             Created: {moment.unix(props.eventData.created_at).format("LLLL")}
@@ -189,7 +189,7 @@ export default function Note(props: NoteProps) {
             UnixTime: {props.eventData.created_at}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Sig: {sanitizeString(props.eventData.sig)}
+            Sig: {props.eventData.sig}
           </Typography>
         </CardContent>
       </Collapse>

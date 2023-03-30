@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { Event, SimplePool } from 'nostr-tools'
+import { Event, EventTemplate, Filter, Kind, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -31,13 +31,23 @@ function GlobalFeed({pool}: Props) {
     useEffect(() => {
         //subscribe to events
         if (!pool) return;
-        
-        const sub = pool.sub(defaultRelays, [{
-            kinds: [1],
-            limit: 50,
-            "#t": ["nostr"]
-        }])
 
+        let subRequest: Filter;
+        if (hashtags.length > 0) {
+            subRequest = {
+                kinds: [1],
+                limit: 50,
+                "#t": hashtags
+            }
+        } else {
+            subRequest = {
+                kinds: [1],
+                limit: 50
+            }
+        }
+
+        const sub = pool.sub(defaultRelays, [subRequest])
+        
         sub.on("event", (event: Event) => { 
             if (typeof(event.kind) !== "number" || typeof(event.created_at) !== "number") return;
 
@@ -50,14 +60,14 @@ function GlobalFeed({pool}: Props) {
             sub.unsub();
         }
 
-    },[pool])
+    },[eventsImmediate, hashtags, pool])
 
     useEffect(() => {
         //subscribe to metadata
         if (!pool) return;
 
         const pubkeysToFetch = events
-            .filter((event) => metaDataFetched.current[event.pubkey] !== true)   //filter out already fetched)
+            .filter((event) => metaDataFetched.current[event.pubkey] !== true)   //filter out already fetched
             .map((event) => event.pubkey);
 
         pubkeysToFetch.forEach((pubkey) => metaDataFetched.current[pubkey] = true);
@@ -92,46 +102,42 @@ function GlobalFeed({pool}: Props) {
             sub.unsub();
         })
 
-    },[events, pool])
+    },[events, metaData, pool])
 
     //render
-    if (events && events.length > 0) {
-        return (
-            <Box sx={{marginTop: "52px"}}>
-                <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
-                {events
-                .filter((event, index, self) => {
-                    return index === self.findIndex((e) => (
-                    e.sig === event.sig
-                    ))
-                })
-                .map((event) => {
-                    // console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
-                    const hashtagsFromEvent = event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]);
-                    const fullEventData: FullEventData = {
-                        content: event.content,
-                        user: {
-                          name: metaData[event.pubkey]?.name ?? "Satoshi",
-                          picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
-                          about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
-                          nip05: metaData[event.pubkey]?.nip05 ?? "",
-                          pubKey: event.pubkey,
-                        },
-                        hashtags: hashtagsFromEvent,
-                        eventId: event.id,
-                        sig: event.sig,
-                        isFollowing: false,
-                        created_at: event.created_at
-                    }
-                    return (
-                        <Note eventData={fullEventData} key={sanitizeString(event.sig)}/>
-                    )
-                })}
-            </Box>
-        )
-    } else {
-        return <Loading />
-    }
+    return (
+        <Box sx={{marginTop: "52px"}}>
+            <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
+            {events
+            .filter((event, index, self) => {
+                return index === self.findIndex((e) => (
+                e.sig === event.sig
+                ))
+            })
+            .map((event) => {
+                // console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
+                const hashtagsFromEvent = event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]);
+                const fullEventData: FullEventData = {
+                    content: event.content,
+                    user: {
+                        name: metaData[event.pubkey]?.name ?? "Satoshi",
+                        picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
+                        about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
+                        nip05: metaData[event.pubkey]?.nip05 ?? "",
+                        pubKey: event.pubkey,
+                    },
+                    hashtags: hashtagsFromEvent,
+                    eventId: event.id,
+                    sig: event.sig,
+                    isFollowing: false,
+                    created_at: event.created_at
+                }
+                return (
+                    <Note eventData={fullEventData} key={sanitizeString(event.sig)}/>
+                )
+            })}
+        </Box>
+    )
 }
 
 export default GlobalFeed

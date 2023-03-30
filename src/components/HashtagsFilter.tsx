@@ -2,6 +2,7 @@ import { Button, Chip, IconButton, InputBase, Paper, Stack, TextField } from "@m
 import { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./HashtagsFilter.css";
+import { sanitizeString } from "../util";
 
 interface Props {
   hashtags: string[];
@@ -12,8 +13,10 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
   const [input, setInput] = useState("");
 
   const onAddHashTag = () => {
-    onChange([...hashtags, input.toLowerCase()]);
+    const hashtag = sanitizeString(input).toLowerCase();
+    if (hashtag === "" || hashtags.includes(hashtag)) return;
     setInput("");
+    onChange([...hashtags, hashtag]);
   };
 
   const removeHashtag = (hashtag: string) => {

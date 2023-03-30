@@ -27,6 +27,7 @@
     "styled-components": "^5.3.9",
     "typescript": "^4.9.5",
     "use-debounce": "^9.0.3",
+    "validator": "^13.9.0",
     "web-vitals": "^2.1.4"
   },
   "keywords": [
@@ -59,5 +60,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/validator": "^13.7.14"
   }
 }
