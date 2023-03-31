@@ -1,9 +1,9 @@
 import "./Relays.css";
 import { useEffect, useState } from 'react'
-import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper, Snackbar, Alert } from '@mui/material';
+import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper } from '@mui/material';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { EventTemplate, getEventHash, getPublicKey, Kind, signEvent, SimplePool, UnsignedEvent, validateEvent, verifySignature, Event } from 'nostr-tools';
+import { EventTemplate, getEventHash, Kind, SimplePool, validateEvent, verifySignature, Event } from 'nostr-tools';
 import { sanitizeString } from "../util";
 import { defaultRelays } from "../nostr/Relays";
 
@@ -14,7 +14,6 @@ interface RelayProps {
 }
 
 export default function Relays({relays, setRelayArray, pool}: RelayProps) {
-    const [pubkey, setPubkey] = useState<string | null>(null);
 
     useEffect(() => {
         if (!pool) return;
@@ -22,7 +21,6 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         const getEvents = async () => {
             try {
                 const pk = await window.nostr.getPublicKey();
-                setPubkey(pk);
                 let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk], limit: 1 }])
                 
                 if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
@@ -35,6 +33,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
                             }
                         }
                     })
+                    console.log(relayStrings)
                     setRelayArray(relayStrings);
                 }
                 
@@ -47,7 +46,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         if (window.nostr){
             getEvents();
         }
-    }, [pool, relays, setRelayArray])
+    }, [pool])
     
     
     const handleAddRelay = async () => {
@@ -57,8 +56,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         }
 
         try{
-            const pk = pubkey ? pubkey : await window.nostr.getPublicKey();
-            setPubkey(pk);
+            const pk = await window.nostr.getPublicKey();
             const relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
 
             const relayFormatted = relayInput.value.startsWith("wss://") ? relayInput.value : "wss://" + relayInput.value;
@@ -126,8 +124,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         console.log("Deleting Relay: " + relay);
 
         try{
-            const pk = pubkey ? pubkey : await window.nostr.getPublicKey();
-            setPubkey(pk);
+            const pk = await window.nostr.getPublicKey();
             
             const relayTags: string[][] = [];
 
