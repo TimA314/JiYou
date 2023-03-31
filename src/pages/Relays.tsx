@@ -64,7 +64,8 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
             const relayFormatted = relayInput.value.startsWith("wss://") ? relayInput.value : "wss://" + relayInput.value;
 
             if (relays.includes(relayFormatted)){
-                console.log("Relay already exists.");
+                relayInput.value = "";
+                alert("Relay already exists.");
                 return;
             }
             
@@ -105,8 +106,9 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
             pubs?.on("ok", () => {
                 alert("Posted to relays")
                 console.log("Posted to relays")
-                relayInput.value = "";
             })
+
+            relayInput.value = "";
             setRelayArray([...relays, relayFormatted]);
             
         } catch (error) {
@@ -135,46 +137,44 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
             })
             
             console.log("deleted relaylist: " + relayTags);
-            //cunstruct the event
-            // const _baseEvent = {
-            //     kind: Kind.RelayList,
-            //     content: "",
-            //     created_at: Math.floor(Date.now() / 1000),
-            //     tags: relayTags,
-            // } as EventTemplate
 
-            // const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+            const _baseEvent = {
+                kind: Kind.RelayList,
+                content: "",
+                created_at: Math.floor(Date.now() / 1000),
+                tags: relayTags,
+            } as EventTemplate
 
-            // const newEvent: Event = {
-            //     ..._baseEvent,
-            //     id: getEventHash({
-            //         ..._baseEvent,
-            //         pubkey: pk
-            //     }),
-            //     sig: sig,
-            //     pubkey: pk,
-            // }
+            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
 
-            // if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
-            //     console.log("Event is Invalid")
-            //     return;
-            // }
+            const newEvent: Event = {
+                ..._baseEvent,
+                id: getEventHash({
+                    ..._baseEvent,
+                    pubkey: pk
+                }),
+                sig: sig,
+                pubkey: pk,
+            }
 
-            // const pubs = pool?.publish(relays, newEvent)
-            // pubs?.on("ok", () => {
-            //     setRelayArray([...relays, sanitizedRelayInput]);
-            //     alert("Posted to relays")
-            //     console.log("Posted to relays")
-            //     relayInput.value = "";
-            //   })
+            if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
+                console.log("Event is Invalid")
+                return;
+            }
+
+            const relaysWithRemovedRelay = relays.filter((r) => r !== relay);
+            setRelayArray(relaysWithRemovedRelay);
+
+            const pubs = pool?.publish(relays, newEvent)
+            pubs?.on("ok", () => {
+                alert("Posted to relays")
+                console.log("Posted to relays")
+              })
               
         } catch (error) {
             alert("Canceled")
             console.log("Error adding relay" + error);
         }
-
-        // setRelayArray(deletedRelayList);
-        // console.log("Relay Removed.")
     }
 
     
@@ -184,6 +184,16 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
             <Typography sx={{ mt: 4, mb: 2 }} variant="h5" component="div">
                 Relays
             </Typography>
+
+            <Box id="relayform">
+                <Button sx={{marginBottom: "10px"}} variant='outlined' color='secondary' onClick={handleAddRelay}>Add Relay</Button>
+                <TextField
+                id="addRelayInput"
+                label="New Relay"
+                defaultValue=""
+                helperText="wss://example.com"
+                />
+            </Box>
 
             <List>
                 {relays.map(relay => {
@@ -197,7 +207,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
                                             </ListItemIcon>
                                     </Grid>
                                     <Grid item={true} xs={10} >
-                                        <Typography variant="body2" sx={{marginLeft: "7px"}}>
+                                        <Typography variant="body1" sx={{marginLeft: "7px"}}>
                                             {relay}
                                         </Typography>
                                     </Grid>
@@ -213,15 +223,6 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
                 })}
             </List>
 
-            <Box id="relayform">
-                <TextField
-                id="addRelayInput"
-                label="New Relay"
-                defaultValue=""
-                helperText="wss://example.com"
-                />
-                <Button sx={{margin: "5px"}} variant='outlined' color='secondary' onClick={handleAddRelay}>Add Relay</Button>
-            </Box>
         </Box>
     )
 }

@@ -20,6 +20,7 @@
     .relayItem {
         margin-top: 7px;
         margin-bottom: 7px;
+        border-radius: 10%;
     }
 
     #relayform {
