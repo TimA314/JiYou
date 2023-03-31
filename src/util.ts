@@ -9,7 +9,7 @@ export const sanitizeString = (str: string) => {
 
   const tempDiv = document.createElement('div');
   tempDiv.textContent = correctTypeInput;
-  const sanitizedStr = tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\/\//g, '');
+  const sanitizedStr = tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return sanitizedStr;
 }
   

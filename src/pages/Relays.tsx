@@ -60,10 +60,10 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
             const pk = pubkey ? pubkey : await window.nostr.getPublicKey();
             setPubkey(pk);
             const relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
-            const sanitizedRelayInput = sanitizeString(relayInput.value);
-            if (sanitizedRelayInput === "" || !sanitizedRelayInput.includes("wss")) return alert("Please include wss:// in your relay url.");
-            
-            if (relays.includes(sanitizedRelayInput)){
+
+            const relayFormatted = relayInput.value.startsWith("wss://") ? relayInput.value : "wss://" + relayInput.value;
+
+            if (relays.includes(relayFormatted)){
                 console.log("Relay already exists.");
                 return;
             }
@@ -74,7 +74,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
                 relayTags.push(["r", r])
             })
 
-            relayTags.push(["r", sanitizedRelayInput]);
+            relayTags.push(["r", relayFormatted]);
             
             //cunstruct the event
             const _baseEvent = {
@@ -101,13 +101,13 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
                 return;
             }
 
-            const pubs = pool?.publish(relays.length > 0 ? relays : defaultRelays, newEvent)
+            const pubs = pool?.publish(defaultRelays, newEvent)
             pubs?.on("ok", () => {
                 alert("Posted to relays")
                 console.log("Posted to relays")
                 relayInput.value = "";
             })
-            setRelayArray([...relays, sanitizedRelayInput]);
+            setRelayArray([...relays, relayFormatted]);
             
         } catch (error) {
             alert("Canceled")
