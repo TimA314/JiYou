@@ -1,20 +1,12 @@
 import { Box } from '@mui/material';
-import { Event, EventTemplate, Filter, Kind, SimplePool } from 'nostr-tools'
+import { Event, Filter, SimplePool, validateEvent } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
-import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, MetaData } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent, sanitizeString } from '../util';
-
-interface MetaData {
-    name?: string,
-    about?: string,
-    picture?: string,
-    nip05?: string,
-}
 
 interface Props {
     pool: SimplePool | null;
@@ -28,73 +20,64 @@ function GlobalFeed({pool}: Props) {
     const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
 
+    //subscribe to events
     useEffect(() => {
-        //subscribe to events
         if (!pool) return;
-
-        let subRequest: Filter;
-        if (hashtags.length > 0) {
-            subRequest = {
-                kinds: [1],
-                limit: 50,
-                "#t": hashtags
-            }
-        } else {
-            subRequest = {
-                kinds: [1],
-                limit: 50
-            }
-        }
-
-        const sub = pool.sub(defaultRelays, [subRequest])
+        console.log("hashtags: " + hashtags)
+        setEvents([]);
+        
+        const sub = pool.sub(defaultRelays, [{
+            kinds: [1],
+            limit: 50,
+            "#t": hashtags
+        }])
         
         sub.on("event", (event: Event) => { 
-            if (typeof(event.kind) !== "number" || typeof(event.created_at) !== "number") return;
-
             const sanitizedEvent: Event = sanitizeEvent(event);
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
-            window.localStorage.setItem('globalEvents', JSON.stringify(insertEventIntoDescendingList(eventsImmediate, sanitizedEvent)));
         })
 
         return () => {
             sub.unsub();
         }
 
-    },[eventsImmediate, hashtags, pool])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[hashtags, pool])
 
+
+    //subscribe to metadata
     useEffect(() => {
-        //subscribe to metadata
         if (!pool) return;
 
         const pubkeysToFetch = events
-            .filter((event) => metaDataFetched.current[event.pubkey] !== true)   //filter out already fetched
-            .map((event) => event.pubkey);
-
-        pubkeysToFetch.forEach((pubkey) => metaDataFetched.current[pubkey] = true);
+        .filter((event) => metaDataFetched.current[event.pubkey] !== true)
+        .map((event) => event.pubkey);
+  
+        pubkeysToFetch.forEach(
+            (pubkey) => (metaDataFetched.current[pubkey] = true)
+        );
 
         const sub = pool.sub(defaultRelays, [{
             kinds: [0],
             authors: pubkeysToFetch,
         }])
 
-        sub.on("event", (event: Event) => { 
+        sub.on("event", (event: Event) => {
             const sanitizedEvent: Event = sanitizeEvent(event);
-
-            const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
-
-            console.log("metaDataParsedSanitized: " + JSON.stringify(metaDataParsedSanitized))
-            
-            setMetaData((prevMetaData) => ({
-                ...prevMetaData,
-                [sanitizedEvent.pubkey]: {
-                    name: metaDataParsedSanitized.name,
-                    about: metaDataParsedSanitized.about,
-                    picture: metaDataParsedSanitized.picture,
-                    nip05: metaDataParsedSanitized.nip05
-                }
-            }))
- 
-            window.localStorage.setItem('globalMetaData', JSON.stringify(metaData))
+            if (sanitizedEvent.content !== "")
+            {
+                
+                
+                console.log("sanitized:" + validateEvent(sanitizeEvent(event)))
+                const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
+                
+                console.log("metaDataParsedSanitized: " + JSON.stringify(metaDataParsedSanitized))
+                
+                setMetaData((cur) => ({
+                    ...cur,
+                    [event.pubkey]: metaDataParsedSanitized,
+                }));
+            }
         })
         
         sub.on("eose", () => {
@@ -102,7 +85,10 @@ function GlobalFeed({pool}: Props) {
             sub.unsub();
         })
 
-    },[events, metaData, pool])
+        return () => {};
+    },[events, pool])
+
+    if (!pool) return null;
 
     //render
     return (
@@ -115,7 +101,7 @@ function GlobalFeed({pool}: Props) {
                 ))
             })
             .map((event) => {
-                // console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
+                //console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
                 const hashtagsFromEvent = event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]);
                 const fullEventData: FullEventData = {
                     content: event.content,

@@ -1,29 +1,21 @@
 import { bech32 } from "bech32";
 import * as secp from "@noble/secp256k1";
 import { Event } from "nostr-tools";
-import * as validator from 'validator';
-
+import { MetaData } from "./nostr/Types";
 
 
 export const sanitizeString = (str: string) => {
   const correctTypeInput = str + "";
 
-  const blacklistedInput = validator.default.blacklist(correctTypeInput, "<>'\"();");
-  if (blacklistedInput !== correctTypeInput) return "";
-
-  const escaped = validator.default.escape(blacklistedInput);
-  if (escaped !== blacklistedInput) return "";
-
-  //final check to make sure no html tags are present
   const tempDiv = document.createElement('div');
-  tempDiv.textContent = escaped;
-  const finalCheck = tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  if (finalCheck !== escaped) return "";
-  return finalCheck;
+  tempDiv.textContent = correctTypeInput;
+  const sanitizedStr = tempDiv.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\/\//g, '');
+  return sanitizedStr;
 }
   
 export const sanitizeUrl = (url: string) => {
   const sanitizedString = sanitizeString(url);
+
   const parser = document.createElement("a");
   parser.href = sanitizedString;
   const sanitizedUrl =
@@ -37,9 +29,18 @@ export const sanitizeUrl = (url: string) => {
 }
 
 export const sanitizeEvent = (event: Event) => {
+  const contentObject = JSON.parse(event.content + "");
+  const sanitizedContentObject: MetaData = {
+    name: sanitizeString(contentObject.name),
+    picture: sanitizeUrl(contentObject.picture),
+    about: sanitizeString(contentObject.about),
+    nip05: sanitizeUrl(contentObject.nip05),
+  }
+  const sanitizedContent: string = Object.keys(contentObject).length !== 0 ? JSON.stringify(sanitizedContentObject) : sanitizeString(event.content);
+  
   return { 
     id: sanitizeString(event.id),
-    content: sanitizeString(event.content),
+    content: sanitizedContent,
     sig: sanitizeString(event.sig),
     pubkey: sanitizeString(event.pubkey),
     tags: event.tags.map(tag => [sanitizeString(tag[0]), sanitizeString(tag[1])]),
@@ -84,14 +85,14 @@ export function splitByUrl(str: string) {
 
 export const DiceBears = () => {
   const dicebearArray = [
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Bubba&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Snowball&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Baby&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Misty&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Missy&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Pumpkin&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Simon&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
-    "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Bubba&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Snowball&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Baby&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Misty&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Missy&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Pumpkin&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Simon&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
+    // "https://api.dicebear.com/5.x/bottts/svg?seed=Cookie&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01",
     "https://api.dicebear.com/5.x/bottts/svg?seed=Lucky&mouth=smile01,smile02&sides=antenna01,cables01,cables02,round,square,squareAssymetric&top=antenna,antennaCrooked,glowingBulb01,glowingBulb02,lights,radar,bulb01"
   ]
 

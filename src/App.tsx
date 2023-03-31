@@ -45,6 +45,7 @@ const theme = createTheme({
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
 
   useEffect(() => {
     //setup pool
@@ -64,7 +65,7 @@ function App() {
     <Routes>
       <Route path="/" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
       <Route path="/profile" element={<Profile/>}/>
-      <Route path="/relays" element={<Relays />} />
+      <Route path="/relays" element={<Relays relays={relayArray} setRelayArray={setRelayArray} pool={pool}/>} />
       <Route path="/follower-feed" element={<FollowerFeed />} />
       <Route path="/global-feed" element={<GlobalFeed pool={pool} />} />
       <Route path="/newNote" element={<CreateNote pool={pool}/>} />

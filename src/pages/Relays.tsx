@@ -4,124 +4,180 @@ import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon,
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { EventTemplate, getEventHash, getPublicKey, Kind, signEvent, SimplePool, UnsignedEvent, validateEvent, verifySignature, Event } from 'nostr-tools';
-import { useNavigate } from 'react-router';
-import { defaultRelays } from "../nostr/Relays";
-import * as secp from "@noble/secp256k1";
 import { sanitizeString } from "../util";
+import { defaultRelays } from "../nostr/Relays";
 
-export default function Relays() {
-    const [open, setOpen] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
-    const privateKey = window.localStorage.getItem("localSk");
-    const localRelays: string | null = localStorage.getItem('relays');
-    const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
-    const [relayList, setRelayList] = useState<string[]>(relays);
-    const navigate = useNavigate();
-    const pool = new SimplePool();
-    
-    const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-        setOpen(false);
-      };
+interface RelayProps {
+    relays: string[];
+    setRelayArray: (relays: string[]) => void;
+    pool: SimplePool | null;
+}
+
+export default function Relays({relays, setRelayArray, pool}: RelayProps) {
+    const [pubkey, setPubkey] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!secp.utils.isValidPrivateKey(privateKey ?? "")) navigate("/", {replace: true});
+        if (!pool) return;
 
         const getEvents = async () => {
-            let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [getPublicKey(privateKey!)], limit: 1 }])
-
-            if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
-                let relayStrings: string[] = [];
-                currentRelaysEvent[0].tags.forEach((tag) => {
-                    if(tag[0] === "r") {
-                        relayStrings.push(tag[1]);
-                    }
-                })
-                window.localStorage.setItem("relays", JSON.stringify(relayStrings))
-                setRelayList(relayStrings)
+            try {
+                const pk = await window.nostr.getPublicKey();
+                setPubkey(pk);
+                let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk], limit: 1 }])
+                
+                if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
+                    let relayStrings: string[] = [];
+                    currentRelaysEvent[0].tags.forEach((tag) => {
+                        if(tag[0] === "r") {
+                            const sanitizedRelay = sanitizeString(tag[1]);
+                            if (sanitizedRelay.startsWith("wss://")){
+                                relayStrings.push(sanitizedRelay);
+                            }
+                        }
+                    })
+                    setRelayArray(relayStrings);
+                }
+                
+            } catch (error) {
+              alert(error)
+              console.log(error);
             }
+          }
+        
+        if (window.nostr){
+            getEvents();
         }
-        getEvents();
     })
     
     
-    const handleAddRelay = () => {
-        let relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
-        const sanitizedRelayInput = sanitizeString(relayInput.value);
-
-        if (sanitizedRelayInput === "" || !sanitizedRelayInput.includes("wss")){
-            console.log("Please enter a relay url.")
+    const handleAddRelay = async () => {
+        if (!window.nostr) {
+            alert("You need to install a Nostr extension to post to the relays")
             return;
         }
 
-        if (relays.includes(sanitizedRelayInput)){
-            console.log("Relay already exists.");
-            return;
+        try{
+            const pk = pubkey ? pubkey : await window.nostr.getPublicKey();
+            setPubkey(pk);
+            const relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
+            const sanitizedRelayInput = sanitizeString(relayInput.value);
+            if (sanitizedRelayInput === "" || !sanitizedRelayInput.includes("wss")) return alert("Please include wss:// in your relay url.");
+            
+            if (relays.includes(sanitizedRelayInput)){
+                console.log("Relay already exists.");
+                return;
+            }
+            
+            const relayTags: string[][] = [];
+            //construct the tags
+            relays.forEach((r) => {
+                relayTags.push(["r", r])
+            })
+
+            relayTags.push(["r", sanitizedRelayInput]);
+            
+            //cunstruct the event
+            const _baseEvent = {
+                kind: Kind.RelayList,
+                content: "",
+                created_at: Math.floor(Date.now() / 1000),
+                tags: relayTags,
+            } as EventTemplate
+
+            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+
+            const newEvent: Event = {
+                ..._baseEvent,
+                id: getEventHash({
+                    ..._baseEvent,
+                    pubkey: pk
+                }),
+                sig: sig,
+                pubkey: pk,
+            }
+
+            if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
+                console.log("Event is Invalid")
+                return;
+            }
+
+            const pubs = pool?.publish(relays.length > 0 ? relays : defaultRelays, newEvent)
+            pubs?.on("ok", () => {
+                alert("Posted to relays")
+                console.log("Posted to relays")
+                relayInput.value = "";
+            })
+            setRelayArray([...relays, sanitizedRelayInput]);
+            
+        } catch (error) {
+            alert("Canceled")
+            console.log("Error adding relay" + error);
         }
-        window.localStorage.setItem("relays", JSON.stringify([...relayList, sanitizedRelayInput]));
-        setRelayList((prev) => [...prev, sanitizedRelayInput]);
-        console.log("relay added")
     }
 
-    const DeleteRelay = (relay: string) => {
+    const DeleteRelay = async (relay: string) => {
+        if (!window.nostr) {
+            alert("You need to install a Nostr extension to post to the relays")
+            return;
+        }
+
         console.log("Deleting Relay: " + relay);
-        if (relayList.length === 1){
-            console.log("Keep at least one relay");
-            return;
+
+        try{
+            const pk = pubkey ? pubkey : await window.nostr.getPublicKey();
+            setPubkey(pk);
+            
+            const relayTags: string[][] = [];
+
+            relays.forEach((r) => {
+                if (r === relay) return;
+                relayTags.push(["r", r])
+            })
+            
+            console.log("deleted relaylist: " + relayTags);
+            //cunstruct the event
+            // const _baseEvent = {
+            //     kind: Kind.RelayList,
+            //     content: "",
+            //     created_at: Math.floor(Date.now() / 1000),
+            //     tags: relayTags,
+            // } as EventTemplate
+
+            // const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+
+            // const newEvent: Event = {
+            //     ..._baseEvent,
+            //     id: getEventHash({
+            //         ..._baseEvent,
+            //         pubkey: pk
+            //     }),
+            //     sig: sig,
+            //     pubkey: pk,
+            // }
+
+            // if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
+            //     console.log("Event is Invalid")
+            //     return;
+            // }
+
+            // const pubs = pool?.publish(relays, newEvent)
+            // pubs?.on("ok", () => {
+            //     setRelayArray([...relays, sanitizedRelayInput]);
+            //     alert("Posted to relays")
+            //     console.log("Posted to relays")
+            //     relayInput.value = "";
+            //   })
+              
+        } catch (error) {
+            alert("Canceled")
+            console.log("Error adding relay" + error);
         }
-        const deletedRelayList = relayList.filter((r) => r !== relay);
-        setRelayList(deletedRelayList);
-        console.log("Relay Removed.")
+
+        // setRelayArray(deletedRelayList);
+        // console.log("Relay Removed.")
     }
 
-    const handleSaveRelays = async () => {
-        let saveRelayPool = new SimplePool();
-        let prevRelays = await saveRelayPool.list(relayList, [{kinds: [10002], authors: [getPublicKey(privateKey!)], limit: 1 }])
-        console.log("PrevRelays" + prevRelays)
-
-        let relayTags: string[][] = [];
-
-        relayList.forEach(relay => {
-            relayTags.push(["r", relay])
-        });
-
-        const newRelaysEvent: EventTemplate | UnsignedEvent | Event = {
-            kind: Kind.RelayList,
-            tags: relayTags,
-            content: "",
-            created_at: Math.floor(Date.now() / 1000),
-            pubkey: getPublicKey(privateKey!)
-        }
-
-        const signedEvent: Event = {
-            ...newRelaysEvent,
-            id: getEventHash(newRelaysEvent),
-            sig: signEvent(newRelaysEvent, privateKey!),
-        };
-        
-        if(!validateEvent(signedEvent) || !verifySignature(signedEvent)) {
-            console.log("Event is Invalid")
-            return;
-        }
-
-        console.log("Event is valid")
-      
-        let pubs = saveRelayPool.publish(relayList, signedEvent);
-        console.log("pubs: " + JSON.stringify(pubs));
-        
-        pubs.on("ok", () => {
-          console.log(`Published Event`);
-          return "ok";
-        })
-      
-        pubs.on("failed", (reason: string) => {
-            console.log("failed: " + reason);
-            return "failed";
-        })
-    }
-
+    
 
     return (
         <Box id="RelaysBox">
@@ -130,7 +186,7 @@ export default function Relays() {
             </Typography>
 
             <List>
-                {relayList.map(relay => {
+                {relays.map(relay => {
                     return (
                         <Paper key={relay} className="relayItem">
                             <ListItem >
@@ -165,11 +221,7 @@ export default function Relays() {
                 helperText="wss://example.com"
                 />
                 <Button sx={{margin: "5px"}} variant='outlined' color='secondary' onClick={handleAddRelay}>Add Relay</Button>
-                <Button sx={{margin: "5px"}} variant='outlined' color='warning' onClick={handleSaveRelays}>Save Relays Publicly</Button>
             </Box>
-            <Snackbar open={open} autoHideDuration={6000}>
-                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>{errorMessage}</Alert>
-            </Snackbar>
-            </Box>
+        </Box>
     )
 }

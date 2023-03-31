@@ -31,3 +31,10 @@ type Nostr = {
   getPublicKey(): Promise<string>;
   signEvent(event: EventTemplate): Promise<Event>;
 }
+
+export interface MetaData {
+  name?: string,
+  about?: string,
+  picture?: string,
+  nip05?: string,
+}
