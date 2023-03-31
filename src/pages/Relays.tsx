@@ -47,7 +47,7 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         if (window.nostr){
             getEvents();
         }
-    })
+    }, [pool, relays, setRelayArray])
     
     
     const handleAddRelay = async () => {

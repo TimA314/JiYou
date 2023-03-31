@@ -1,4 +1,4 @@
-import { Button, Chip, IconButton, InputBase, Paper, Stack, TextField } from "@mui/material";
+import { Chip, IconButton, InputBase, Paper, Stack} from "@mui/material";
 import { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./HashtagsFilter.css";

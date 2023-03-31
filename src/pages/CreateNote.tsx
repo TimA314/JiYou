@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import { FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
-import { defaultRelays } from '../nostr/Relays';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool, validateEvent } from 'nostr-tools';
 import { sanitizeString } from '../util';
-
-interface Post {
-  title: string;
-  content: string;
-}
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;
@@ -17,38 +11,38 @@ interface RelaySwitches {
 
 interface Props {
   pool: SimplePool | null;
+  relays: string[];
 }
 
 
-function CreateNote({pool}: Props) {
-  const relaylist = defaultRelays.reduce((obj, relay) => {
+function CreateNote({pool, relays}: Props) {
+  const [input, setInput] = useState("");
+  const relaylist = relays.reduce((obj, relay) => {
     obj[relay] = true;
     return obj;
   }, {} as RelaySwitches);
-  const [relays, setRelays] = useState(relaylist);
-  const [post, setPost] = useState<Post>({ title: '', content: '' });
-
+  const [relaySwitches, setRelaysSwitches] = useState(relaylist);
 
   const handleRelaySwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRelays(prevState => ({
+    setRelaysSwitches(prevState => ({
       ...prevState,
       [event.target.id]: !prevState[event.target.id]
     }));
   };
 
-  const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPost({ ...post, title: event.target.value });
-  };
-
   const handlePostToRelaysClick = async () => {
-    const noteContent = document.getElementById('noteContent') as HTMLInputElement;
-    const relaysToPostTo = Object.keys(relays).filter(relay => relays[relay]);
-    console.log(relaysToPostTo);
+    if (!pool) {
+      alert("pool is null")
+      return;
+    }
+    
+    const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);
+    console.log("relays to post: " + relaysToPostTo);
 
     //cunstruct the event
     const _baseEvent = {
       kind: Kind.Text,
-      content: sanitizeString(noteContent.value),
+      content: sanitizeString(input),
       created_at: Math.floor(Date.now() / 1000),
       tags: [],
     } as EventTemplate
@@ -56,8 +50,9 @@ function CreateNote({pool}: Props) {
     //check if the user has a nostr extension
     if (!window.nostr) {
       alert("You need to install a Nostr extension to post to the relays")
-      console.log("Posted to relays")
+      return;
     }
+
     try {
       const pubkey = await window.nostr.getPublicKey();
       //prompt the user to sign the event
@@ -73,24 +68,26 @@ function CreateNote({pool}: Props) {
       console.log(validateEvent(newEvent))
 
       //post the event to the relays
-      const pubs = pool?.publish(relaysToPostTo, newEvent)
+      const pubs = pool.publish(relaysToPostTo, newEvent)
 
       let clearedInput = false;
-      pubs?.on("ok", () => {
+      
+      pubs.on("ok", () => {
         alert("Posted to relays")
         console.log("Posted to relays")
         if (clearedInput) return;
-        const noteContent = document.getElementById('noteContent') as HTMLInputElement;
-        noteContent.value = "";
         clearedInput = true;
+        setInput("");
+      })
+
+      pubs.on("failed", (error: string) => {
+        alert("Failed to post to relays" + error)
       })
 
     } catch (error) {
       alert("Canceled")
       console.log(error);
     }
-  
-
   };
   return (
     <div className="newNoteContainer">
@@ -101,16 +98,17 @@ function CreateNote({pool}: Props) {
           variant="outlined"
           fullWidth
           multiline
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           focused 
           rows={12}
           margin="normal"
-          onChange={handleTitleChange}
         />
         <Button type="button" variant="contained" color='warning' onClick={handlePostToRelaysClick}>Post To Relays</Button>
         <div className='relayListContainer'>
-          {defaultRelays.map((relay) => (
+          {relays.map((relay) => (
             <div className='relaySwitch' key={relay}>
-              <FormControlLabel control={<Switch id={relay} checked={relays[relay]} size='small' onChange={handleRelaySwitchChange}/>} label={relay} />
+              <FormControlLabel control={<Switch id={relay} checked={relaySwitches[relay]} size='small' onChange={handleRelaySwitchChange}/>} label={relay} />
             </div>
           ))}
         </div>
