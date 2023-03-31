@@ -32,7 +32,10 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
           ))}
         </Stack>
       </Paper>
-      <Paper sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400 }} >
+      <Paper sx={{ p: '2px 4px', display: 'flex', width: "100%" }} >
+        <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={onAddHashTag}>
+          <SearchIcon />
+        </IconButton>
         <InputBase
           size="small"
           placeholder="Search By Topic"
@@ -46,9 +49,6 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
             flex: 1
           }}
           />
-        <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={onAddHashTag}>
-          <SearchIcon />
-        </IconButton>
       </Paper>
     </div>
   );

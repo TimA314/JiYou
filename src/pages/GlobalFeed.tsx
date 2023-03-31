@@ -30,6 +30,7 @@ function GlobalFeed({pool, relays}: Props) {
 
         console.log("hashtags: " + hashtags)
         
+        setEvents([]);
         const sub = pool.sub(relays, [{
             kinds: [Kind.Text],
             limit: 100,
@@ -102,7 +103,6 @@ function GlobalFeed({pool, relays}: Props) {
             <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
             {events
             .map((event) => {
-                //console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
                 const fullEventData: FullEventData = {
                     content: event.content,
                     user: {
