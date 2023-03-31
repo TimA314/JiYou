@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { Event, Filter, SimplePool, validateEvent } from 'nostr-tools'
+import { Event, Filter, Kind, SimplePool, validateEvent } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -9,10 +9,11 @@ import { FullEventData, MetaData } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent, sanitizeString } from '../util';
 
 interface Props {
-    pool: SimplePool | null;
+    pool: SimplePool | null,
+    relays: string[],
 }
 
-function GlobalFeed({pool}: Props) {
+function GlobalFeed({pool, relays}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
@@ -22,18 +23,23 @@ function GlobalFeed({pool}: Props) {
 
     //subscribe to events
     useEffect(() => {
-        if (!pool) return;
+        if (!pool) {
+            console.log("pool is null")
+            return;
+        }
+
         console.log("hashtags: " + hashtags)
-        setEvents([]);
         
-        const sub = pool.sub(defaultRelays, [{
-            kinds: [1],
-            limit: 50,
+        const sub = pool.sub(relays, [{
+            kinds: [Kind.Text],
+            limit: 100,
             "#t": hashtags
         }])
         
         sub.on("event", (event: Event) => { 
+            console.log("event: " + JSON.stringify(event));
             const sanitizedEvent: Event = sanitizeEvent(event);
+            console.log("sanitizedEvent: " + JSON.stringify(sanitizedEvent));
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
         })
 
@@ -41,8 +47,8 @@ function GlobalFeed({pool}: Props) {
             sub.unsub();
         }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[hashtags, pool])
+
+    },[pool, hashtags, relays])
 
 
     //subscribe to metadata
@@ -95,14 +101,8 @@ function GlobalFeed({pool}: Props) {
         <Box sx={{marginTop: "52px"}}>
             <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
             {events
-            .filter((event, index, self) => {
-                return index === self.findIndex((e) => (
-                e.sig === event.sig
-                ))
-            })
             .map((event) => {
                 //console.log("event: " + JSON.stringify(event), "metaData: " + metaData[event.pubkey])
-                const hashtagsFromEvent = event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]);
                 const fullEventData: FullEventData = {
                     content: event.content,
                     user: {
@@ -112,14 +112,14 @@ function GlobalFeed({pool}: Props) {
                         nip05: metaData[event.pubkey]?.nip05 ?? "",
                         pubKey: event.pubkey,
                     },
-                    hashtags: hashtagsFromEvent,
+                    hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
                     eventId: event.id,
                     sig: event.sig,
                     isFollowing: false,
                     created_at: event.created_at
                 }
                 return (
-                    <Note eventData={fullEventData} key={sanitizeString(event.sig)}/>
+                    <Note pool={pool} eventData={fullEventData} key={event.sig}/>
                 )
             })}
         </Box>

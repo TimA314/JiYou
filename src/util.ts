@@ -29,14 +29,22 @@ export const sanitizeUrl = (url: string) => {
 }
 
 export const sanitizeEvent = (event: Event) => {
-  const contentObject = JSON.parse(event.content + "");
-  const sanitizedContentObject: MetaData = {
-    name: sanitizeString(contentObject.name),
-    picture: sanitizeUrl(contentObject.picture),
-    about: sanitizeString(contentObject.about),
-    nip05: sanitizeUrl(contentObject.nip05),
+  let sanitizedProfileContent = "";
+
+  if (event.kind === 0){
+    const contentObject = JSON.parse(event.content);
+    const sanitizedContentObject: MetaData = {
+      name: sanitizeString(contentObject.name),
+      picture: sanitizeUrl(contentObject.picture),
+      banner: sanitizeUrl(contentObject.banner),
+      about: sanitizeString(contentObject.about),
+      nip05: sanitizeUrl(contentObject.nip05),
+      lud16: sanitizeString(contentObject.lud16),
+    }
+    sanitizedProfileContent = JSON.stringify(sanitizedContentObject);
   }
-  const sanitizedContent: string = Object.keys(contentObject).length !== 0 ? JSON.stringify(sanitizedContentObject) : sanitizeString(event.content);
+
+  const sanitizedContent: string = sanitizedProfileContent !== "" ? sanitizedProfileContent : sanitizeString(event.content);
   
   return { 
     id: sanitizeString(event.id),

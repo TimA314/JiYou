@@ -37,25 +37,21 @@ interface ExpandMoreProps extends IconButtonProps {
 
 interface NoteProps {
   eventData: FullEventData;
+  pool: SimplePool | null;
 }
 
-export default function Note(props: NoteProps) {
+export default function Note({eventData, pool}: NoteProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isFollowing, setIsFollowing] = useState<Boolean>(props.eventData.isFollowing ?? false)
-  const imageFromPost = GetImageFromPost(props.eventData.content);
-  const localRelays: string | null = localStorage.getItem('relays');
-  const relays: string[] = !localRelays || JSON.parse(localRelays)?.length === 0 ? defaultRelays : JSON.parse(localRelays);
-  const privateKey = window.localStorage.getItem("localSk");
-  const pool = new SimplePool()
+  const [isFollowing, setIsFollowing] = useState<Boolean>(false)
+  const imageFromPost = GetImageFromPost(eventData.content);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
 
-
   const handleFollowButtonClicked = () => {
     setIsFollowing(!isFollowing);
-    updateFollowerEvent();
+    //updateFollowerEvent();
   }
 
   const getUserFollowers = async(userFollowerEvent: Event[]) => {
@@ -64,67 +60,67 @@ export default function Note(props: NoteProps) {
     return userFollowerEvent[0].tags;
   }
 
-  const updateFollowerEvent = async () => {
+  // const updateFollowerEvent = async () => {
 
-    let followerEvent = await pool.list(relays, [{kinds: [3], authors: [getPublicKey(privateKey!)], limit: 1 }])
+  //   let followerEvent = await pool.list(relays, [{kinds: [3], authors: [getPublicKey(privateKey!)], limit: 1 }])
 
-    let prevTags: string[][] = await getUserFollowers(followerEvent) ?? [];
+  //   let prevTags: string[][] = await getUserFollowers(followerEvent) ?? [];
     
-    let exists: boolean = prevTags?.find(tag => tag[1] === props.eventData.user.pubKey) !== undefined
+  //   let exists: boolean = prevTags?.find(tag => tag[1] === props.eventData.user.pubKey) !== undefined
 
-    if (exists) return;
+  //   if (exists) return;
 
-    let newTags: string[][] = []
+  //   let newTags: string[][] = []
 
-    if (prevTags.length > 0){
-      newTags = [...prevTags, ["p", props.eventData.user.pubKey]]
-    } else {
-      newTags = [["p", props.eventData.user.pubKey]]
-    }
+  //   if (prevTags.length > 0){
+  //     newTags = [...prevTags, ["p", props.eventData.user.pubKey]]
+  //   } else {
+  //     newTags = [["p", props.eventData.user.pubKey]]
+  //   }
 
-    const newFollowerEvent: EventTemplate | UnsignedEvent | Event = {
-        kind: Kind.Contacts,
-        tags: newTags,
-        content: "",
-        created_at: Math.floor(Date.now() / 1000),
-        pubkey: getPublicKey(privateKey!)
-    }
+  //   const newFollowerEvent: EventTemplate | UnsignedEvent | Event = {
+  //       kind: Kind.Contacts,
+  //       tags: newTags,
+  //       content: "",
+  //       created_at: Math.floor(Date.now() / 1000),
+  //       pubkey: getPublicKey(privateKey!)
+  //   }
 
-    const signedEvent: Event = {
-        ...newFollowerEvent,
-        id: getEventHash(newFollowerEvent),
-        sig: signEvent(newFollowerEvent, privateKey!),
-    };
+  //   const signedEvent: Event = {
+  //       ...newFollowerEvent,
+  //       id: getEventHash(newFollowerEvent),
+  //       sig: signEvent(newFollowerEvent, privateKey!),
+  //   };
     
-    if(!validateEvent(signedEvent) || !verifySignature(signedEvent)) {
-        console.log("Event is Invalid")
-        return;
-    }
+  //   if(!validateEvent(signedEvent) || !verifySignature(signedEvent)) {
+  //       console.log("Event is Invalid")
+  //       return;
+  //   }
 
-    console.log("Event is valid")
+  //   console.log("Event is valid")
 
-    let pubs = pool.publish(relays, signedEvent);
+  //   let pubs = pool.publish(relays, signedEvent);
 
-    pubs.on("ok", () => {
-        console.log(`Published Event`);
-        return;
-    })
+  //   pubs.on("ok", () => {
+  //       console.log(`Published Event`);
+  //       return;
+  //   })
 
-    pubs.on("failed", (reason: string) => {
-        console.log("failed: " + reason);
-        return;
-    })
-  }
-  
+  //   pubs.on("failed", (reason: string) => {
+  //       console.log("failed: " + reason);
+  //       return;
+  //   })
+  // }
+  console.log("EventData" + JSON.stringify( eventData))
   return (
     <Card sx={{ maxWidth: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" src={props.eventData.user.picture}>
+          <Avatar aria-label="recipe" src={eventData.user.picture}>
           </Avatar>
         }
-        title={props.eventData.user.name}
-        subheader={props.eventData.user.nip05}
+        title={eventData.user.name}
+        subheader={eventData.user.nip05}
       />
       {imageFromPost && (
         <CardMedia
@@ -135,12 +131,12 @@ export default function Note(props: NoteProps) {
       }
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-        {props.eventData.content}
+        {eventData.content}
         </Typography>
       </CardContent>
       <CardContent>
-        {props.eventData.hashtags
-          .filter((tag) => props.eventData.hashtags.indexOf(tag) === props.eventData.hashtags.lastIndexOf(tag))
+        {eventData.hashtags
+          .filter((tag) => eventData.hashtags.indexOf(tag) === eventData.hashtags.lastIndexOf(tag))
           .map((tag) => (
           <Typography variant="caption" color="primary" key={tag}> #{tag}</Typography>
         ))}
@@ -153,7 +149,7 @@ export default function Note(props: NoteProps) {
           <ShareIcon />
         </IconButton>
         <Typography variant="subtitle2">
-        {moment.unix(props.eventData.created_at).fromNow()}
+        {moment.unix(eventData.created_at).fromNow()}
         </Typography>
 
         <ExpandMore
@@ -174,22 +170,22 @@ export default function Note(props: NoteProps) {
           </Box>
           <Typography paragraph display="h6">MetaData:</Typography>
           <Typography variant="caption" display="block">
-            Event Id: {props.eventData.eventId}
+            Event Id: {eventData.eventId}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey: {nip19.npubEncode(props.eventData.user.pubKey)}
+            PubKey: {nip19.npubEncode(eventData.user.pubKey)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey hex: {props.eventData.user.pubKey}
+            PubKey hex: {eventData.user.pubKey}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Created: {moment.unix(props.eventData.created_at).format("LLLL")}
+            Created: {moment.unix(eventData.created_at).format("LLLL")}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            UnixTime: {props.eventData.created_at}
+            UnixTime: {eventData.created_at}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Sig: {props.eventData.sig}
+            Sig: {eventData.sig}
           </Typography>
         </CardContent>
       </Collapse>
