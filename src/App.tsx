@@ -68,7 +68,7 @@ function App() {
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool}/>} />
       <Route path="/follower-feed" element={<FollowerFeed />} />
-      <Route path="/global-feed" element={<GlobalFeed pool={pool} relays={relayArray} />} />
+      <Route path="/feed" element={<GlobalFeed pool={pool} relays={relayArray} />} />
       <Route path="/newNote" element={<CreateNote pool={pool} relays={relayArray}/>} />
     </Routes>
     <NavBar isLoggedIn={isLoggedIn}/>

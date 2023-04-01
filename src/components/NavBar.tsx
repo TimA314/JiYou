@@ -1,8 +1,7 @@
 import * as React from 'react';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import Diversity1Icon from '@mui/icons-material/Diversity1';
+import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import CellTowerIcon from '@mui/icons-material/CellTower';
-import PublicIcon from '@mui/icons-material/Public';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
@@ -32,11 +31,8 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
       <Link className="nav-link" to="/newNote">
         <RateReviewIcon/>
       </Link>
-      <Link className="nav-link" to="/global-feed">
-        <PublicIcon />
-      </Link>
-      <Link  className="nav-link" to="/follower-feed">
-        <Diversity1Icon />
+      <Link className="nav-link" to="/feed">
+        <DynamicFeedIcon />
       </Link>
       <Link  className="nav-link" to="/relays">
         <CellTowerIcon />

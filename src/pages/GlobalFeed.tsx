@@ -31,6 +31,7 @@ function GlobalFeed({pool, relays}: Props) {
             console.log("pool is null")
             return;
         }
+        setEvents([]);
 
         const getFollowers = async () => {
 
@@ -63,7 +64,6 @@ function GlobalFeed({pool, relays}: Props) {
         
         console.log("hashtags: " + hashtags)
 
-        
         let options: Filter = {
             kinds: [Kind.Text],
             limit: 100,
@@ -88,14 +88,10 @@ function GlobalFeed({pool, relays}: Props) {
                 break;
         }
 
-        setEvents([]);
-
         const sub = pool.sub(relays, [options]);
         
         sub.on("event", (event: Event) => { 
-            //console.log("event: " + JSON.stringify(event));
             const sanitizedEvent: Event = sanitizeEvent(event);
-            //console.log("sanitizedEvent: " + JSON.stringify(sanitizedEvent));
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
         })
 
