@@ -11,7 +11,7 @@ Learn more about Nostr here https://nostr.how/
 
 Jiyou supports the following NIP's:
 
-  - [ ] NIP-01: Basic protocol flow description
+  - [x] NIP-01: Basic protocol flow description
   - [ ] NIP-02: Contact List and Petnames (No petname support)
   - [ ] NIP-03: OpenTimestamps Attestations for Events
   - [ ] NIP-04: Encrypted Direct Message
