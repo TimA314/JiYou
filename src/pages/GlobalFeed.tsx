@@ -3,6 +3,7 @@ import { Event, Filter, Kind, SimplePool, validateEvent } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
+import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData } from '../nostr/Types';
@@ -30,12 +31,19 @@ function GlobalFeed({pool, relays}: Props) {
 
         console.log("hashtags: " + hashtags)
         
-        setEvents([]);
-        const sub = pool.sub(relays, [{
+        const optionsWithHashtags: Filter = {
             kinds: [Kind.Text],
             limit: 100,
             "#t": hashtags
-        }])
+        }
+
+        const options: Filter = {
+            kinds: [Kind.Text],
+            limit: 100,
+        }
+
+        setEvents([]);
+        const sub = pool.sub(relays, [hashtags.length > 0 ? optionsWithHashtags : options])
         
         sub.on("event", (event: Event) => { 
             console.log("event: " + JSON.stringify(event));
@@ -101,6 +109,7 @@ function GlobalFeed({pool, relays}: Props) {
     return (
         <Box sx={{marginTop: "52px"}}>
             <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
+            {events.length === 0 && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             {events
             .map((event) => {
                 const fullEventData: FullEventData = {
