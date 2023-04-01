@@ -1,5 +1,5 @@
 import { Box, Tab, Tabs } from '@mui/material';
-import { Event, Filter, Kind, SimplePool, validateEvent } from 'nostr-tools'
+import { Event, Filter, Kind, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -34,9 +34,9 @@ function GlobalFeed({pool, relays}: Props) {
         setEvents([]);
 
         const getFollowers = async () => {
-            if(tabIndex === 0) return;
-
+            
             if (!window.nostr) {
+                if(tabIndex === 0) return;
                 alert("You need to install a Nostr extension to provide your pubkey.")
                 return;
             }
@@ -164,7 +164,7 @@ function GlobalFeed({pool, relays}: Props) {
                 const fullEventData: FullEventData = {
                     content: event.content,
                     user: {
-                        name: metaData[event.pubkey]?.name ?? "Satoshi",
+                        name: metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 10) + "...",
                         picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
                         about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
                         nip05: metaData[event.pubkey]?.nip05 ?? "",
@@ -173,11 +173,10 @@ function GlobalFeed({pool, relays}: Props) {
                     hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
                     eventId: event.id,
                     sig: event.sig,
-                    isFollowing: false,
                     created_at: event.created_at
                 }
                 return (
-                    <Note pool={pool} eventData={fullEventData} key={event.sig}/>
+                    <Note pool={pool} eventData={fullEventData} isFollowing={followers.includes(event.pubkey)} key={event.sig}/>
                 )
             })}
             <Box sx={{

@@ -17,7 +17,6 @@ export interface FullEventData {
     hashtags: string[];
     eventId: string;
     sig: string;
-    isFollowing: boolean; 
     created_at: number;
 }
 

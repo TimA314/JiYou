@@ -36,11 +36,11 @@ interface ExpandMoreProps extends IconButtonProps {
 interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
+  isFollowing: boolean;
 }
 
-export default function Note({eventData, pool}: NoteProps) {
+export default function Note({eventData, isFollowing}: NoteProps) {
   const [expanded, setExpanded] = useState(false);
-  const [isFollowing, setIsFollowing] = useState<Boolean>(false)
   const imageFromPost = GetImageFromPost(eventData.content);
 
   const handleExpandClick = () => {
@@ -48,8 +48,10 @@ export default function Note({eventData, pool}: NoteProps) {
   };
 
   const handleFollowButtonClicked = () => {
-    setIsFollowing(!isFollowing);
-    //updateFollowerEvent();
+    if(!window.nostr) {
+      alert("You need to install a Nostr extension to follow this user");
+      return;
+    }
   }
 
   return (
