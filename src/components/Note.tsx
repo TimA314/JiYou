@@ -8,17 +8,15 @@ import Collapse from '@mui/material/Collapse';
 import Avatar from '@mui/material/Avatar';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { purple } from '@mui/material/colors';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { GetImageFromPost, sanitizeString } from '../util';
+import { GetImageFromPost } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
-import { getPublicKey, SimplePool, Event, EventTemplate, UnsignedEvent, Kind, getEventHash, signEvent, validateEvent, verifySignature, nip19 } from 'nostr-tools';
-import { defaultRelays } from '../nostr/Relays';
+import { SimplePool, nip19 } from 'nostr-tools';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -54,64 +52,6 @@ export default function Note({eventData, pool}: NoteProps) {
     //updateFollowerEvent();
   }
 
-  const getUserFollowers = async(userFollowerEvent: Event[]) => {
-    if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return;
-
-    return userFollowerEvent[0].tags;
-  }
-
-  // const updateFollowerEvent = async () => {
-
-  //   let followerEvent = await pool.list(relays, [{kinds: [3], authors: [getPublicKey(privateKey!)], limit: 1 }])
-
-  //   let prevTags: string[][] = await getUserFollowers(followerEvent) ?? [];
-    
-  //   let exists: boolean = prevTags?.find(tag => tag[1] === props.eventData.user.pubKey) !== undefined
-
-  //   if (exists) return;
-
-  //   let newTags: string[][] = []
-
-  //   if (prevTags.length > 0){
-  //     newTags = [...prevTags, ["p", props.eventData.user.pubKey]]
-  //   } else {
-  //     newTags = [["p", props.eventData.user.pubKey]]
-  //   }
-
-  //   const newFollowerEvent: EventTemplate | UnsignedEvent | Event = {
-  //       kind: Kind.Contacts,
-  //       tags: newTags,
-  //       content: "",
-  //       created_at: Math.floor(Date.now() / 1000),
-  //       pubkey: getPublicKey(privateKey!)
-  //   }
-
-  //   const signedEvent: Event = {
-  //       ...newFollowerEvent,
-  //       id: getEventHash(newFollowerEvent),
-  //       sig: signEvent(newFollowerEvent, privateKey!),
-  //   };
-    
-  //   if(!validateEvent(signedEvent) || !verifySignature(signedEvent)) {
-  //       console.log("Event is Invalid")
-  //       return;
-  //   }
-
-  //   console.log("Event is valid")
-
-  //   let pubs = pool.publish(relays, signedEvent);
-
-  //   pubs.on("ok", () => {
-  //       console.log(`Published Event`);
-  //       return;
-  //   })
-
-  //   pubs.on("failed", (reason: string) => {
-  //       console.log("failed: " + reason);
-  //       return;
-  //   })
-  // }
-  console.log("EventData" + JSON.stringify( eventData))
   return (
     <Card sx={{ maxWidth: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader

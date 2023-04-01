@@ -38,7 +38,7 @@ export const sanitizeEvent = (event: Event) => {
       picture: sanitizeUrl(contentObject.picture),
       banner: sanitizeUrl(contentObject.banner),
       about: sanitizeString(contentObject.about),
-      nip05: sanitizeUrl(contentObject.nip05),
+      nip05: sanitizeString(contentObject.nip05),
       lud16: sanitizeString(contentObject.lud16),
     }
     sanitizedProfileContent = JSON.stringify(sanitizedContentObject);

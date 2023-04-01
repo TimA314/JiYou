@@ -13,7 +13,7 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
   const [input, setInput] = useState("");
 
   const onAddHashTag = () => {
-    const hashtag = sanitizeString(input).toLowerCase();
+    const hashtag = sanitizeString(input);
     if (hashtag === "" || hashtags.includes(hashtag)) return;
     setInput("");
     onChange([...hashtags, hashtag]);
@@ -28,7 +28,7 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
       onAddHashTag();
     }
   }
-  
+
   return (
     <div className="hashTagFilterContainer">
       <Paper className="hashtagChips">

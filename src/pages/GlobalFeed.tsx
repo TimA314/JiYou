@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Box, Tab, Tabs } from '@mui/material';
 import { Event, Filter, Kind, SimplePool, validateEvent } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
@@ -7,7 +7,8 @@ import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData } from '../nostr/Types';
-import { DiceBears, insertEventIntoDescendingList, sanitizeEvent, sanitizeString } from '../util';
+import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
+import * as secp from "@noble/secp256k1";
 
 interface Props {
     pool: SimplePool | null,
@@ -16,11 +17,13 @@ interface Props {
 
 function GlobalFeed({pool, relays}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
-    const [events] = useDebounce(eventsImmediate, 1500);
+    const [events] = useDebounce(eventsImmediate, 1000);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({}); //used to prevent duplicate fetches
     const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
+    const [tabIndex, setTabIndex] = useState(0);
+    const [followers, setFollowers] = useState<string[]>([]);
 
     //subscribe to events
     useEffect(() => {
@@ -29,26 +32,70 @@ function GlobalFeed({pool, relays}: Props) {
             return;
         }
 
-        console.log("hashtags: " + hashtags)
-        
-        const optionsWithHashtags: Filter = {
-            kinds: [Kind.Text],
-            limit: 100,
-            "#t": hashtags
+        const getFollowers = async () => {
+
+            if (!window.nostr) {
+                alert("You need to install a Nostr extension to provide your pubkey.")
+                return [];
+            }
+            try {
+                const pk = await window.nostr.getPublicKey();
+                
+                const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
+                let followerPks: string[] = [];
+                if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return [];
+                
+                const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === "p");
+                for(let i=0; i<followerArray.length;i++){
+                    if(secp.utils.isValidPrivateKey(followerArray[i][1])){
+                        followerPks.push(followerArray[i][1]);
+                        console.log("followerArrayItem " + followerArray[i][1])
+                    }
+                }
+                setFollowers(followerPks);
+            } catch (error) {
+                alert(error)
+                console.log(error);
+            }
         }
 
-        const options: Filter = {
+        getFollowers();
+        
+        console.log("hashtags: " + hashtags)
+
+        
+        let options: Filter = {
             kinds: [Kind.Text],
             limit: 100,
+            since: Math.floor((Date.now() / 1000) - (5 * 24 * 60 * 60)) //5 days ago
+        }
+        
+        switch (tabIndex) {
+            case 0: //Global
+                if(hashtags.length > 0) {
+                    options["#t"] = hashtags;
+                }
+                break;
+            case 1: //Followers
+                if(hashtags.length > 0) {
+                    options["#t"] = hashtags;
+                }
+                if(followers.length > 0){
+                    options.authors = followers;
+                }
+                break;
+            default:
+                break;
         }
 
         setEvents([]);
-        const sub = pool.sub(relays, [hashtags.length > 0 ? optionsWithHashtags : options])
+
+        const sub = pool.sub(relays, [options]);
         
         sub.on("event", (event: Event) => { 
-            console.log("event: " + JSON.stringify(event));
+            //console.log("event: " + JSON.stringify(event));
             const sanitizedEvent: Event = sanitizeEvent(event);
-            console.log("sanitizedEvent: " + JSON.stringify(sanitizedEvent));
+            //console.log("sanitizedEvent: " + JSON.stringify(sanitizedEvent));
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
         })
 
@@ -57,7 +104,7 @@ function GlobalFeed({pool, relays}: Props) {
         }
 
 
-    },[pool, hashtags, relays])
+    },[pool, hashtags, relays, tabIndex])
 
 
     //subscribe to metadata
@@ -81,12 +128,7 @@ function GlobalFeed({pool, relays}: Props) {
             const sanitizedEvent: Event = sanitizeEvent(event);
             if (sanitizedEvent.content !== "")
             {
-                
-                
-                console.log("sanitized:" + validateEvent(sanitizeEvent(event)))
                 const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
-                
-                console.log("metaDataParsedSanitized: " + JSON.stringify(metaDataParsedSanitized))
                 
                 setMetaData((cur) => ({
                     ...cur,
@@ -101,16 +143,26 @@ function GlobalFeed({pool, relays}: Props) {
         })
 
         return () => {};
-    },[events, pool])
+    },[events, pool, hashtags, tabIndex])
+    
+    
+    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+        setTabIndex(newValue);
+      };
 
+      
+      //render
     if (!pool) return null;
-
-    //render
     return (
         <Box sx={{marginTop: "52px"}}>
+
             <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
+
             {events.length === 0 && <Box sx={{textAlign: "center"}}><Loading /></Box>}
-            {events
+
+            {events.filter(
+                (e, i, arr) => arr.findIndex(t => t.id === e.id) === i //remove duplicates
+            )
             .map((event) => {
                 const fullEventData: FullEventData = {
                     content: event.content,
@@ -131,7 +183,25 @@ function GlobalFeed({pool, relays}: Props) {
                     <Note pool={pool} eventData={fullEventData} key={event.sig}/>
                 )
             })}
-        </Box>
+            <Box sx={{
+                    bgcolor: 'background.paper',
+                    position: "fixed",
+                    bottom: 50,
+                    left: 0,
+                    right: 0,
+                }}
+                >
+                
+                <Tabs 
+                    value={tabIndex} 
+                    onChange={handleChange} 
+                    centered>
+                    <Tab label="Global"/>
+                    <Tab label="Followers"/>
+                </Tabs>
+
+            </Box>
+    </Box>
     )
 }
 
