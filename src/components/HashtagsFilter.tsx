@@ -23,6 +23,12 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
     onChange(hashtags.filter((h) => h !== hashtag));
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onAddHashTag();
+    }
+  }
+  
   return (
     <div className="hashTagFilterContainer">
       <Paper className="hashtagChips">
@@ -40,6 +46,9 @@ export default function HashtagsFilter({ hashtags, onChange }: Props) {
           size="small"
           placeholder="Search By Topic"
           value={input}
+          autoComplete="on"
+          autoFocus
+          onKeyDown={handleKeyDown}
           inputProps={{ 'aria-label': 'search google maps' }}
           onChange={(e) => setInput(e.target.value)}
           sx={{ 
