@@ -34,10 +34,11 @@ function GlobalFeed({pool, relays}: Props) {
         setEvents([]);
 
         const getFollowers = async () => {
+            if(tabIndex === 0) return;
 
             if (!window.nostr) {
                 alert("You need to install a Nostr extension to provide your pubkey.")
-                return [];
+                return;
             }
             try {
                 const pk = await window.nostr.getPublicKey();

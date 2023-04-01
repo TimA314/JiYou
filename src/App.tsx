@@ -4,12 +4,10 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import './App.css';
 import { Route, Routes} from 'react-router-dom';
-import SignIn from './pages/SignIn';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
-import FollowerFeed from './pages/FollowerFeed';
 import GlobalFeed from './pages/GlobalFeed';
 import CreateNote from './pages/CreateNote';
 import { SimplePool } from 'nostr-tools';
@@ -64,11 +62,9 @@ function App() {
   <CssBaseline />
   <Container>
     <Routes>
-      <Route path="/" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool}/>} />
-      <Route path="/follower-feed" element={<FollowerFeed />} />
-      <Route path="/feed" element={<GlobalFeed pool={pool} relays={relayArray} />} />
+      <Route path="/" element={<GlobalFeed pool={pool} relays={relayArray} />} />
       <Route path="/newNote" element={<CreateNote pool={pool} relays={relayArray}/>} />
     </Routes>
     <NavBar isLoggedIn={isLoggedIn}/>

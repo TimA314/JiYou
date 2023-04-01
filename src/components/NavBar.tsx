@@ -31,7 +31,7 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
       <Link className="nav-link" to="/newNote">
         <RateReviewIcon/>
       </Link>
-      <Link className="nav-link" to="/feed">
+      <Link className="nav-link" to="/">
         <DynamicFeedIcon />
       </Link>
       <Link  className="nav-link" to="/relays">
