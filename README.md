@@ -1,5 +1,5 @@
 # Jiyou
-### JiYou is a Nostr Client built using React.js and MaterialUI and Nostr Tools https://github.com/nbd-wtf/nostr-tools
+### JiYou is a Nostr Client built using typescript, react, MaterialUI and Nostr Tools https://github.com/nbd-wtf/nostr-tools
 
 ---
 
