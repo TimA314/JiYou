@@ -12,8 +12,8 @@ export interface FullEventData {
       picture: string;
       about: string;
       nip05: string;
-      pubKey: string;
     }
+    pubkey: string;
     hashtags: string[];
     eventId: string;
     sig: string;

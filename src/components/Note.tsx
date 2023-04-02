@@ -15,7 +15,7 @@ import moment from 'moment/moment';
 import { GetImageFromPost } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -36,13 +36,17 @@ interface ExpandMoreProps extends IconButtonProps {
 interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
-  isFollowing: boolean;
+  followers: string[];
+  setFollowing: (pubkey: string) => void;
 }
 
-export default function Note({eventData, isFollowing}: NoteProps) {
+export default function Note({eventData, followers, setFollowing}: NoteProps) {
   const [expanded, setExpanded] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
+  const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
 
+
+  
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -52,6 +56,9 @@ export default function Note({eventData, isFollowing}: NoteProps) {
       alert("You need to install a Nostr extension to follow this user");
       return;
     }
+
+    setIsFollowing(!isFollowing)
+    setFollowing(eventData.pubkey)
   }
 
   return (
@@ -115,10 +122,10 @@ export default function Note({eventData, isFollowing}: NoteProps) {
             Event Id: {eventData.eventId}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey: {nip19.npubEncode(eventData.user.pubKey)}
+            PubKey: {nip19.npubEncode(eventData.pubkey)}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            PubKey hex: {eventData.user.pubKey}
+            PubKey hex: {eventData.pubkey}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             Created: {moment.unix(eventData.created_at).format("LLLL")}

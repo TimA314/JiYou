@@ -1,5 +1,5 @@
 import { Box, Tab, Tabs } from '@mui/material';
-import { Event, Filter, Kind, nip19, SimplePool } from 'nostr-tools'
+import { Event, EventTemplate, Filter, getEventHash, Kind, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -142,7 +142,72 @@ function GlobalFeed({pool, relays}: Props) {
         return () => {};
     },[events, pool, hashtags, tabIndex])
     
+    const setFollowing = async (followerPubkey: string) => {
+        if (!pool) {
+            alert("pool is null")
+            return;
+        }
+
+        let unFollow = false;
+        if (followers.includes(followerPubkey)) {
+            unFollow = true;
+        }
+
+        console.log("setIsFollowing " + followerPubkey)
+        if (!window.nostr) {
+            alert("You need to install a Nostr extension to provide your pubkey.")
+            return;
+        }
+        try {
+            const pubkey = await window.nostr.getPublicKey();
+            const userFollowerEvent: Event[] = await pool.list(defaultRelays, [{kinds: [3], authors: [pubkey], limit: 1 }])
+            console.log("user follower event " + userFollowerEvent)
+            
+            let newTags: string[][] = [];
+            if (userFollowerEvent[0]) {
+                newTags = [...userFollowerEvent[0].tags];
+            }
+            if (unFollow) {
+                newTags = newTags.filter((tag) => tag[1] !== followerPubkey);
+            } else {
+                newTags.push(["p", followerPubkey]);
+            }
+
+            console.log(newTags)
+            const _baseEvent = {
+                kind: Kind.Contacts,
+                content: userFollowerEvent[0]?.content ?? "",
+                created_at: Math.floor(Date.now() / 1000),
+                tags: newTags,
+            } as EventTemplate
+
+            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+
+            const newEvent: Event = {
+                ..._baseEvent,
+                id: getEventHash({..._baseEvent, pubkey}),
+                sig,
+                pubkey,
+            }
+
+            const pubs = pool.publish(relays, newEvent)
+            
+            pubs.on("ok", () => {
+                alert("Posted to relays")
+                console.log("Posted to relays")
+            })
     
+            pubs.on("failed", (error: string) => {
+            alert("Failed to post to relays" + error)
+            })
+
+            setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]));
+        } catch (error) {
+            alert(error)
+            console.log(error);
+        }
+    }
+
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
       };
@@ -168,15 +233,15 @@ function GlobalFeed({pool, relays}: Props) {
                         picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
                         about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
                         nip05: metaData[event.pubkey]?.nip05 ?? "",
-                        pubKey: event.pubkey,
                     },
+                    pubkey: event.pubkey,
                     hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
                     eventId: event.id,
                     sig: event.sig,
                     created_at: event.created_at
                 }
                 return (
-                    <Note pool={pool} eventData={fullEventData} isFollowing={followers.includes(event.pubkey)} key={event.sig}/>
+                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig}/>
                 )
             })}
             <Box sx={{

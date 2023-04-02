@@ -6,5 +6,7 @@ export const defaultRelays: string[]  = [
     "wss://offchain.pub",
     "wss://nostr.bitcoiner.social",
     "wss://nostr.foundrydigital.com",
-    "wss://no.str.cr"
+    "wss://no.str.cr",
+    "wss://freespeech.casa",
+    "wss://relay.taxi",
   ]
