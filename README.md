@@ -9,6 +9,13 @@ Learn more about Nostr here https://nostr.how/
 
 ---
 
+<p float="left">
+  <img width="199" alt="image" src="https://user-images.githubusercontent.com/91898542/229324010-e2e74431-e208-4072-bda9-c39c3585a5cc.png">
+  <img width="197" alt="image" src="https://user-images.githubusercontent.com/91898542/229324019-0bc85942-37ca-4182-95fe-be664ff60710.png">
+  <img width="195" alt="image" src="https://user-images.githubusercontent.com/91898542/229324036-c95470b5-9292-4454-b785-7085c9e87e33.png">
+  <img width="197" alt="image" src="https://user-images.githubusercontent.com/91898542/229324052-bda99909-664d-47fd-89cf-1b7cf0f4465d.png">
+</p>
+
 Jiyou supports the following NIP's:
 
   - [x] NIP-01: Basic protocol flow description
