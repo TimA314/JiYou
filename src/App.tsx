@@ -42,7 +42,6 @@ const theme = createTheme({
 
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
   const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
 
   useEffect(() => {
@@ -62,12 +61,12 @@ function App() {
   <CssBaseline />
   <Container>
     <Routes>
-      <Route path="/profile" element={<Profile/>}/>
+      <Route path="/profile" element={<Profile relays={relayArray} pool={pool} />}/>
       <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool}/>} />
       <Route path="/" element={<GlobalFeed pool={pool} relays={relayArray} />} />
       <Route path="/newNote" element={<CreateNote pool={pool} relays={relayArray}/>} />
     </Routes>
-    <NavBar isLoggedIn={isLoggedIn}/>
+    <NavBar />
   </Container>
 </ThemeProvider>
   );

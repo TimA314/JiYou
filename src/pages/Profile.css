@@ -1,0 +1,11 @@
+@media screen and (max-width: 600px) {}
+
+@media screen and (min-width: 601px) {}
+
+
+.avatarContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}

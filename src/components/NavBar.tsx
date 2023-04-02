@@ -8,11 +8,8 @@ import { Link } from 'react-router-dom';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import "./NavBar.css";
 
-interface NavBarProps {
-  isLoggedIn: boolean;
-}
 
-const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
+const NavBar = () => {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -20,10 +17,6 @@ const NavBar: React.FC<NavBarProps> = ({ isLoggedIn }) => {
       ref.current.ownerDocument.body.scrollTop = 0;
     }
   }, []);
-
-  if (!isLoggedIn) {
-    return <Box ref={ref} />;
-  }
 
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
