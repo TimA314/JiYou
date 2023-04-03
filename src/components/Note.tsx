@@ -136,6 +136,9 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
           <Typography variant="caption" display="block" gutterBottom>
             Sig: {eventData.sig}
           </Typography>
+          <Typography variant="caption" display="block" gutterBottom>
+            Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}</li>)}</ul>
+          </Typography>
         </CardContent>
       </Collapse>
     </Card>

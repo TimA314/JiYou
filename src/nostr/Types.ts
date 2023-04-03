@@ -18,6 +18,7 @@ export interface FullEventData {
     eventId: string;
     sig: string;
     created_at: number;
+    tags: string[][];
 }
 
 declare global {

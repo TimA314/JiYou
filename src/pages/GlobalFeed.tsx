@@ -1,4 +1,4 @@
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Divider, Stack, Tab, Tabs } from '@mui/material';
 import { Event, EventTemplate, Filter, getEventHash, Kind, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
@@ -9,6 +9,9 @@ import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import * as secp from "@noble/secp256k1";
+import "./GlobalFeed.css";
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+
 
 interface Props {
     pool: SimplePool | null,
@@ -65,8 +68,9 @@ function GlobalFeed({pool, relays}: Props) {
 
         const getReplyThread = async (event: Event) => {
             if (!event.tags) return;
-            const replyThreadHash = event.tags.filter((tag) => tag[0] === "e")[0][1];
-            const replyThreadEvent: Event[] = await pool.list(relays, [{kinds: [Kind.Text], ids: [replyThreadHash], limit: 1 }])
+            const replyThreadId = event.tags.filter((tag) => tag[0] === "e");
+            if (!replyThreadId[0][1]) return;
+            const replyThreadEvent: Event[] = await pool.list(relays, [{kinds: [Kind.Text], ids: [replyThreadId[0][1]], limit: 1 }])
             if (!replyThreadEvent[0]) return;
             const sanitizedEvent: Event = sanitizeEvent(replyThreadEvent[0]);
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
@@ -245,11 +249,48 @@ function GlobalFeed({pool, relays}: Props) {
                     hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
                     eventId: event.id,
                     sig: event.sig,
-                    created_at: event.created_at
+                    created_at: event.created_at,
+                    tags: event?.tags ?? []
                 }
-                return (
-                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig}/>
-                )
+                const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
+                const referredEvent = events.find((e) => e.id === referredId);
+                
+                if (referredEvent) {
+                    const referredEventFullData: FullEventData = {
+                        content: referredEvent?.content ?? "",
+                        user: {
+                            name: metaData[referredEvent?.pubkey ?? ""]?.name ?? nip19.npubEncode(referredEvent?.pubkey ?? "").slice(0, 10) + "...",
+                            picture: metaData[referredEvent?.pubkey ?? ""]?.picture ?? defaultAvatar,
+                            about: metaData[referredEvent?.pubkey ?? ""]?.about ?? "I am Satoshi Nakamoto",
+                            nip05: metaData[referredEvent?.pubkey ?? ""]?.nip05 ?? "",
+                        },
+                        pubkey: referredEvent?.pubkey ?? "",
+                        hashtags: referredEvent?.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]) ?? [],
+                        eventId: referredEvent?.id ?? "",
+                        sig: referredEvent?.sig ?? "",
+                        created_at: referredEvent?.created_at ?? 0,
+                        tags: referredEvent?.tags ?? []
+                    }
+
+                    return (
+                        <div key={event.sig}>
+                            <div className='referredEvent'>
+                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} />
+                            </div>
+                            <div className="primaryEventContainer">
+                                <Stack direction="row" spacing={2} flexDirection="row">
+                                    <SubdirectoryArrowRightIcon />
+                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                                </Stack>
+                            </div>
+                        </div>
+                    )
+                } else {
+                    return (
+                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                    )
+
+                }
             })}
             <Box sx={{
                     bgcolor: 'background.paper',
