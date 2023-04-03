@@ -62,8 +62,15 @@ function GlobalFeed({pool, relays}: Props) {
         }
 
         getFollowers();
-        
-        console.log("hashtags: " + hashtags)
+
+        const getReplyThread = async (event: Event) => {
+            if (!event.tags) return;
+            const replyThreadHash = event.tags.filter((tag) => tag[0] === "e")[0][1];
+            const replyThreadEvent: Event[] = await pool.list(relays, [{kinds: [Kind.Text], ids: [replyThreadHash], limit: 1 }])
+            if (!replyThreadEvent[0]) return;
+            const sanitizedEvent: Event = sanitizeEvent(replyThreadEvent[0]);
+            setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
+        }
 
         let options: Filter = {
             kinds: [Kind.Text],
@@ -93,13 +100,14 @@ function GlobalFeed({pool, relays}: Props) {
         
         sub.on("event", (event: Event) => { 
             const sanitizedEvent: Event = sanitizeEvent(event);
+            getReplyThread(sanitizedEvent);
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
+
         })
 
         return () => {
             sub.unsub();
         }
-
 
     },[pool, hashtags, relays, tabIndex])
 
@@ -111,22 +119,21 @@ function GlobalFeed({pool, relays}: Props) {
         const pubkeysToFetch = events
         .filter((event) => metaDataFetched.current[event.pubkey] !== true)
         .map((event) => event.pubkey);
-  
-        pubkeysToFetch.forEach(
-            (pubkey) => (metaDataFetched.current[pubkey] = true)
-        );
-
+        
+        if (pubkeysToFetch.length === 0) return;
+        
         const sub = pool.sub(defaultRelays, [{
             kinds: [0],
             authors: pubkeysToFetch,
         }])
-
+        
         sub.on("event", (event: Event) => {
+            
             const sanitizedEvent: Event = sanitizeEvent(event);
+            metaDataFetched.current[event.pubkey] = true;
             if (sanitizedEvent.content !== "")
             {
                 const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
-                
                 setMetaData((cur) => ({
                     ...cur,
                     [event.pubkey]: metaDataParsedSanitized,

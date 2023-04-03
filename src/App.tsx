@@ -1,7 +1,5 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import { Container } from '@mui/system';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-
 import './App.css';
 import { Route, Routes} from 'react-router-dom';
 import Profile from './pages/Profile';
@@ -12,6 +10,7 @@ import GlobalFeed from './pages/GlobalFeed';
 import CreateNote from './pages/CreateNote';
 import { SimplePool } from 'nostr-tools';
 import { defaultRelays } from './nostr/Relays';
+import { Container } from '@mui/material';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -52,7 +51,7 @@ function App() {
     return () => {
         pool?.close(defaultRelays)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   },[])
 
   return (
