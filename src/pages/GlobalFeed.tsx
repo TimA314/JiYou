@@ -7,7 +7,7 @@ import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData } from '../nostr/Types';
-import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
+import { DiceBears, GetImageFromPost, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import * as secp from "@noble/secp256k1";
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';

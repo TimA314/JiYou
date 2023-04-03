@@ -15,7 +15,7 @@ import moment from 'moment/moment';
 import { GetImageFromPost } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -45,7 +45,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
   const imageFromPost = GetImageFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
 
-
+  console.log("imageFromPost", imageFromPost);
   
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -71,16 +71,17 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
         title={eventData.user.name}
         subheader={eventData.user.nip05}
       />
-      {imageFromPost && (
+      <CardContent>
+        <Typography variant="body2" color="text.secondary">
+        {eventData.content}
+        {imageFromPost && (
         <CardMedia
           component="img"
           image={imageFromPost}
           alt="picture"
+          sx={{maxHeight: "500px", objectFit: "contain"}}
         />)
       }
-      <CardContent>
-        <Typography variant="body2" color="text.secondary">
-        {eventData.content}
         </Typography>
       </CardContent>
       <CardContent>

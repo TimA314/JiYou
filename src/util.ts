@@ -67,20 +67,36 @@ export const bech32ToHex = (str: string) => {
   }
 }
 
-export const GetImageFromPost = (content: string) => {
-  if(!content) return null;
-  const sanitizedContent = sanitizeString(content);
-  const validExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-  let splitArray = splitByUrl(sanitizedContent);
-  if(!splitArray || splitArray.length === 0) return null;
+export const GetImageFromPost = (content: string): string | null => {
+  if (!content) return null;
 
-  for (let i = 0; i < splitArray.length; i++){
-      if (validExtensions.includes(splitArray[i])){
-          return splitArray[i];
-      }
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlMatches = content.match(urlRegex)?.filter(url => /\.(jpg|png|gif)$/.test(url));
+
+  if (!urlMatches) return null;
+
+  const url = urlMatches[0];
+
+  // Check if the URL is valid
+  try {
+    const parsedUrl = new URL(url);
+
+    // Check the protocol
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return null;
+    }
+
+    // Check the file extension
+    const fileExtensions = ['jpg', 'png', 'gif'];
+    if (!fileExtensions.includes(parsedUrl.pathname.split('.').pop() ?? '')) {
+      return null;
+    }
+
+    return url;
+  } catch (e) {
+    return null;
   }
-  return null;
-}
+};
 
 export function splitByUrl(str: string) {
   if (!str) return null;
