@@ -1,0 +1,10 @@
+.referredEvent {
+    width: 100%;
+}
+
+.primaryEventContainer {
+    width: 100%;
+    margin-top: 10px;
+    align-items: end;
+    justify-content: end;
+}
