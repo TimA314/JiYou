@@ -6,11 +6,12 @@ import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
-import { FullEventData, MetaData } from '../nostr/Types';
+import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, GetImageFromPost, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
-import * as secp from "@noble/secp256k1";
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import { GetReactions } from '../nostr/Reactions';
+import { getFollowers } from '../nostr/FeedEvents';
 
 
 interface Props {
@@ -27,6 +28,8 @@ function GlobalFeed({pool, relays}: Props) {
     const defaultAvatar = DiceBears();
     const [tabIndex, setTabIndex] = useState(0);
     const [followers, setFollowers] = useState<string[]>([]);
+    const [reactions, setReactions] = useState<ReactionCounts[]>([]);
+    const [reactionsFetched, setReactionsFetched] = useState<Record<string,boolean>>({}); //used to prevent duplicate fetches
 
     //subscribe to events
     useEffect(() => {
@@ -35,36 +38,14 @@ function GlobalFeed({pool, relays}: Props) {
             return;
         }
         setEvents([]);
-
-        const getFollowers = async () => {
-            
-            if (!window.nostr) {
-                if(tabIndex === 0) return;
-                alert("You need to install a Nostr extension to provide your pubkey.")
-                return;
-            }
-            try {
-                const pk = await window.nostr.getPublicKey();
-                
-                const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
-                let followerPks: string[] = [];
-                if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return [];
-                
-                const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === "p");
-                for(let i=0; i<followerArray.length;i++){
-                    if(secp.utils.isValidPrivateKey(followerArray[i][1])){
-                        followerPks.push(followerArray[i][1]);
-                        console.log("followerArrayItem " + followerArray[i][1])
-                    }
-                }
+        
+        const UserFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
+            const followerPks = await getFollowers(pool, relays, tabIndex);
+            if (followerPks){
                 setFollowers(followerPks);
-            } catch (error) {
-                alert(error)
-                console.log(error);
             }
         }
-
-        getFollowers();
+        UserFollowers(pool, relays, tabIndex);
 
         const getReplyThread = async (event: Event) => {
             if (!event.tags) return;
@@ -100,10 +81,12 @@ function GlobalFeed({pool, relays}: Props) {
                 break;
         }
 
+
         const sub = pool.sub(relays, [options]);
         
         sub.on("event", (event: Event) => { 
             const sanitizedEvent: Event = sanitizeEvent(event);
+            
             getReplyThread(sanitizedEvent);
             setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
 
@@ -114,7 +97,6 @@ function GlobalFeed({pool, relays}: Props) {
         }
 
     },[pool, hashtags, relays, tabIndex])
-
 
     //subscribe to metadata
     useEffect(() => {
@@ -275,19 +257,19 @@ function GlobalFeed({pool, relays}: Props) {
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
-                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} />
+                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} relays={relays} />
                             </div>
                             <div className="primaryEventContainer">
                                 <Stack direction="row" spacing={2} flexDirection="row">
                                     <SubdirectoryArrowRightIcon />
-                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} relays={relays} key={event.sig} />
                                 </Stack>
                             </div>
                         </div>
                     )
                 } else {
                     return (
-                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} relays={relays} key={event.sig} />
                     )
 
                 }

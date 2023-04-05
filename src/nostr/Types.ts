@@ -5,6 +5,11 @@ export type EventWithProfile = Event & {
     isFollowing?: boolean;
 };
 
+export type ReactionCounts = {
+    upvotes: number;
+    downvotes: number;
+};
+
 export interface FullEventData {
     content: string;
     user: {

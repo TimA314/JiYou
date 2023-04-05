@@ -13,10 +13,12 @@ import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { GetImageFromPost } from '../util';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, ReactionCounts } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
+import CustomizedRating from './Rating';
+import { GetReactions } from '../nostr/Reactions';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -38,15 +40,28 @@ interface NoteProps {
   pool: SimplePool | null;
   followers: string[];
   setFollowing: (pubkey: string) => void;
+  relays: string[];
 }
 
-export default function Note({eventData, followers, setFollowing}: NoteProps) {
+export default function Note({eventData, followers, setFollowing, pool, relays}: NoteProps) {
   const [expanded, setExpanded] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
-
-  console.log("imageFromPost", imageFromPost);
+  const [reactions, setReactions] = useState<ReactionCounts>({upvotes: 0, downvotes: 0});
   
+    //get reactions
+  useEffect(() => {
+    if (!pool) return;
+
+    const reactionObject = async () => {
+      const reactionObject = await GetReactions(pool, eventData.eventId, eventData.pubkey, relays);
+      setReactions(reactionObject);
+    }
+
+    reactionObject();
+
+  },[pool, eventData, relays])
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -62,7 +77,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
   }
 
   return (
-    <Card sx={{ maxWidth: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+    <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={eventData.user.picture}>
@@ -73,7 +88,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
       />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
-        {eventData.content}
+        {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
         {imageFromPost && (
         <CardMedia
           component="img"
@@ -91,6 +106,9 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
           <Typography variant="caption" color="primary" key={tag}> #{tag}</Typography>
         ))}
       </CardContent>
+
+      <CustomizedRating rating={0} />
+
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
           <FavoriteIcon />
@@ -101,7 +119,6 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
         <Typography variant="subtitle2">
         {moment.unix(eventData.created_at).fromNow()}
         </Typography>
-
         <ExpandMore
           expand={expanded}
           onClick={handleExpandClick}
@@ -122,6 +139,12 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
           <Typography variant="caption" display="block">
             Event Id: {eventData.eventId}
           </Typography>
+          <Typography variant='caption' display="block">
+            Up Votes: {reactions.upvotes}
+          </Typography>
+          <Typography variant='caption' display="block">
+            Down Votes: {reactions.downvotes}
+          </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             PubKey: {nip19.npubEncode(eventData.pubkey)}
           </Typography>
@@ -138,7 +161,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
             Sig: {eventData.sig}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
-            Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}</li>)}</ul>
+            Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
           </Typography>
         </CardContent>
       </Collapse>
