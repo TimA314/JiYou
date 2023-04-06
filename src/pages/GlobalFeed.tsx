@@ -23,13 +23,13 @@ function GlobalFeed({pool, relays}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1000);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
-    const metaDataFetched = useRef<Record<string,boolean>>({}); //used to prevent duplicate fetches
+    const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
+    const metaDataFetched = useRef<Record<string,boolean>>({});
+    const reactionsFetched = useRef<Record<string,boolean>>({});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
     const [tabIndex, setTabIndex] = useState(0);
     const [followers, setFollowers] = useState<string[]>([]);
-    const [reactions, setReactions] = useState<ReactionCounts[]>([]);
-    const [reactionsFetched, setReactionsFetched] = useState<Record<string,boolean>>({}); //used to prevent duplicate fetches
 
     //subscribe to events
     useEffect(() => {
@@ -97,6 +97,30 @@ function GlobalFeed({pool, relays}: Props) {
         }
 
     },[pool, hashtags, relays, tabIndex])
+
+    //get reactions
+    useEffect(() => {
+        if (!pool) return;
+    
+        const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
+        if (unprocessedEvents.length === 0) return;
+        
+        const getReactions = async () => {
+            const reactionObject: Record<string, ReactionCounts> = await GetReactions(pool, unprocessedEvents, relays, reactionsFetched.current);
+            setReactions((prevReactions) => {
+                const newReactions = { ...prevReactions };
+                Object.keys(reactionObject).forEach((eventId) => {
+                    if (!reactionsFetched.current[eventId]) {
+                        newReactions[eventId] = reactionObject[eventId];
+                    }
+                });
+                return newReactions;
+            });
+        }
+    
+        getReactions();
+    
+    },[pool, events, relays, reactionsFetched])
 
     //subscribe to metadata
     useEffect(() => {
@@ -224,7 +248,7 @@ function GlobalFeed({pool, relays}: Props) {
                     user: {
                         name: metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 10) + "...",
                         picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
-                        about: metaData[event.pubkey]?.about ?? "I am Satoshi Nakamoto",
+                        about: metaData[event.pubkey]?.about ?? "",
                         nip05: metaData[event.pubkey]?.nip05 ?? "",
                     },
                     pubkey: event.pubkey,
@@ -232,7 +256,8 @@ function GlobalFeed({pool, relays}: Props) {
                     eventId: event.id,
                     sig: event.sig,
                     created_at: event.created_at,
-                    tags: event?.tags ?? []
+                    tags: event?.tags ?? [],
+                    reaction: reactions[event.id]
                 }
                 const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
                 const referredEvent = events.find((e) => e.id === referredId);
@@ -251,25 +276,26 @@ function GlobalFeed({pool, relays}: Props) {
                         eventId: referredEvent?.id ?? "",
                         sig: referredEvent?.sig ?? "",
                         created_at: referredEvent?.created_at ?? 0,
-                        tags: referredEvent?.tags ?? []
+                        tags: referredEvent?.tags ?? [],
+                        reaction: reactions[referredEvent?.id]
                     }
 
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
-                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} relays={relays} />
+                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} />
                             </div>
                             <div className="primaryEventContainer">
                                 <Stack direction="row" spacing={2} flexDirection="row">
                                     <SubdirectoryArrowRightIcon />
-                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} relays={relays} key={event.sig} />
+                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
                                 </Stack>
                             </div>
                         </div>
                     )
                 } else {
                     return (
-                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} relays={relays} key={event.sig} />
+                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
                     )
 
                 }

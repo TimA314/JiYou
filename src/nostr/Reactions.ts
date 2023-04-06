@@ -1,33 +1,34 @@
 import { Event, SimplePool } from "nostr-tools";
 import { ReactionCounts } from "./Types";
 
-export const GetReactions = async (pool: SimplePool, eventId: string, pubkey: string, relays: string[]) => {
-    
-    let reactions: ReactionCounts = {
-        upvotes: 0,
-        downvotes: 0,
-    }
-    
-    if (!pool) {
-        alert("pool is null")
-        return reactions;
+export const GetReactions = async (pool: SimplePool, unprocessedEvents: Event[], relays: string[], reactionsFetched: Record<string,boolean>) => {
+    const eventIds = unprocessedEvents.map((event) => event.id);
+    const pubkeys = unprocessedEvents.map((event) => event.pubkey);
+
+    const reactionEvents: Event[] = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
+
+    if(!reactionEvents) {
+        return {};
     }
 
-    const reactionEvents: Event[] = await pool.list(relays, [{ "kinds": [7], "#e": [eventId], "#p": [pubkey]}]);
-    console.log("ReactionEvents" + JSON.stringify(reactionEvents))
-    if(!reactionEvents) {
-        return reactions;
-    }
+    const reactionObject: Record<string, ReactionCounts> = {};
 
     reactionEvents.forEach((reactionEvent) => {
-        if (reactionEvent.content === "+") {
-            reactions.upvotes++;
-        } else if (reactionEvent.content === "-") {
-            reactions.downvotes++;
-        }
-    })
-
-    return reactions;
+      if (!reactionObject[reactionEvent.id]) {
+        reactionObject[reactionEvent.id] = {
+          upvotes: 0,
+          downvotes: 0,
+        };
+      }
+  
+      if (reactionEvent.content === "+") {
+        reactionObject[reactionEvent.id].upvotes++;
+      } else if (reactionEvent.content === "-") {
+        reactionObject[reactionEvent.id].downvotes++;
+      }
+    });
+  
+    return reactionObject;
 }
 
 

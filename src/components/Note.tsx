@@ -13,12 +13,11 @@ import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { GetImageFromPost } from '../util';
-import { FullEventData, ReactionCounts } from '../nostr/Types';
+import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
 import CustomizedRating from './Rating';
-import { GetReactions } from '../nostr/Reactions';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -34,48 +33,32 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
-
 interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
   followers: string[];
   setFollowing: (pubkey: string) => void;
-  relays: string[];
 }
 
-export default function Note({eventData, followers, setFollowing, pool, relays}: NoteProps) {
+export default function Note({eventData, followers, setFollowing}: NoteProps) {
   const [expanded, setExpanded] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
-  const [reactions, setReactions] = useState<ReactionCounts>({upvotes: 0, downvotes: 0});
   
-    //get reactions
-  useEffect(() => {
-    if (!pool) return;
-
-    const reactionObject = async () => {
-      const reactionObject = await GetReactions(pool, eventData.eventId, eventData.pubkey, relays);
-      setReactions(reactionObject);
-    }
-
-    reactionObject();
-
-  },[pool, eventData, relays])
-
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
-
+  
   const handleFollowButtonClicked = () => {
     if(!window.nostr) {
       alert("You need to install a Nostr extension to follow this user");
       return;
     }
-
+    
     setIsFollowing(!isFollowing)
     setFollowing(eventData.pubkey)
   }
-
+  
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
@@ -140,10 +123,10 @@ export default function Note({eventData, followers, setFollowing, pool, relays}:
             Event Id: {eventData.eventId}
           </Typography>
           <Typography variant='caption' display="block">
-            Up Votes: {reactions.upvotes}
+            Up Votes: {eventData.reaction?.upvotes}
           </Typography>
           <Typography variant='caption' display="block">
-            Down Votes: {reactions.downvotes}
+            Down Votes: {eventData.reaction?.downvotes}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom>
             PubKey: {nip19.npubEncode(eventData.pubkey)}
