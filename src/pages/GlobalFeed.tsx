@@ -22,8 +22,9 @@ function GlobalFeed({pool, relays}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1000);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
-    const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({});
+    const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
+    const reactionsFetched = useRef<Record<string,boolean>>({});    
     const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
     const [tabIndex, setTabIndex] = useState(0);
@@ -48,7 +49,7 @@ function GlobalFeed({pool, relays}: Props) {
         const getReplyThread = async (event: Event) => {
             if (!event.tags) return;
             const replyThreadId = event.tags.filter((tag) => tag[0] === "e");
-            if (!replyThreadId[0][1]) return;
+            if (!replyThreadId[0] || !replyThreadId[0][1]) return;
             const replyThreadEvent: Event[] = await pool.list(relays, [{kinds: [Kind.Text], ids: [replyThreadId[0][1]], limit: 1 }])
             if (!replyThreadEvent[0]) return;
             const sanitizedEvent: Event = sanitizeEvent(replyThreadEvent[0]);
@@ -99,14 +100,19 @@ function GlobalFeed({pool, relays}: Props) {
     //get reactions
     useEffect(() => {
         if (!pool) return;
+
+        const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
+        if (unprocessedEvents.length === 0) return;
         
-        const eventIds = events.map((event) => event.id);
-        const pubkeys = events.map((event) => event.pubkey);
-        
+        const eventIds = unprocessedEvents.map((event) => event.id);
+        const pubkeys = unprocessedEvents.map((event) => event.pubkey);
+
         const sub = pool.sub(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
         
         sub.on("event", (event: Event) => {
-            if (!event.tags) return;
+            if (!event.tags || reactionsFetched.current[event.id] === true) return;
+            reactionsFetched.current[event.id] = true;
+
             const likedEventTags = event.tags.filter((tag) => tag[0] === "e");
             const likedEventId = likedEventTags[0][1];
             if (!likedEventId) return;
@@ -269,7 +275,7 @@ function GlobalFeed({pool, relays}: Props) {
                     sig: event.sig,
                     created_at: event.created_at,
                     tags: event?.tags ?? [],
-                    reaction: reactions[event.id]
+                    reaction: reactions[event.id] ?? {upvotes: 0, downvotes: 0},
                 }
                 const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
                 const referredEvent = events.find((e) => e.id === referredId);
@@ -289,7 +295,7 @@ function GlobalFeed({pool, relays}: Props) {
                         sig: referredEvent?.sig ?? "",
                         created_at: referredEvent?.created_at ?? 0,
                         tags: referredEvent?.tags ?? [],
-                        reaction: reactions[referredEvent?.id]
+                        reaction: reactions[referredEvent?.id] ?? {upvotes: 0, downvotes: 0},
                     }
 
                     return (

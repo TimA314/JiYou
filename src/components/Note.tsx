@@ -45,6 +45,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
   const imageFromPost = GetImageFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   
+  
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -90,7 +91,7 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
         ))}
       </CardContent>
 
-      <CustomizedRating rating={0} />
+      <CustomizedRating rating={eventData.reaction.upvotes - eventData.reaction.downvotes} />
 
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">

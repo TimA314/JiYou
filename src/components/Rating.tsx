@@ -21,6 +21,15 @@ interface CustomizedRatingProps {
 }
 
 export default function CustomizedRating({rating}: CustomizedRatingProps) {
+  const getRating = () => {
+    if (rating >= 100) {
+      return 5;
+    } else if (rating <= 0) {
+      return 0;
+    } else {
+      return (rating / 100) * 5;
+    }
+  };
 
   return (
     <Box
@@ -30,9 +39,9 @@ export default function CustomizedRating({rating}: CustomizedRatingProps) {
     >
       <StyledRating
         name="customized-color"
-        value={rating}
+        value={getRating()}
         getLabelText={(value: number) => `${value} Heart${value !== 1 ? 's' : ''}`}
-        precision={0.5}
+        precision={0.1}
         icon={<FavoriteIcon fontSize="inherit" />}
         emptyIcon={<FavoriteBorderIcon fontSize="inherit" />}
         readOnly
