@@ -1,4 +1,4 @@
-import { Box, Divider, Stack, Tab, Tabs } from '@mui/material';
+import { Box, Stack, Tab, Tabs } from '@mui/material';
 import { Event, EventTemplate, Filter, getEventHash, Kind, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
@@ -7,10 +7,9 @@ import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
-import { DiceBears, GetImageFromPost, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
+import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { GetReactions } from '../nostr/Reactions';
 import { getFollowers } from '../nostr/FeedEvents';
 
 
@@ -25,7 +24,6 @@ function GlobalFeed({pool, relays}: Props) {
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({});
-    const reactionsFetched = useRef<Record<string,boolean>>({});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
     const [tabIndex, setTabIndex] = useState(0);
@@ -101,26 +99,41 @@ function GlobalFeed({pool, relays}: Props) {
     //get reactions
     useEffect(() => {
         if (!pool) return;
-    
-        const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
-        if (unprocessedEvents.length === 0) return;
         
-        const getReactions = async () => {
-            const reactionObject: Record<string, ReactionCounts> = await GetReactions(pool, unprocessedEvents, relays, reactionsFetched.current);
-            setReactions((prevReactions) => {
-                const newReactions = { ...prevReactions };
-                Object.keys(reactionObject).forEach((eventId) => {
-                    if (!reactionsFetched.current[eventId]) {
-                        newReactions[eventId] = reactionObject[eventId];
-                    }
-                });
-                return newReactions;
-            });
-        }
+        const eventIds = events.map((event) => event.id);
+        const pubkeys = events.map((event) => event.pubkey);
+        
+        const sub = pool.sub(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
+        
+        sub.on("event", (event: Event) => {
+            if (!event.tags) return;
+            const likedEventTags = event.tags.filter((tag) => tag[0] === "e");
+            const likedEventId = likedEventTags[0][1];
+            if (!likedEventId) return;
+
+            const reactionObject: ReactionCounts = reactions[likedEventId] ?? {upvotes: 0, downvotes: 0};
+            switch (event.content) {
+                case "+":
+                    reactionObject.upvotes++;
+                    break;
+                case "-":
+                    reactionObject.downvotes++;
+                    break;
+                default:
+                    break;
+            }
+
+            setReactions((cur) => ({
+                ...cur,
+                [likedEventId]: reactionObject,
+            }));
+        })
+
+        sub.on("eose", () => {
+            sub.unsub();
+        })
     
-        getReactions();
-    
-    },[pool, events, relays, reactionsFetched])
+    },[pool, events, relays])
 
     //subscribe to metadata
     useEffect(() => {
@@ -152,7 +165,6 @@ function GlobalFeed({pool, relays}: Props) {
         })
         
         sub.on("eose", () => {
-            console.log("eose")
             sub.unsub();
         })
 
@@ -227,7 +239,7 @@ function GlobalFeed({pool, relays}: Props) {
 
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
-      };
+    };
 
       
       //render
