@@ -1,5 +1,5 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material';
-import { Event, EventTemplate, Filter, getEventHash, Kind, nip19, SimplePool } from 'nostr-tools'
+import { Event, Filter, Kind, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -10,7 +10,7 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getFollowers, getReplyThreadEvent } from '../nostr/FeedEvents';
+import { getFollowers, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
 
 
 interface Props {
@@ -96,7 +96,7 @@ function GlobalFeed({pool, relays}: Props) {
 
         const replyThreads = async () => {
             
-            const replyThreadEvents = await getReplyThreadEvent(eventsToGetReplyThread, pool, relays);
+            const replyThreadEvents = await getReplyThreadEvents(eventsToGetReplyThread, pool, relays);
             if (!replyThreadEvents) return;
             
             setEvents((prevEvents) => {
@@ -162,9 +162,7 @@ function GlobalFeed({pool, relays}: Props) {
     useEffect(() => {
         if (!pool) return;
 
-        const pubkeysToFetch = events
-        .filter((event) => metaDataFetched.current[event.pubkey] !== true)
-        .map((event) => event.pubkey);
+        const pubkeysToFetch = events.filter((event) => metaDataFetched.current[event.pubkey] !== true).map((event) => event.pubkey);
         
         if (pubkeysToFetch.length === 0) return;
         
@@ -194,78 +192,19 @@ function GlobalFeed({pool, relays}: Props) {
 
         return () => {};
     },[events, pool, hashtags, tabIndex])
-    
-    const setFollowing = async (followerPubkey: string) => {
-        if (!pool) {
-            alert("pool is null")
-            return;
-        }
 
-        let unFollow = followers.includes(followerPubkey);
-        if (followers.includes(followerPubkey)) {
-            unFollow = true;
-        }
-
-        console.log("setIsFollowing " + followerPubkey)
-        if (!window.nostr) {
-            alert("You need to install a Nostr extension to provide your pubkey.")
-            return;
-        }
-        try {
-            const pubkey = await window.nostr.getPublicKey();
-            const userFollowerEvent: Event[] = await pool.list(defaultRelays, [{kinds: [3], authors: [pubkey], limit: 1 }])
-            console.log("user follower event " + userFollowerEvent)
-            
-            let newTags: string[][] = [];
-            if (userFollowerEvent[0]) {
-                newTags = [...userFollowerEvent[0].tags];
-            }
-            if (unFollow) {
-                newTags = newTags.filter((tag) => tag[1] !== followerPubkey);
-            } else {
-                newTags.push(["p", followerPubkey]);
-            }
-
-            console.log(newTags)
-            const _baseEvent = {
-                kind: Kind.Contacts,
-                content: userFollowerEvent[0]?.content ?? "",
-                created_at: Math.floor(Date.now() / 1000),
-                tags: newTags,
-            } as EventTemplate
-
-            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-
-            const newEvent: Event = {
-                ..._baseEvent,
-                id: getEventHash({..._baseEvent, pubkey}),
-                sig,
-                pubkey,
-            }
-
-            const pubs = pool.publish(relays, newEvent)
-            
-            pubs.on("ok", () => {
-                alert("Posted to relays")
-                console.log("Posted to relays")
-            })
-    
-            pubs.on("failed", (error: string) => {
-            alert("Failed to post to relays" + error)
-            })
-
-            setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]));
-        } catch (error) {
-            alert(error)
-            console.log(error);
-        }
-    }
-
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
     };
 
-      
+    const setFollower = async (pubkey: string) => {
+        if (!pool) return;
+        const newFollowers = await setFollowing(pubkey, pool, followers, relays)
+        if (newFollowers){
+            setFollowers(newFollowers);
+        }
+    }
+
       //render
     if (!pool) return null;
     return (
@@ -319,19 +258,19 @@ function GlobalFeed({pool, relays}: Props) {
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
-                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowing} followers={followers} />
+                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollower} followers={followers} />
                             </div>
                             <div className="primaryEventContainer">
                                 <Stack direction="row" spacing={2} flexDirection="row">
                                     <SubdirectoryArrowRightIcon />
-                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollower} followers={followers} key={event.sig} />
                                 </Stack>
                             </div>
                         </div>
                     )
                 } else {
                     return (
-                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowing} followers={followers} key={event.sig} />
+                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollower} followers={followers} key={event.sig} />
                     )
 
                 }
@@ -347,7 +286,7 @@ function GlobalFeed({pool, relays}: Props) {
                 
                 <Tabs 
                     value={tabIndex} 
-                    onChange={handleChange} 
+                    onChange={handleTabChange} 
                     centered>
                     <Tab label="Global"/>
                     <Tab label="Followers"/>
