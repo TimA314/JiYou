@@ -10,7 +10,7 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getFollowers } from '../nostr/FeedEvents';
+import { getFollowers, getReplyThreadEvent } from '../nostr/FeedEvents';
 
 
 interface Props {
@@ -20,15 +20,17 @@ interface Props {
 
 function GlobalFeed({pool, relays}: Props) {
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
-    const [events] = useDebounce(eventsImmediate, 1000);
+    const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({});
     const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-    const reactionsFetched = useRef<Record<string,boolean>>({});    
+    const reactionsFetched = useRef<Record<string,boolean>>({});
+    const replyThreadFetched = useRef<Record<string,boolean>>({});  
     const [hashtags, setHashtags] = useState<string[]>([]);
-    const defaultAvatar = DiceBears();
     const [tabIndex, setTabIndex] = useState(0);
     const [followers, setFollowers] = useState<string[]>([]);
+    const defaultAvatar = DiceBears();
+    
 
     //subscribe to events
     useEffect(() => {
@@ -38,23 +40,14 @@ function GlobalFeed({pool, relays}: Props) {
         }
         setEvents([]);
         
-        const UserFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
+        const UserFollowers = async () => {
             const followerPks = await getFollowers(pool, relays, tabIndex);
             if (followerPks){
                 setFollowers(followerPks);
             }
         }
-        UserFollowers(pool, relays, tabIndex);
+        UserFollowers();
 
-        const getReplyThread = async (event: Event) => {
-            if (!event.tags) return;
-            const replyThreadId = event.tags.filter((tag) => tag[0] === "e");
-            if (!replyThreadId[0] || !replyThreadId[0][1]) return;
-            const replyThreadEvent: Event[] = await pool.list(relays, [{kinds: [Kind.Text], ids: [replyThreadId[0][1]], limit: 1 }])
-            if (!replyThreadEvent[0]) return;
-            const sanitizedEvent: Event = sanitizeEvent(replyThreadEvent[0]);
-            setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
-        }
 
         let options: Filter = {
             kinds: [Kind.Text],
@@ -85,10 +78,9 @@ function GlobalFeed({pool, relays}: Props) {
         
         sub.on("event", (event: Event) => { 
             const sanitizedEvent: Event = sanitizeEvent(event);
-            
-            getReplyThread(sanitizedEvent);
-            setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent))
-
+            if (sanitizedEvent.content !== "") {
+                setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent));
+            }
         })
 
         return () => {
@@ -96,6 +88,31 @@ function GlobalFeed({pool, relays}: Props) {
         }
 
     },[pool, hashtags, relays, tabIndex])
+
+    useEffect(() => {
+        if (!pool) return;
+        
+        const eventsToGetReplyThread = events.filter((event) => !replyThreadFetched.current[event.id]);
+
+        const replyThreads = async () => {
+            
+            const replyThreadEvents = await getReplyThreadEvent(eventsToGetReplyThread, pool, relays);
+            if (!replyThreadEvents) return;
+            
+            setEvents((prevEvents) => {
+                let orderedEvents = [...prevEvents];
+                
+                replyThreadEvents.forEach((event) => {
+                    replyThreadFetched.current[event.id] = true;
+                    insertEventIntoDescendingList(orderedEvents, event)
+                });
+                
+                return orderedEvents;
+            });   
+        }
+
+        replyThreads();
+    },[events])
 
     //get reactions
     useEffect(() => {
@@ -163,6 +180,7 @@ function GlobalFeed({pool, relays}: Props) {
             if (sanitizedEvent.content !== "")
             {
                 const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
+                console.log("metaDataParsedSanitized " + metaDataParsedSanitized)
                 setMetaData((cur) => ({
                     ...cur,
                     [event.pubkey]: metaDataParsedSanitized,
@@ -183,7 +201,7 @@ function GlobalFeed({pool, relays}: Props) {
             return;
         }
 
-        let unFollow = false;
+        let unFollow = followers.includes(followerPubkey);
         if (followers.includes(followerPubkey)) {
             unFollow = true;
         }

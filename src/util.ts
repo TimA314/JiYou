@@ -54,7 +54,7 @@ export const sanitizeEvent = (event: Event) => {
     tags: event.tags.map(tag => [sanitizeString(tag[0]), sanitizeString(tag[1])]),
     kind: typeof(event.kind) === "number" ? event.kind : 256,
     created_at: typeof(event.created_at) === "number" ? event.created_at : 0,
-  }
+  } as Event;
  }  
 
 export const bech32ToHex = (str: string) => {

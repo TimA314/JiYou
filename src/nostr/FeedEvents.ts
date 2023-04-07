@@ -1,5 +1,6 @@
 import { Event, SimplePool } from "nostr-tools";
 import * as secp from "@noble/secp256k1";
+import { sanitizeEvent } from "../util";
 
 
 export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
@@ -27,4 +28,23 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
         alert(error)
         console.log(error);
     }
+}
+
+export const getReplyThreadEvent = async (events: Event[], pool: SimplePool, relays: string[]) => {
+    const eventIdsToFetch: string[] = [];
+    events.forEach(event => {
+        event.tags?.forEach(tag => {
+            if(tag[0] === "e" && tag[1]){
+                eventIdsToFetch.push(tag[1]);
+            }
+        })
+    })
+
+    if (eventIdsToFetch.length === 0) return;
+    const replyThreadEvents: Event[] = await pool.list(relays, [{kinds: [1], ids: eventIdsToFetch }])
+    if (!replyThreadEvents) return null;
+
+    const sanitizedEvents = replyThreadEvents.map(event => sanitizeEvent(event));
+
+    return sanitizedEvents;
 }
