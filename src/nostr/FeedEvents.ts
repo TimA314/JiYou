@@ -1,6 +1,7 @@
 import { Event, EventTemplate, SimplePool, getEventHash } from "nostr-tools";
 import * as secp from "@noble/secp256k1";
 import { sanitizeEvent } from "../util";
+import { ReactionCounts } from "./Types";
 
 
 export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
@@ -47,6 +48,35 @@ export const getReplyThreadEvents = async (events: Event[], pool: SimplePool, re
     const sanitizedEvents = replyThreadEvents.map(event => sanitizeEvent(event));
 
     return sanitizedEvents;
+}
+
+export const getReactionEvents = async (events: Event[], pool: SimplePool, relays: string[], reactions: Record<string, ReactionCounts>) => {
+    const retrievedReactionObjects: Record<string, ReactionCounts> = {};
+    const eventIds = events.map((event) => event.id);
+    const pubkeys = events.map((event) => event.pubkey);
+
+    const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
+
+    reactionEvents.forEach((reactionEvent) => {
+        if (!reactionEvent.tags) return;
+
+        const isUpvote = reactionEvent.content === "+";
+        const eventTagThatWasLiked = reactionEvent.tags.find((tag) => tag[0] === "e");
+
+        if (eventTagThatWasLiked === undefined || !secp.utils.isValidPrivateKey(eventTagThatWasLiked[1])) return;
+
+        const likeEventReactionObject = reactions[eventTagThatWasLiked![1]] ?? {upvotes: 0, downvotes: 0};
+
+        if (isUpvote) {
+            likeEventReactionObject.upvotes++;
+        } else {
+            likeEventReactionObject.downvotes++;
+        }
+
+        retrievedReactionObjects[eventTagThatWasLiked![1]] = likeEventReactionObject;
+    });
+
+    return retrievedReactionObjects;
 }
 
 export const setFollowing = async (followerPubkey: string, pool: SimplePool, followers: string[], relays: string[]) => {

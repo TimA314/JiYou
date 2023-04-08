@@ -10,7 +10,8 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getFollowers, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
+import { getFollowers, getReactionEvents, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
+import * as secp from "@noble/secp256k1";
 
 
 interface Props {
@@ -118,44 +119,28 @@ function GlobalFeed({pool, relays}: Props) {
     useEffect(() => {
         if (!pool) return;
 
-        const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
-        if (unprocessedEvents.length === 0) return;
-        
-        const eventIds = unprocessedEvents.map((event) => event.id);
-        const pubkeys = unprocessedEvents.map((event) => event.pubkey);
+        const getReactions = async () => {
+            const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
+            if (unprocessedEvents.length === 0) return;
 
-        const sub = pool.sub(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
-        
-        sub.on("event", (event: Event) => {
-            if (!event.tags || reactionsFetched.current[event.id] === true) return;
-            reactionsFetched.current[event.id] = true;
+            const reactionEventObjects: Record<string, ReactionCounts> = await getReactionEvents(unprocessedEvents, pool, relays, reactions);
+            if (!reactionEventObjects) return;
 
-            const likedEventTags = event.tags.filter((tag) => tag[0] === "e");
-            const likedEventId = likedEventTags[0][1];
-            if (!likedEventId) return;
-
-            const reactionObject: ReactionCounts = reactions[likedEventId] ?? {upvotes: 0, downvotes: 0};
-            switch (event.content) {
-                case "+":
-                    reactionObject.upvotes++;
-                    break;
-                case "-":
-                    reactionObject.downvotes++;
-                    break;
-                default:
-                    break;
-            }
-
+            // Merge existing and new reactions
             setReactions((cur) => ({
                 ...cur,
-                [likedEventId]: reactionObject,
+                ...reactionEventObjects,
             }));
-        })
 
-        sub.on("eose", () => {
-            sub.unsub();
-        })
-    
+            // Update reactionsFetched ref
+            unprocessedEvents.forEach((event) => {
+                reactionsFetched.current[event.id] = true;
+            });
+        }
+
+        getReactions();
+
+        return () => {};
     },[pool, events, relays])
 
     //subscribe to metadata
