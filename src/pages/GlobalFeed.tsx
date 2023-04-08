@@ -1,5 +1,5 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material';
-import { Event, Filter, Kind, nip19, SimplePool } from 'nostr-tools'
+import { Event, Filter, nip19, SimplePool } from 'nostr-tools'
 import { useEffect, useRef, useState } from 'react'
 import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -10,8 +10,7 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getFollowers, getReactionEvents, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
-import * as secp from "@noble/secp256k1";
+import { getEventOptions, getFollowers, getReactionEvents, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
 
 
 interface Props {
@@ -42,38 +41,14 @@ function GlobalFeed({pool, relays}: Props) {
         setEvents([]);
         
         const UserFollowers = async () => {
-            const followerPks = await getFollowers(pool, relays, tabIndex);
+            const followerPks: string[] | undefined = await getFollowers(pool, relays, tabIndex);
             if (followerPks){
                 setFollowers(followerPks);
             }
         }
         UserFollowers();
 
-
-        let options: Filter = {
-            kinds: [Kind.Text],
-            limit: 100,
-            since: Math.floor((Date.now() / 1000) - (5 * 24 * 60 * 60)) //5 days ago
-        }
-        
-        switch (tabIndex) {
-            case 0: //Global
-                if(hashtags.length > 0) {
-                    options["#t"] = hashtags;
-                }
-                break;
-            case 1: //Followers
-                if(hashtags.length > 0) {
-                    options["#t"] = hashtags;
-                }
-                if(followers.length > 0){
-                    options.authors = followers;
-                }
-                break;
-            default:
-                break;
-        }
-
+        const options: Filter = getEventOptions(hashtags, tabIndex, followers);
 
         const sub = pool.sub(relays, [options]);
         
@@ -90,6 +65,7 @@ function GlobalFeed({pool, relays}: Props) {
 
     },[pool, hashtags, relays, tabIndex])
 
+    //get reply threads
     useEffect(() => {
         if (!pool) return;
         
@@ -126,13 +102,13 @@ function GlobalFeed({pool, relays}: Props) {
             const reactionEventObjects: Record<string, ReactionCounts> = await getReactionEvents(unprocessedEvents, pool, relays, reactions);
             if (!reactionEventObjects) return;
 
-            // Merge existing and new reactions
+            // merge existing and new reactions
             setReactions((cur) => ({
                 ...cur,
                 ...reactionEventObjects,
             }));
 
-            // Update reactionsFetched ref
+            // update reactionsFetched ref
             unprocessedEvents.forEach((event) => {
                 reactionsFetched.current[event.id] = true;
             });
@@ -159,9 +135,9 @@ function GlobalFeed({pool, relays}: Props) {
         sub.on("event", (event: Event) => {
             
             const sanitizedEvent: Event = sanitizeEvent(event);
-            metaDataFetched.current[event.pubkey] = true;
             if (sanitizedEvent.content !== "")
             {
+                metaDataFetched.current[event.pubkey] = true;
                 const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
                 console.log("metaDataParsedSanitized " + metaDataParsedSanitized)
                 setMetaData((cur) => ({
@@ -178,10 +154,12 @@ function GlobalFeed({pool, relays}: Props) {
         return () => {};
     },[events, pool, hashtags, tabIndex])
 
+    //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
     };
 
+    //set follow
     const setFollower = async (pubkey: string) => {
         if (!pool) return;
         const newFollowers = await setFollowing(pubkey, pool, followers, relays)
@@ -190,7 +168,7 @@ function GlobalFeed({pool, relays}: Props) {
         }
     }
 
-      //render
+    //render
     if (!pool) return null;
     return (
         <Box sx={{marginTop: "52px"}}>

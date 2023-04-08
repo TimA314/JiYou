@@ -1,8 +1,37 @@
-import { Event, EventTemplate, SimplePool, getEventHash } from "nostr-tools";
+import { Event, EventTemplate, Filter, SimplePool, getEventHash } from "nostr-tools";
 import * as secp from "@noble/secp256k1";
 import { sanitizeEvent } from "../util";
 import { ReactionCounts } from "./Types";
 
+
+export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
+    
+    let options: Filter = {
+        kinds: [1],
+        limit: 100,
+        since: Math.floor((Date.now() / 1000) - (5 * 24 * 60 * 60)) //5 days ago
+    }
+    
+    switch (tabIndex) {
+        case 0: //Global
+            if(hashtags.length > 0) {
+                options["#t"] = hashtags;
+            }
+            break;
+        case 1: //Followers
+            if(hashtags.length > 0) {
+                options["#t"] = hashtags;
+            }
+            if(followers.length > 0){
+                options.authors = followers;
+            }
+            break;
+        default:
+            break;
+    }
+
+    return options;
+}
 
 export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
             
