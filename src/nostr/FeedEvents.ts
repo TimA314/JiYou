@@ -2,14 +2,15 @@ import { Event, EventTemplate, Filter, SimplePool, getEventHash } from "nostr-to
 import * as secp from "@noble/secp256k1";
 import { sanitizeEvent } from "../util";
 import { ReactionCounts } from "./Types";
+import { defaultRelays } from "./Relays";
 
 
 export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
     
     let options: Filter = {
         kinds: [1],
-        limit: 100,
-        since: Math.floor((Date.now() / 1000) - (5 * 24 * 60 * 60)) //5 days ago
+        limit: 50,
+        since: Math.floor((Date.now() / 1000) - (3 * 24 * 60 * 60)) //3 days ago
     }
     
     switch (tabIndex) {
@@ -43,7 +44,7 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
     try {
         const pk = await window.nostr.getPublicKey();
         
-        const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
+        const userFollowerEvent: Event[] = await pool.list([...defaultRelays, ...relays], [{kinds: [3], authors: [pk], limit: 1 }])
         let followerPks: string[] = [];
         if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return [];
         
@@ -53,6 +54,8 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
                 followerPks.push(followerArray[i][1]);
             }
         }
+
+        console.log(followerPks.length + " followers found")
         return followerPks;
     } catch (error) {
         alert(error)
@@ -113,30 +116,23 @@ export const setFollowing = async (followerPubkey: string, pool: SimplePool, fol
         alert("pool is null")
         return;
     }
-    if (!window.nostr) {
-        alert("You need to install a Nostr extension to provide your pubkey.")
-        return;
-    }
-    
-    const unFollow = followers.includes(followerPubkey);
-
-    console.log("setIsFollowing " + followerPubkey + " " + unFollow)
 
     try {
         const pubkey = await window.nostr.getPublicKey();
-        const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pubkey], limit: 1 }])
-        console.log("user follower event " + userFollowerEvent[0])
+        const userFollowerEvent: Event[] = await pool.list([...defaultRelays, ...relays], [{kinds: [3], authors: [pubkey], limit: 1 }])
+        console.log("user follower event " + JSON.stringify(userFollowerEvent[0]))
         
-        let newTags: string[][] = [];
-        if (userFollowerEvent[0]) {
-            newTags = [...userFollowerEvent[0].tags];
-        }
+        const isUnfollowing: boolean = !!userFollowerEvent.find((e) =>
+            e.tags.some((t) => t[1] === followerPubkey)
+        );
 
-        if (unFollow) {
-            newTags = newTags.filter((tag) => tag[1] !== followerPubkey);
-        } else {
-            newTags.push(["p", followerPubkey]);
-        }
+        console.log("setIsFollowing " + followerPubkey + " " + isUnfollowing)
+        
+        const currentTags = userFollowerEvent[0]?.tags || [];
+
+        const newTags = isUnfollowing
+            ? currentTags.filter((tag) => tag[1] !== followerPubkey)
+            : currentTags.concat([["p", followerPubkey]]);
 
         const _baseEvent = {
             kind: 3,
@@ -154,7 +150,7 @@ export const setFollowing = async (followerPubkey: string, pool: SimplePool, fol
             pubkey,
         }
 
-        const pubs = pool.publish(relays, newEvent)
+        let pubs = pool.publish(relays, newEvent)
         
         pubs.on("ok", () => {
             alert("Posted to relays")

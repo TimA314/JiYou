@@ -5,7 +5,6 @@ import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
-import { defaultRelays } from '../nostr/Relays';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
@@ -127,7 +126,7 @@ function GlobalFeed({pool, relays}: Props) {
         
         if (pubkeysToFetch.length === 0) return;
         
-        const sub = pool.sub(defaultRelays, [{
+        const sub = pool.sub(relays, [{
             kinds: [0],
             authors: pubkeysToFetch,
         }])
@@ -137,13 +136,13 @@ function GlobalFeed({pool, relays}: Props) {
             const sanitizedEvent: Event = sanitizeEvent(event);
             if (sanitizedEvent.content !== "")
             {
-                metaDataFetched.current[event.pubkey] = true;
-                const metaDataParsedSanitized = JSON.parse(sanitizedEvent.content) as MetaData;
+                const metaDataParsedSanitized: MetaData = JSON.parse(sanitizedEvent.content) as MetaData;
                 console.log("metaDataParsedSanitized " + metaDataParsedSanitized)
                 setMetaData((cur) => ({
                     ...cur,
                     [event.pubkey]: metaDataParsedSanitized,
                 }));
+                metaDataFetched.current[event.pubkey] = true;
             }
         })
         
@@ -152,7 +151,7 @@ function GlobalFeed({pool, relays}: Props) {
         })
 
         return () => {};
-    },[events, pool, hashtags, tabIndex])
+    },[events, pool, relays])
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -168,6 +167,50 @@ function GlobalFeed({pool, relays}: Props) {
         }
     }
 
+    //set Events
+    const setEventData = (event: Event) => {
+        const fullEventData: FullEventData = {
+            content: event.content,
+            user: {
+                name: metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 10) + "...",
+                picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
+                about: metaData[event.pubkey]?.about ?? "",
+                nip05: metaData[event.pubkey]?.nip05 ?? "",
+            },
+            pubkey: event.pubkey,
+            hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
+            eventId: event.id,
+            sig: event.sig,
+            created_at: event.created_at,
+            tags: event?.tags ?? [],
+            reaction: reactions[event.id] ?? {upvotes: 0, downvotes: 0},
+        }
+
+        const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
+        const referredEvent = events.find((e) => e.id === referredId);
+        
+        if (!referredEvent) return {fullEventData, referredEventFullData: undefined};
+
+        const referredEventFullData: FullEventData = {
+            content: referredEvent?.content ?? "",
+            user: {
+                name: metaData[referredEvent?.pubkey ?? ""]?.name ?? nip19.npubEncode(referredEvent?.pubkey ?? "").slice(0, 10) + "...",
+                picture: metaData[referredEvent?.pubkey ?? ""]?.picture ?? defaultAvatar,
+                about: metaData[referredEvent?.pubkey ?? ""]?.about ?? "I am Satoshi Nakamoto",
+                nip05: metaData[referredEvent?.pubkey ?? ""]?.nip05 ?? "",
+            },
+            pubkey: referredEvent?.pubkey ?? "",
+            hashtags: referredEvent?.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]) ?? [],
+            eventId: referredEvent?.id ?? "",
+            sig: referredEvent?.sig ?? "",
+            created_at: referredEvent?.created_at ?? 0,
+            tags: referredEvent?.tags ?? [],
+            reaction: reactions[referredEvent?.id] ?? {upvotes: 0, downvotes: 0},
+        }
+
+        return {fullEventData, referredEventFullData}
+    }
+
     //render
     if (!pool) return null;
     return (
@@ -181,43 +224,10 @@ function GlobalFeed({pool, relays}: Props) {
                 (e, i, arr) => arr.findIndex(t => t.id === e.id) === i //remove duplicates
             )
             .map((event) => {
-                const fullEventData: FullEventData = {
-                    content: event.content,
-                    user: {
-                        name: metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 10) + "...",
-                        picture: metaData[event.pubkey]?.picture ?? defaultAvatar,
-                        about: metaData[event.pubkey]?.about ?? "",
-                        nip05: metaData[event.pubkey]?.nip05 ?? "",
-                    },
-                    pubkey: event.pubkey,
-                    hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
-                    eventId: event.id,
-                    sig: event.sig,
-                    created_at: event.created_at,
-                    tags: event?.tags ?? [],
-                    reaction: reactions[event.id] ?? {upvotes: 0, downvotes: 0},
-                }
-                const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
-                const referredEvent = events.find((e) => e.id === referredId);
-                
-                if (referredEvent) {
-                    const referredEventFullData: FullEventData = {
-                        content: referredEvent?.content ?? "",
-                        user: {
-                            name: metaData[referredEvent?.pubkey ?? ""]?.name ?? nip19.npubEncode(referredEvent?.pubkey ?? "").slice(0, 10) + "...",
-                            picture: metaData[referredEvent?.pubkey ?? ""]?.picture ?? defaultAvatar,
-                            about: metaData[referredEvent?.pubkey ?? ""]?.about ?? "I am Satoshi Nakamoto",
-                            nip05: metaData[referredEvent?.pubkey ?? ""]?.nip05 ?? "",
-                        },
-                        pubkey: referredEvent?.pubkey ?? "",
-                        hashtags: referredEvent?.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]) ?? [],
-                        eventId: referredEvent?.id ?? "",
-                        sig: referredEvent?.sig ?? "",
-                        created_at: referredEvent?.created_at ?? 0,
-                        tags: referredEvent?.tags ?? [],
-                        reaction: reactions[referredEvent?.id] ?? {upvotes: 0, downvotes: 0},
-                    }
 
+                const {fullEventData, referredEventFullData} = setEventData(event);
+
+                if (referredEventFullData) {
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
