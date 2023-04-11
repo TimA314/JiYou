@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Event, Filter, SimplePool, Kind } from 'nostr-tools';
+import { Event, Filter, SimplePool } from 'nostr-tools';
 import { insertEventIntoDescendingList } from 'nostr-tools/lib/utils';
 import { sanitizeEvent } from '../util';
 
 type Props = {
   pool: SimplePool | null;
-  filter: Filter[];
   relays: string[];
+  filter: Filter;
 };
 
-const useListEvents = ({ pool, relays, filter }: Props) => {
+export const useListEvents = ({ pool, relays, filter }: Props) => {
   const [events, setEvents] = useState<Event[]>([]);
 
   const isEventDistinct = (event: Event) => {
@@ -24,7 +24,7 @@ const useListEvents = ({ pool, relays, filter }: Props) => {
 
     const fetchEvents = async () => {
       try {
-        const fetchedEvents = await pool.list(relays, filter);
+        const fetchedEvents = await pool.list(relays, [filter]);
         const sanitizedEvents = fetchedEvents.map((event) => sanitizeEvent(event));
         setEvents((prevEvents) =>
           sanitizedEvents.reduce((accEvents, sanitizedEvent) => {
