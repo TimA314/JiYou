@@ -1,0 +1,47 @@
+import { useState, useEffect } from 'react';
+import { Event, Filter, SimplePool, Kind } from 'nostr-tools';
+import { insertEventIntoDescendingList } from 'nostr-tools/lib/utils';
+import { sanitizeEvent } from '../util';
+
+type Props = {
+  pool: SimplePool | null;
+  filter: Filter[];
+  relays: string[];
+};
+
+const useListEvents = ({ pool, relays, filter }: Props) => {
+  const [events, setEvents] = useState<Event[]>([]);
+
+  const isEventDistinct = (event: Event) => {
+    return !events.some((existingEvent) => existingEvent.id === event.id);
+  };
+
+  useEffect(() => {
+    if (!pool) {
+      console.log('pool is null');
+      return;
+    }
+
+    const fetchEvents = async () => {
+      try {
+        const fetchedEvents = await pool.list(relays, filter);
+        const sanitizedEvents = fetchedEvents.map((event) => sanitizeEvent(event));
+        setEvents((prevEvents) =>
+          sanitizedEvents.reduce((accEvents, sanitizedEvent) => {
+            if (isEventDistinct(sanitizedEvent)) {
+              return insertEventIntoDescendingList(accEvents, sanitizedEvent);
+            }
+            return accEvents;
+          }, prevEvents)
+        );
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+
+    setEvents([]);
+    fetchEvents();
+  }, [pool, relays, filter]);
+
+  return { events, setEvents };
+};
