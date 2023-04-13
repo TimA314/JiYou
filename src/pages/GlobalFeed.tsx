@@ -9,15 +9,18 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getEventOptions, getFollowers, getReactionEvents, getReplyThreadEvents, setFollowing } from '../nostr/FeedEvents';
+import { getEventOptions, getReactionEvents, getReplyThreadEvents } from '../nostr/FeedEvents';
+import { useFollowers } from '../hooks/useFollowers';
 
 
-interface Props {
-    pool: SimplePool | null,
-    relays: string[],
-}
-
-function GlobalFeed({pool, relays}: Props) {
+type GlobalFeedProps = {
+    pool: SimplePool | null;
+    relays: string[];
+  };
+  
+  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays }) => {
+    const { followers, setFollowers } = useFollowers({ pool, relays, tabIndex: 0 });
+  
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
@@ -27,9 +30,7 @@ function GlobalFeed({pool, relays}: Props) {
     const replyThreadFetched = useRef<Record<string,boolean>>({});  
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
-    const [followers, setFollowers] = useState<string[]>([]);
     const defaultAvatar = DiceBears();
-    
 
     //subscribe to events
     useEffect(() => {
@@ -38,14 +39,6 @@ function GlobalFeed({pool, relays}: Props) {
             return;
         }
         setEvents([]);
-        
-        const UserFollowers = async () => {
-            const followerPks: string[] | undefined = await getFollowers(pool, relays, tabIndex);
-            if (followerPks){
-                setFollowers(followerPks);
-            }
-        }
-        UserFollowers();
 
         const options: Filter = getEventOptions(hashtags, tabIndex, followers);
 
@@ -161,10 +154,8 @@ function GlobalFeed({pool, relays}: Props) {
     //set follow
     const setFollower = async (pubkey: string) => {
         if (!pool) return;
-        const newFollowers = await setFollowing(pubkey, pool, followers, relays)
-        if (newFollowers){
-            setFollowers(newFollowers);
-        }
+        const newFollowerArray = followers.includes(pubkey) ? followers.filter((follower) => follower !== pubkey) : [...followers, pubkey];
+        await setFollowers(newFollowerArray)
     }
 
     //set Events
