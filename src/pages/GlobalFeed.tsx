@@ -6,11 +6,13 @@ import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
-import { DiceBears, insertEventIntoDescendingList, sanitizeEvent,} from '../util';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import { getEventOptions, getReactionEvents, getReplyThreadEvents } from '../nostr/FeedEvents';
 import { useFollowers } from '../hooks/useFollowers';
+import { DiceBears } from '../utils/miscUtils';
+import { sanitizeEvent } from '../utils/sanitizeUtils';
+import { insertEventIntoDescendingList } from '../utils/eventUtils';
 
 
 type GlobalFeedProps = {
@@ -55,7 +57,7 @@ type GlobalFeedProps = {
             sub.unsub();
         }
 
-    },[pool, hashtags, relays, tabIndex])
+    }, [pool, hashtags, relays, tabIndex, followers]);
 
     //get reply threads
     useEffect(() => {
@@ -81,7 +83,7 @@ type GlobalFeedProps = {
         }
 
         replyThreads();
-    },[events])
+    }, [events, pool, relays]);
 
     //get reactions
     useEffect(() => {
@@ -109,7 +111,7 @@ type GlobalFeedProps = {
         getReactions();
 
         return () => {};
-    },[pool, events, relays])
+    }, [pool, events, relays, reactions]); 
 
     //subscribe to metadata
     useEffect(() => {
@@ -144,7 +146,7 @@ type GlobalFeedProps = {
         })
 
         return () => {};
-    },[events, pool, relays])
+    }, [events, pool, relays]);
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {

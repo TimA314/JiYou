@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Event, Filter, SimplePool } from 'nostr-tools';
-import { sanitizeEvent } from '../util';
-import { insertEventIntoDescendingList } from '../util';
+import { sanitizeEvent } from '../utils/sanitizeUtils';
+import { insertEventIntoDescendingList } from '../utils/eventUtils';
+
 
 type Props = {
   pool: SimplePool | null;

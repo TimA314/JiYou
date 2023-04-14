@@ -2,7 +2,7 @@ import { Chip, IconButton, InputBase, Paper, Stack} from "@mui/material";
 import { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./HashtagsFilter.css";
-import { sanitizeString } from "../util";
+import { sanitizeString } from "../utils/sanitizeUtils";
 
 interface Props {
   hashtags: string[];

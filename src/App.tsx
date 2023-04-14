@@ -43,8 +43,6 @@ const theme = createTheme({
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
-  const [publicKey, setPublicKey] = useState<string | null>(null);
-  const [followers, setFollowers] = useState<string[]>([]);
 
   useEffect(() => {
     //setup pool

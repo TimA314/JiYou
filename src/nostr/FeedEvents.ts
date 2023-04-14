@@ -1,8 +1,8 @@
 import { Event, EventTemplate, Filter, SimplePool, getEventHash } from "nostr-tools";
 import * as secp from "@noble/secp256k1";
-import { sanitizeEvent } from "../util";
 import { ReactionCounts } from "./Types";
 import { defaultRelays } from "./Relays";
+import { sanitizeEvent } from "../utils/sanitizeUtils";
 
 
 export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {

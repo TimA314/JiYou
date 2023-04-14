@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
-import { sanitizeEvent } from '../util';
 import "./Profile.css";
 import { defaultRelays } from '../nostr/Relays';
+import { sanitizeEvent } from '../utils/sanitizeUtils';
 
 interface ProfileProps {
     relays: string[];

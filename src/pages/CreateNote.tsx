@@ -3,7 +3,7 @@ import { FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool, validateEvent } from 'nostr-tools';
-import { sanitizeString } from '../util';
+import { sanitizeString } from '../utils/sanitizeUtils';
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;

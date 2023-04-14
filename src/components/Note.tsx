@@ -12,12 +12,12 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { GetImageFromPost } from '../util';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
 import CustomizedRating from './Rating';
+import { GetImageFromPost } from '../utils/miscUtils';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;

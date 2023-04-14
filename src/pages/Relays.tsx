@@ -4,7 +4,7 @@ import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon,
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { EventTemplate, getEventHash, Kind, SimplePool, validateEvent, verifySignature, Event } from 'nostr-tools';
-import { sanitizeString } from "../util";
+import { sanitizeString } from "../utils/sanitizeUtils";
 import { defaultRelays } from "../nostr/Relays";
 
 interface RelayProps {
