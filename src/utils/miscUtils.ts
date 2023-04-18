@@ -1,17 +1,20 @@
 import { bech32 } from "bech32";
-import * as secp from "@noble/secp256k1";
-import { Event } from "nostr-tools";
-import { MetaData } from "../nostr/Types";
 
 export const bech32ToHex = (str: string) => {
-    try {
-        const nKey = bech32.decode(str, 1_000);
-        const buff = bech32.fromWords(nKey.words);
-        return secp.utils.bytesToHex(Uint8Array.from(buff));
-    } catch {
-        return "";
-    }
+  try {
+    const nKey = bech32.decode(str, 1_000);
+    const buff = bech32.fromWords(nKey.words);
+    return uint8ArrayToHex(Uint8Array.from(buff));
+  } catch {
+    return "";
   }
+};
+
+const uint8ArrayToHex = (buffer: Uint8Array) => {
+  return Array.from(buffer)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
   
   export const GetImageFromPost = (content: string): string | null => {
     if (!content) return null;

@@ -1,5 +1,5 @@
-import { Event, EventTemplate, Filter, SimplePool, getEventHash } from "nostr-tools";
-import * as secp from "@noble/secp256k1";
+import { Event, Filter, SimplePool } from "nostr-tools";
+import * as secp from "noble-secp256k1";
 import { ReactionCounts } from "./Types";
 import { defaultRelays } from "./Relays";
 import { sanitizeEvent } from "../utils/sanitizeUtils";

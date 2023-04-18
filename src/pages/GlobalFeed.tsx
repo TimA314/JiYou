@@ -5,14 +5,17 @@ import { useDebounce } from 'use-debounce';
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
-import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, MetaData } from '../nostr/Types';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getEventOptions, getReactionEvents, getReplyThreadEvents } from '../nostr/FeedEvents';
+import { getEventOptions, getReplyThreadEvents } from '../nostr/FeedEvents';
 import { useFollowers } from '../hooks/useFollowers';
 import { DiceBears } from '../utils/miscUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { insertEventIntoDescendingList } from '../utils/eventUtils';
+import useReactions from '../hooks/useReactions';
+import useReplyThreads from '../hooks/useReplyThreads';
+
 
 
 type GlobalFeedProps = {
@@ -22,14 +25,13 @@ type GlobalFeedProps = {
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays }) => {
     const { followers, setFollowers } = useFollowers({ pool, relays, tabIndex: 0 });
-  
     const [eventsImmediate, setEvents] = useState<Event[]>([]);
     const [events] = useDebounce(eventsImmediate, 1500);
     const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
     const metaDataFetched = useRef<Record<string,boolean>>({});
-    const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-    const reactionsFetched = useRef<Record<string,boolean>>({});
-    const replyThreadFetched = useRef<Record<string,boolean>>({});  
+    const reactions = useReactions({ events, pool, relays });
+    const replyThreads = useReplyThreads({ events, pool, relays });
+
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const defaultAvatar = DiceBears();
@@ -59,59 +61,6 @@ type GlobalFeedProps = {
 
     }, [pool, hashtags, relays, tabIndex, followers]);
 
-    //get reply threads
-    useEffect(() => {
-        if (!pool) return;
-        
-        const eventsToGetReplyThread = events.filter((event) => !replyThreadFetched.current[event.id]);
-
-        const replyThreads = async () => {
-            
-            const replyThreadEvents = await getReplyThreadEvents(eventsToGetReplyThread, pool, relays);
-            if (!replyThreadEvents) return;
-            
-            setEvents((prevEvents) => {
-                let orderedEvents = [...prevEvents];
-                
-                replyThreadEvents.forEach((event) => {
-                    replyThreadFetched.current[event.id] = true;
-                    insertEventIntoDescendingList(orderedEvents, event)
-                });
-                
-                return orderedEvents;
-            });   
-        }
-
-        replyThreads();
-    }, [events, pool, relays]);
-
-    //get reactions
-    useEffect(() => {
-        if (!pool) return;
-
-        const getReactions = async () => {
-            const unprocessedEvents = events.filter((event) => !reactionsFetched.current[event.id]);
-            if (unprocessedEvents.length === 0) return;
-
-            const reactionEventObjects: Record<string, ReactionCounts> = await getReactionEvents(unprocessedEvents, pool, relays, reactions);
-            if (!reactionEventObjects) return;
-
-            // merge existing and new reactions
-            setReactions((cur) => ({
-                ...cur,
-                ...reactionEventObjects,
-            }));
-
-            // update reactionsFetched ref
-            unprocessedEvents.forEach((event) => {
-                reactionsFetched.current[event.id] = true;
-            });
-        }
-
-        getReactions();
-
-        return () => {};
-    }, [pool, events, relays, reactions]); 
 
     //subscribe to metadata
     useEffect(() => {

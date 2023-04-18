@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Event, EventTemplate, SimplePool, getEventHash } from 'nostr-tools';
 import { useListEvents } from './useListEvents';
-import * as secp from "@noble/secp256k1";
+import * as secp from 'noble-secp256k1';
 import { defaultRelays } from '../nostr/Relays';
 
 type UseFollowersProps = {
