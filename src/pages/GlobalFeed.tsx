@@ -1,20 +1,16 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material';
 import { Event, Filter, nip19, SimplePool } from 'nostr-tools'
-import { useEffect, useRef, useState } from 'react'
-import { useDebounce } from 'use-debounce';
+import { useEffect, useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
-import { FullEventData, MetaData } from '../nostr/Types';
+import { FullEventData } from '../nostr/Types';
 import "./GlobalFeed.css";
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getEventOptions, getReplyThreadEvents } from '../nostr/FeedEvents';
+import { getEventOptions } from '../nostr/FeedEvents';
 import { useFollowers } from '../hooks/useFollowers';
 import { DiceBears } from '../utils/miscUtils';
-import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { insertEventIntoDescendingList } from '../utils/eventUtils';
-import useReactions from '../hooks/useReactions';
-import useReplyThreads from '../hooks/useReplyThreads';
+import { useListEvents } from '../hooks/useListEvents';
 
 
 
@@ -24,89 +20,22 @@ type GlobalFeedProps = {
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays }) => {
-    const { followers, setFollowers } = useFollowers({ pool, relays, tabIndex: 0 });
-    const [eventsImmediate, setEvents] = useState<Event[]>([]);
-    const [events] = useDebounce(eventsImmediate, 1500);
-    const [metaData, setMetaData] = useState<Record<string,MetaData>>({});
-    const metaDataFetched = useRef<Record<string,boolean>>({});
-    const reactions = useReactions({ events, pool, relays });
-    const replyThreads = useReplyThreads({ events, pool, relays });
-
+    const { followers, setFollowing } = useFollowers({pool, relays});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
+    const filter: Filter = getEventOptions(hashtags, tabIndex, followers);
+    const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, filter});
     const defaultAvatar = DiceBears();
 
-    //subscribe to events
-    useEffect(() => {
-        if (!pool) {
-            console.log("pool is null")
-            return;
-        }
-        setEvents([]);
-
-        const options: Filter = getEventOptions(hashtags, tabIndex, followers);
-
-        const sub = pool.sub(relays, [options]);
-        
-        sub.on("event", (event: Event) => { 
-            const sanitizedEvent: Event = sanitizeEvent(event);
-            if (sanitizedEvent.content !== "") {
-                setEvents((prevEvents) => insertEventIntoDescendingList(prevEvents, sanitizedEvent));
-            }
-        })
-
-        return () => {
-            sub.unsub();
-        }
-
-    }, [pool, hashtags, relays, tabIndex, followers]);
-
-
-    //subscribe to metadata
-    useEffect(() => {
-        if (!pool) return;
-
-        const pubkeysToFetch = events.filter((event) => metaDataFetched.current[event.pubkey] !== true).map((event) => event.pubkey);
-        
-        if (pubkeysToFetch.length === 0) return;
-        
-        const sub = pool.sub(relays, [{
-            kinds: [0],
-            authors: pubkeysToFetch,
-        }])
-        
-        sub.on("event", (event: Event) => {
-            
-            const sanitizedEvent: Event = sanitizeEvent(event);
-            if (sanitizedEvent.content !== "")
-            {
-                const metaDataParsedSanitized: MetaData = JSON.parse(sanitizedEvent.content) as MetaData;
-                console.log("metaDataParsedSanitized " + metaDataParsedSanitized)
-                setMetaData((cur) => ({
-                    ...cur,
-                    [event.pubkey]: metaDataParsedSanitized,
-                }));
-                metaDataFetched.current[event.pubkey] = true;
-            }
-        })
-        
-        sub.on("eose", () => {
-            sub.unsub();
-        })
-
-        return () => {};
-    }, [events, pool, relays]);
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
+        setEvents([]);
     };
 
-    //set follow
-    const setFollower = async (pubkey: string) => {
-        if (!pool) return;
-        const newFollowerArray = followers.includes(pubkey) ? followers.filter((follower) => follower !== pubkey) : [...followers, pubkey];
-        await setFollowers(newFollowerArray)
+    const setFollowers = (pubkey: string) => {
+        setFollowing(pubkey, pool, relays);
     }
 
     //set Events
@@ -173,19 +102,19 @@ type GlobalFeedProps = {
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
-                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollower} followers={followers} />
+                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowers} followers={followers} />
                             </div>
                             <div className="primaryEventContainer">
                                 <Stack direction="row" spacing={2} flexDirection="row">
                                     <SubdirectoryArrowRightIcon />
-                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollower} followers={followers} key={event.sig} />
+                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
                                 </Stack>
                             </div>
                         </div>
                     )
                 } else {
                     return (
-                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollower} followers={followers} key={event.sig} />
+                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
                     )
 
                 }

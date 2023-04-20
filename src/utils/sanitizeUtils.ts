@@ -1,5 +1,3 @@
-import { bech32 } from "bech32";
-import * as secp from "@noble/secp256k1";
 import { Event } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
 
