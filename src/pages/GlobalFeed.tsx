@@ -1,6 +1,6 @@
 import { Box, Stack, Tab, Tabs } from '@mui/material';
 import { Event, Filter, nip19, SimplePool } from 'nostr-tools'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
@@ -23,8 +23,7 @@ type GlobalFeedProps = {
     const { followers, setFollowing } = useFollowers({pool, relays});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
-    const filter: Filter = getEventOptions(hashtags, tabIndex, followers);
-    const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, filter});
+    const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
     const defaultAvatar = DiceBears();
 
 
@@ -83,11 +82,11 @@ type GlobalFeedProps = {
     }
 
     //render
-    if (!pool) return null;
+
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <HashtagsFilter hashtags={hashtags} onChange={setHashtags} />
+            <HashtagsFilter hashtags={hashtags} setHashtags={setHashtags} />
 
             {events.length === 0 && <Box sx={{textAlign: "center"}}><Loading /></Box>}
 

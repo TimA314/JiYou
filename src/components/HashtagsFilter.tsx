@@ -6,21 +6,21 @@ import { sanitizeString } from "../utils/sanitizeUtils";
 
 interface Props {
   hashtags: string[];
-  onChange: (hashtags: string[]) => void;
+  setHashtags: (hashtags: string[]) => void;
 }
 
-export default function HashtagsFilter({ hashtags, onChange }: Props) {
+export default function HashtagsFilter({ hashtags, setHashtags }: Props) {
   const [input, setInput] = useState("");
 
   const onAddHashTag = () => {
     const hashtag = sanitizeString(input);
     if (hashtag === "" || hashtags.includes(hashtag)) return;
     setInput("");
-    onChange([...hashtags, hashtag]);
+    setHashtags([...hashtags, hashtag]);
   };
 
   const removeHashtag = (hashtag: string) => {
-    onChange(hashtags.filter((h) => h !== hashtag));
+    setHashtags(hashtags.filter((h) => h !== hashtag));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

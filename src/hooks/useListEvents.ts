@@ -3,14 +3,17 @@ import { Event, Filter, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
 import * as secp from 'noble-secp256k1';
+import { getEventOptions } from '../nostr/FeedEvents';
 
 type useListEventsProps = {
   pool: SimplePool | null;
   relays: string[];
-  filter: Filter;
+  tabIndex: number;
+  followers: string[];
+  hashtags: string[];
 };
 
-export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
+export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: useListEventsProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
@@ -24,7 +27,7 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
 
     const fetchEvents = async () => {
       try {
-        const fetchedFeedEvents = await pool.list(relays, [filter]);
+        const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
         const sanitizedEvents = fetchedFeedEvents.map((event) => sanitizeEvent(event));
 
         const replyEventIds: string[] = [];
@@ -36,8 +39,9 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
             })
         })
 
-        let eventIds: string[] = events.map(event => event.id);
-        let reactionPubkeys: string[] = events.map(event => event.pubkey);
+        let eventIds: string[] = sanitizedEvents.map(event => event.id);
+        let reactionPubkeys: string[] = sanitizedEvents.map(event => event.pubkey);
+        let newEvents: Event[] = [];
         
         // Fetch reply thread events
         if (replyEventIds.length !== 0){
@@ -47,31 +51,32 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
           eventIds = eventIds.concat(replyThreadEvents.map(event => event.id));
           reactionPubkeys = reactionPubkeys.concat(replyThreadEvents.map(event => event.pubkey));
 
-          setEvents([...sanitizedEvents, ...sanitizedReplyThreadEvents]);
+          newEvents = [...sanitizedEvents, ...sanitizedReplyThreadEvents];
         } else {
-          setEvents(sanitizedEvents);
+          newEvents = sanitizedEvents;
         }
-        
+        setEvents(newEvents);
+
         // Fetch reactions
         const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": reactionPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
 
         reactionEvents.forEach((event) => {
-          const eventTagThatWasLiked = event.tags.find((tag) => tag[0] === "e");
-          const isValidEventTagThatWasLiked = eventTagThatWasLiked !== undefined && secp.utils.isValidPrivateKey(eventTagThatWasLiked[1]);
-
-            if (event.content === "+" && isValidEventTagThatWasLiked) {
-              retrievedReactionObjects[eventTagThatWasLiked[1]].upvotes++;
-            } else if(event.content === "-" && isValidEventTagThatWasLiked) {
-              retrievedReactionObjects[eventTagThatWasLiked[1]].downvotes++;
-            }
-          }
-        );
+          const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
+          eventTagThatWasLiked.forEach((tag) => {
+            const isValidEventTagThatWasLiked = tag !== undefined && secp.utils.isValidPrivateKey(tag[1]);
+              if (event.content === "+" && isValidEventTagThatWasLiked) {
+                retrievedReactionObjects[tag[1]].upvotes++;
+              } else if(event.content === "-" && isValidEventTagThatWasLiked) {
+                retrievedReactionObjects[tag[1]].downvotes++;
+              }
+          });
+        });
 
         setReactions(retrievedReactionObjects);
 
         // Fetch metadata
-        const authorPubkeys: string[] = events.map(event => event.pubkey);
+        const authorPubkeys: string[] = newEvents.map(event => event.pubkey);
         const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
         const metaDataMap: Record<string, MetaData> = {};
@@ -87,7 +92,7 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
     };
 
     fetchEvents();
-  }, [pool, filter]);
+  }, []);
 
   return { events, setEvents, reactions, metaData: metaData };
 };

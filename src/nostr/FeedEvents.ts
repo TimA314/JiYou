@@ -63,50 +63,50 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
     }
 }
 
-export const getReplyThreadEvents = async (events: Event[], pool: SimplePool, relays: string[]) => {
-    const eventIdsToFetch: string[] = [];
-    events.forEach(event => {
-        event.tags?.forEach(tag => {
-            if(tag[0] === "e" && tag[1]){
-                eventIdsToFetch.push(tag[1]);
-            }
-        })
-    })
+// export const getReplyThreadEvents = async (events: Event[], pool: SimplePool, relays: string[]) => {
+//     const eventIdsToFetch: string[] = [];
+//     events.forEach(event => {
+//         event.tags?.forEach(tag => {
+//             if(tag[0] === "e" && tag[1]){
+//                 eventIdsToFetch.push(tag[1]);
+//             }
+//         })
+//     })
 
-    if (eventIdsToFetch.length === 0) return;
-    const replyThreadEvents: Event[] = await pool.list(relays, [{kinds: [1], ids: eventIdsToFetch }])
-    if (!replyThreadEvents) return null;
+//     if (eventIdsToFetch.length === 0) return;
+//     const replyThreadEvents: Event[] = await pool.list(relays, [{kinds: [1], ids: eventIdsToFetch }])
+//     if (!replyThreadEvents) return null;
 
-    const sanitizedEvents = replyThreadEvents.map(event => sanitizeEvent(event));
+//     const sanitizedEvents = replyThreadEvents.map(event => sanitizeEvent(event));
 
-    return sanitizedEvents;
-}
+//     return sanitizedEvents;
+// }
 
-export const getReactionEvents = async (events: Event[], pool: SimplePool, relays: string[], reactions: Record<string, ReactionCounts>) => {
-    const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-    const eventIds = events.map((event) => event.id);
-    const pubkeys = events.map((event) => event.pubkey);
+// export const getReactionEvents = async (events: Event[], pool: SimplePool, relays: string[], reactions: Record<string, ReactionCounts>) => {
+//     const retrievedReactionObjects: Record<string, ReactionCounts> = {};
+//     const eventIds = events.map((event) => event.id);
+//     const pubkeys = events.map((event) => event.pubkey);
 
-    const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
+//     const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": pubkeys}]);
 
-    reactionEvents.forEach((reactionEvent) => {
-        if (!reactionEvent.tags) return;
+//     reactionEvents.forEach((reactionEvent) => {
+//         if (!reactionEvent.tags) return;
 
-        const isUpvote = reactionEvent.content === "+";
-        const eventTagThatWasLiked = reactionEvent.tags.find((tag) => tag[0] === "e");
+//         const isUpvote = reactionEvent.content === "+";
+//         const eventTagThatWasLiked = reactionEvent.tags.find((tag) => tag[0] === "e");
 
-        if (eventTagThatWasLiked === undefined || !secp.utils.isValidPrivateKey(eventTagThatWasLiked[1])) return;
+//         if (eventTagThatWasLiked === undefined || !secp.utils.isValidPrivateKey(eventTagThatWasLiked[1])) return;
 
-        const likeEventReactionObject = reactions[eventTagThatWasLiked![1]] ?? {upvotes: 0, downvotes: 0};
+//         const likeEventReactionObject = reactions[eventTagThatWasLiked![1]] ?? {upvotes: 0, downvotes: 0};
 
-        if (isUpvote) {
-            likeEventReactionObject.upvotes++;
-        } else {
-            likeEventReactionObject.downvotes++;
-        }
+//         if (isUpvote) {
+//             likeEventReactionObject.upvotes++;
+//         } else {
+//             likeEventReactionObject.downvotes++;
+//         }
 
-        retrievedReactionObjects[eventTagThatWasLiked![1]] = likeEventReactionObject;
-    });
+//         retrievedReactionObjects[eventTagThatWasLiked![1]] = likeEventReactionObject;
+//     });
 
-    return retrievedReactionObjects;
-}
+//     return retrievedReactionObjects;
+// }
