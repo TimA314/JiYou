@@ -3,7 +3,6 @@ import { Event, Filter, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
 import * as secp from 'noble-secp256k1';
-import { useFollowers } from './useFollowers';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -49,10 +48,10 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
           reactionPubkeys = reactionPubkeys.concat(replyThreadEvents.map(event => event.pubkey));
 
           setEvents([...sanitizedEvents, ...sanitizedReplyThreadEvents]);
+        } else {
+          setEvents(sanitizedEvents);
         }
-
-        setEvents(sanitizedEvents);
-
+        
         // Fetch reactions
         const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": reactionPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
@@ -87,9 +86,8 @@ export const useListEvents = ({ pool, relays, filter }: useListEventsProps) => {
       }
     };
 
-    setEvents([]);
     fetchEvents();
-  }, [pool, relays, filter]);
+  }, [pool, filter]);
 
   return { events, setEvents, reactions, metaData: metaData };
 };
