@@ -92,7 +92,7 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
     };
 
     fetchEvents();
-  }, []);
+  }, [tabIndex, hashtags]);
 
   return { events, setEvents, reactions, metaData: metaData };
 };
