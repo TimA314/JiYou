@@ -100,12 +100,12 @@ export const likeEvent = async (pool: SimplePool, relays: string[], event: FullE
         //post the event to the relays
         const pubs = pool.publish(relays, newEvent)
         
-        pubs.on("ok", () => {
-          console.log("Posted to relays")
+        pubs.on("ok", (r: any) => {
+          console.log(`Posted to ${r}`)
         })
   
         pubs.on("failed", (error: string) => {
-            console.log("Failed to post to relays", error)
+            console.log("Failed to post to ", error)
         })
   
     } catch (error) {
