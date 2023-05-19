@@ -101,19 +101,19 @@ type GlobalFeedProps = {
                     return (
                         <div key={event.sig}>
                             <div className='referredEvent'>
-                                <Note pool={pool} eventData={referredEventFullData} setFollowing={setFollowers} followers={followers} />
+                                <Note pool={pool} relays={relays} eventData={referredEventFullData} setFollowing={setFollowers} followers={followers} />
                             </div>
                             <div className="primaryEventContainer">
                                 <Stack direction="row" spacing={2} flexDirection="row">
                                     <SubdirectoryArrowRightIcon />
-                                    <Note pool={pool} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
+                                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
                                 </Stack>
                             </div>
                         </div>
                     )
                 } else {
                     return (
-                        <Note pool={pool} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
+                        <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
                     )
 
                 }

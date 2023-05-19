@@ -14,10 +14,11 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
 import CustomizedRating from './Rating';
 import { GetImageFromPost } from '../utils/miscUtils';
+import { likeEvent } from '../nostr/FeedEvents';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -30,22 +31,34 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
+const FavoriteIconButton = styled(IconButton)(({ theme }) => ({
+  '&.animateLike': {
+    animation: '$scaleAnimation 0.3s ease-in-out',
+    color: 'purple',
+  },
+  '@keyframes scaleAnimation': {
+    '0%': { transform: 'scale(1)' },
+    '50%': { transform: 'scale(1.3)' },
+    '100%': { transform: 'scale(1)' },
+  },
+}));
+
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
 interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
+  relays: string[];
   followers: string[];
   setFollowing: (pubkey: string) => void;
 }
 
-export default function Note({eventData, followers, setFollowing}: NoteProps) {
+export default function Note({pool, relays, eventData, followers, setFollowing}: NoteProps) {
+  const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
-  
-  
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -59,7 +72,12 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
     setIsFollowing(!isFollowing)
     setFollowing(eventData.pubkey)
   }
-  
+  const likeNote = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if(!pool) return;
+    setLiked(true);
+    likeEvent(pool, relays, eventData)
+}
+
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
@@ -94,9 +112,9 @@ export default function Note({eventData, followers, setFollowing}: NoteProps) {
       <CustomizedRating rating={eventData.reaction.upvotes - eventData.reaction.downvotes} />
 
       <CardActions disableSpacing>
-        <IconButton aria-label="add to favorites">
-          <FavoriteIcon />
-        </IconButton>
+      <FavoriteIconButton aria-label="Upvote note" onClick={likeNote} disabled={liked} color={liked ? "primary" : "default"} className={liked ? 'animateLike' : ''}>
+        <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
+      </FavoriteIconButton>
         <IconButton aria-label="share">
           <ShareIcon />
         </IconButton>

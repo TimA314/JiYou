@@ -1,8 +1,8 @@
-import { Event, Filter, SimplePool } from "nostr-tools";
+import { Event, EventTemplate, Filter, Kind, SimplePool, getEventHash, validateEvent } from "nostr-tools";
 import * as secp from "noble-secp256k1";
-import { ReactionCounts } from "./Types";
+import { FullEventData, ReactionCounts } from "./Types";
 import { defaultRelays } from "./Relays";
-import { sanitizeEvent } from "../utils/sanitizeUtils";
+import { sanitizeEvent, sanitizeString } from "../utils/sanitizeUtils";
 
 
 export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
@@ -34,6 +34,8 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     return options;
 }
 
+
+
 export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
             
     if (!window.nostr) {
@@ -57,6 +59,55 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
 
         console.log(followerPks.length + " followers found")
         return followerPks;
+    } catch (error) {
+        alert(error)
+        console.log(error);
+    }
+}
+
+export const likeEvent = async (pool: SimplePool, relays: string[], event: FullEventData) => {
+    if (!window.nostr) {
+        alert("You need to install a Nostr extension to provide your pubkey.")
+        return;
+    }
+
+    try {
+        const pubkey = await window.nostr.getPublicKey();
+        
+        //cunstruct the event
+        const _baseEvent = {
+            kind: Kind.Reaction,
+            content: "+",
+            created_at: Math.floor(Date.now() / 1000),
+            tags: [
+                ["e", event.eventId],
+                ["p", event.pubkey],
+            ],
+        } as EventTemplate
+        
+        //prompt the user to sign the event
+        const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+        
+        const newEvent: Event = {
+          ..._baseEvent,
+          id: getEventHash({..._baseEvent, pubkey}),
+          sig,
+          pubkey,
+        }
+        
+        console.log(validateEvent(newEvent))
+  
+        //post the event to the relays
+        const pubs = pool.publish(relays, newEvent)
+        
+        pubs.on("ok", () => {
+          console.log("Posted to relays")
+        })
+  
+        pubs.on("failed", (error: string) => {
+            console.log("Failed to post to relays", error)
+        })
+  
     } catch (error) {
         alert(error)
         console.log(error);
