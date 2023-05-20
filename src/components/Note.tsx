@@ -115,9 +115,9 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
       <FavoriteIconButton aria-label="Upvote note" onClick={likeNote} disabled={liked} color={liked ? "primary" : "default"} className={liked ? 'animateLike' : ''}>
         <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
       </FavoriteIconButton>
-        <IconButton aria-label="share">
+        {/* <IconButton aria-label="share">
           <ShareIcon />
-        </IconButton>
+        </IconButton> */}
         <Typography variant="subtitle2">
         {moment.unix(eventData.created_at).fromNow()}
         </Typography>
