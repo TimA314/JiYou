@@ -76,7 +76,10 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
     if(!pool) return;
 
     setLiked(true);
-    likeEvent(pool, relays, eventData)
+    const likeCompleted = await likeEvent(pool, relays, eventData)
+    if(likeCompleted === false) {
+      setLiked(false);
+    }
 }
 
   return (

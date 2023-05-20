@@ -67,7 +67,7 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
 export const likeEvent = async (pool: SimplePool, relays: string[], event: FullEventData) => {
     if (!window.nostr) {
         alert("You need to install a Nostr extension to provide your pubkey.")
-        return;
+        return false;
     }
 
     try {
@@ -110,6 +110,7 @@ export const likeEvent = async (pool: SimplePool, relays: string[], event: FullE
     } catch (error) {
         alert(error)
         console.log(error);
+        return false;
     }
 }
 
