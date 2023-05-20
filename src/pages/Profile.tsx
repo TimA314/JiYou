@@ -7,6 +7,8 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
 import { defaultRelays } from '../nostr/Relays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
+import { FullEventData, ReactionCounts } from '../nostr/Types';
+import Note from '../components/Note';
 
 interface ProfileProps {
     relays: string[];
@@ -24,6 +26,8 @@ export default function Profile({relays, pool}: ProfileProps) {
 const privateKey = window.localStorage.getItem("localSk");
 const profileRef = useRef<ProfileContent | null>(null);
 const [getProfileEvent, setGetProfileEvent] = useState(true);
+const [userNotes, setUserNotes] = useState<Event[]>([]);
+const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
 
 
 useEffect(() => {
@@ -42,6 +46,7 @@ useEffect(() => {
 
         try {
             const pk = await window.nostr.getPublicKey();
+            // Fetch user profile
             const profileEvent: Event[] = await pool.list(defaultRelays, [{kinds: [0], authors: [pk], limit: 1 }])
 
             console.log(profileEvent)
@@ -67,6 +72,35 @@ useEffect(() => {
 
             profileRef.current = profileContent;
             setGetProfileEvent(false);
+
+            // Fetch user notes
+            const userNotes = await pool.list(defaultRelays, [{kinds: [1], authors: [pk] }])
+            const sanitizedEvents = userNotes.map((event) => sanitizeEvent(event));
+            console.log("user notes: " + JSON.stringify(sanitizedEvents));
+            setUserNotes(sanitizedEvents);
+
+            // Fetch reactions
+            const eventIds = sanitizedEvents.map((event) => event.id);
+
+            const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
+            console.log("reaction events: " + JSON.stringify(reactionEvents));
+            const retrievedReactionObjects: Record<string, ReactionCounts> = {};
+            reactionEvents.forEach((event) => {
+            const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
+            eventTagThatWasLiked.forEach((tag) => {
+                const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
+                if (isValidEventTagThatWasLiked) {
+                if (!retrievedReactionObjects[tag[1]]) {
+                    retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
+                }
+                if (event.content === "+") {
+                    retrievedReactionObjects[tag[1]].upvotes++;
+                } else if(event.content === "-") {
+                    retrievedReactionObjects[tag[1]].downvotes++;
+                }
+                }
+            });});
+            setReactions(retrievedReactionObjects);
         } catch (error) {
             alert(error)
             console.log(error);
@@ -158,6 +192,26 @@ const updateProfileEvent = async () => {
     
     // ----------------------------------------------------------------------
     
+    const setEventData = (event: Event) => {
+        const fullEventData: FullEventData = {
+            content: event.content,
+            user: {
+                name: profileRef.current?.name ?? "",
+                picture: profileRef.current?.picture ?? "",
+                about: profileRef.current?.about ?? "",
+                nip05: "",
+            },
+            pubkey: event.pubkey,
+            hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
+            eventId: event.id,
+            sig: event.sig,
+            created_at: event.created_at,
+            tags: event?.tags ?? [],
+            reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
+        }
+        return fullEventData;
+    }
+
     return (
         <Box width="100%">
             {privateKey && (
@@ -238,6 +292,16 @@ const updateProfileEvent = async () => {
                                     }}
                                     />
                             </Stack>
+                    </div>
+                    <div style={{marginBottom: "15px"}}>
+                        {userNotes ? userNotes.map((event) => {
+
+                            const fullEventData = setEventData(event);
+
+                            return (
+                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} />
+                            )
+                        }) : <div></div>}
                     </div>
                 </Box>)
             }
