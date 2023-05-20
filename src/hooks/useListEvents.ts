@@ -4,6 +4,7 @@ import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
 import * as secp from 'noble-secp256k1';
 import { getEventOptions } from '../nostr/FeedEvents';
+import { defaultRelays } from '../nostr/Relays';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -58,18 +59,22 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
         setEvents(newEvents);
 
         // Fetch reactions
-        const reactionEvents = await pool.list(relays, [{ "kinds": [7], "#e": eventIds, "#p": reactionPubkeys}]);
+        const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": reactionPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-
         reactionEvents.forEach((event) => {
           const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
           eventTagThatWasLiked.forEach((tag) => {
-            const isValidEventTagThatWasLiked = tag !== undefined && secp.utils.isValidPrivateKey(tag[1]);
-              if (event.content === "+" && isValidEventTagThatWasLiked) {
+            const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
+            if (isValidEventTagThatWasLiked) {
+              if (!retrievedReactionObjects[tag[1]]) {
+                retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
+              }
+              if (event.content === "+") {
                 retrievedReactionObjects[tag[1]].upvotes++;
-              } else if(event.content === "-" && isValidEventTagThatWasLiked) {
+              } else if(event.content === "-") {
                 retrievedReactionObjects[tag[1]].downvotes++;
               }
+            }
           });
         });
 
