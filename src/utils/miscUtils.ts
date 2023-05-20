@@ -46,6 +46,34 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
       return null;
     }
   };
+
+  export const getYoutubeVideoFromPost = (content: string): string | null => {
+    if (!content) return null;
+  
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urlMatches = content.match(urlRegex)?.filter(url => /youtu\.be\/[a-zA-Z0-9_-]{11}$/.test(url));
+  
+    if (!urlMatches) return null;
+  
+    const url = urlMatches[0];
+  
+    // Check if the URL is valid
+    try {
+      const parsedUrl = new URL(url);
+  
+      // Check the protocol
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return null;
+      }
+  
+      // Extract the video id from the path
+      const videoId = parsedUrl.pathname.split('/').pop() ?? '';
+  
+      return `https://www.youtube.com/embed/${videoId}`;
+    } catch (e) {
+      return null;
+    }
+  };
   
   export function splitByUrl(str: string) {
     if (!str) return null;

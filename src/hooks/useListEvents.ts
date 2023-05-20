@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Event, Filter, SimplePool } from 'nostr-tools';
+import { Event, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
-import * as secp from 'noble-secp256k1';
 import { getEventOptions } from '../nostr/FeedEvents';
 import { defaultRelays } from '../nostr/Relays';
 

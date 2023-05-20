@@ -46,3 +46,8 @@ export interface MetaData {
   nip05?: string,
   lud16?: string,
 }
+
+export type NoteUrls = {
+  image: string;
+  youtubeVideo: string;
+}

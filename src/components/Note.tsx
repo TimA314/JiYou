@@ -15,8 +15,9 @@ import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
-import { GetImageFromPost } from '../utils/miscUtils';
+import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
+
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -56,6 +57,7 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
+  const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -98,6 +100,14 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
           sx={{maxHeight: "500px", objectFit: "contain"}}
         />)
       }
+      {youtubeFromPost && (
+        <iframe 
+        src={youtubeFromPost} 
+        title="YouTube video player" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        style={{ width: '100%', height: '315px' }}
+      />
+      )}
         </Typography>
       </CardContent>
       <CardContent>
