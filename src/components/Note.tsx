@@ -9,14 +9,12 @@ import Avatar from '@mui/material/Avatar';
 import IconButton, { IconButtonProps } from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
 import { SimplePool, nip19 } from 'nostr-tools';
-import CustomizedRating from './Rating';
 import { GetImageFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
 
@@ -74,6 +72,7 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
   }
   const likeNote = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if(!pool) return;
+
     setLiked(true);
     likeEvent(pool, relays, eventData)
 }
@@ -108,27 +107,34 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
           <Typography variant="caption" color="primary" key={tag}> #{tag}</Typography>
         ))}
       </CardContent>
-
-      <CustomizedRating rating={eventData.reaction.upvotes - eventData.reaction.downvotes} />
-
-      <CardActions disableSpacing>
-      <FavoriteIconButton aria-label="Upvote note" onClick={likeNote} disabled={liked} color={liked ? "primary" : "default"} className={liked ? 'animateLike' : ''}>
-        <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
-      </FavoriteIconButton>
-        {/* <IconButton aria-label="share">
-          <ShareIcon />
-        </IconButton> */}
+      <CardContent sx={{ alignContent: "flex-end", alignItems: "flex-end", flexDirection: "row", alignSelf: "flex-end"}}>
+      </CardContent>
+      <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="subtitle2">
-        {moment.unix(eventData.created_at).fromNow()}
+          {moment.unix(eventData.created_at).fromNow()}
         </Typography>
-        <ExpandMore
-          expand={expanded}
-          onClick={handleExpandClick}
-          aria-expanded={expanded}
-          aria-label="show more"
-        >
-          <ExpandMoreIcon />
-        </ExpandMore>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <FavoriteIconButton 
+            aria-label="Upvote note" 
+            onClick={likeNote} 
+            disabled={liked} 
+            color={liked ? "primary" : "default"} 
+            className={liked ? 'animateLike' : ''}
+          >
+          <Typography variant='caption'>
+            {(eventData.reaction?.upvotes ?? 0) + (liked ? 1 : 0)}
+          </Typography>
+            <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
+          </FavoriteIconButton>
+          <ExpandMore
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        </Box>
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>

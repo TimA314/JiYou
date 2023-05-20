@@ -53,9 +53,9 @@ type GlobalFeedProps = {
             sig: event.sig,
             created_at: event.created_at,
             tags: event?.tags ?? [],
-            reaction: reactions[event.id] ?? {upvotes: 0, downvotes: 0},
+            reaction: reactions[event.id],
         }
-
+        console.log("fullEventData reactions[event.id]", reactions[event.id])
         const referredId =  event.tags.find((tag) => tag[0] === "e" && tag[1] !== "")?.[1];
         const referredEvent = events.find((e) => e.id === referredId);
         
