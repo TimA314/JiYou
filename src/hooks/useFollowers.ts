@@ -25,7 +25,7 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
   
       const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === 'p');
       for (let i = 0; i < followerArray.length; i++) {
-        if (secp.utils.isValidPrivateKey(followerArray[i][1])) {
+        if (secp.utils.isValidPrivateKey(BigInt(followerArray[i][1]))) {
           followerPks.push(followerArray[i][1]);
         }
       }
