@@ -53,9 +53,10 @@ interface NoteProps {
   relays: string[];
   followers: string[];
   setFollowing: (pubkey: string) => void;
+  setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export default function Note({pool, relays, eventData, followers, setFollowing}: NoteProps) {
+export default function Note({pool, relays, eventData, followers, setFollowing, setHashtags}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -92,6 +93,11 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
     setNoteDetailsOpen(NoteDetailsOpen => !NoteDetailsOpen);
   }
 
+  const addHashtag = (tag: string) => {
+    console.log("add hashtag", tag)
+    setHashtags(hashtags => [...hashtags, tag]);
+  }
+
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
@@ -113,7 +119,8 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
         pool={pool}
         relays={relays}
         followers={followers}
-        setFollowing={setFollowing}/>
+        setFollowing={setFollowing}
+        setHashtags={setHashtags}/>
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
@@ -139,7 +146,7 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
         {eventData.hashtags
           .filter((tag) => eventData.hashtags.indexOf(tag) === eventData.hashtags.lastIndexOf(tag))
           .map((tag) => (
-          <Typography variant="caption" color="primary" key={tag}> #{tag}</Typography>
+          <Typography variant="caption" color="primary" key={tag} onClick={() => addHashtag(tag)}> #{tag}</Typography>
         ))}
       </CardContent>
       <CardContent sx={{ alignContent: "flex-end", alignItems: "flex-end", flexDirection: "row", alignSelf: "flex-end"}}>

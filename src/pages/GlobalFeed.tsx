@@ -53,7 +53,7 @@ type GlobalFeedProps = {
             .map((event) => {
                 const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
                 return (
-                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} key={event.sig} />
+                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} setHashtags={setHashtags} key={event.sig} />
                 )
             })}
 

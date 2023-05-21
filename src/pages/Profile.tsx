@@ -299,7 +299,7 @@ const updateProfileEvent = async () => {
                             const fullEventData = setEventData(event);
 
                             return (
-                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} />
+                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} setHashtags={() => {}} />
                             )
                         }) : <div></div>}
                     </div>
