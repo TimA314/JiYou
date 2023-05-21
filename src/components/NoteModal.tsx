@@ -3,7 +3,7 @@ import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
-import { Stack } from '@mui/material';
+import { IconButton, Stack } from '@mui/material';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
 import { defaultRelays } from '../nostr/Relays';
+import ClearIcon from '@mui/icons-material/Clear';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -92,18 +93,19 @@ export default function NoteModal({eventData, open, setNoteDetailsOpen, pool, re
   }, [open, pool]);
 
   return (
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+    <Modal
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box>
+        <ClearIcon sx={{position: 'fixed', top: 8, right: 8, cursor: 'pointer'}} onClick={handleClose} />
         <Box sx={{...style, 
-          width: isMobile ? "90%" : "90%", // Adjust width based on device
-          maxHeight: isMobile ? "90vh" : "80vh" // Limit height to prevent modal from filling the screen
+          width: isMobile ? "90%" : "90%", 
+          maxHeight: isMobile ? "90vh" : "80vh" 
         }}>
-        <Stack direction="row" spacing={2} flexDirection="column">
-          
+          <Stack direction="row" spacing={2} flexDirection="column">
             <Note eventData={eventData} pool={pool} relays={relays} followers={followers} setFollowing={setFollowing} />
 
             <Box>
@@ -125,9 +127,9 @@ export default function NoteModal({eventData, open, setNoteDetailsOpen, pool, re
                 </>
               )}
             </Box>
-
           </Stack>
-        </Box>
-      </Modal>
+        </Box>        
+      </Box>
+    </Modal>
   );
 }

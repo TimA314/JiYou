@@ -75,13 +75,12 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
 
         let pubs = pool.publish(relays, newEvent)
         
-        pubs.on("ok", () => {
-            alert("Posted to relays")
-            console.log("Posted to relays")
+        pubs.on("ok", (pub: any) => {
+            console.log(`Posted to ${pub}`)
         })
 
         pubs.on("failed", (error: string) => {
-            alert("Failed to post to relays" + error)
+            alert("Failed to post to" + error)
         })
 
         return newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1])
