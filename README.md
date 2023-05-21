@@ -7,6 +7,8 @@ With JiYou, you have the power of discovery in your hands. JiYou's search functi
 
 Learn more about Nostr here https://nostr.how/
 
+Donations: lnurl1dp68gurn8ghj7ampd3kx2ar0veekzar0wd5xjtnrdakj7tnhv4kxctttdehhwm30d3h82unvwqhh2mnjd9cx2mt9v9eh2un9xccqeus5uj
+
 ---
 
 <p float="left">
@@ -15,6 +17,7 @@ Learn more about Nostr here https://nostr.how/
   <img width="195" alt="image" src="https://user-images.githubusercontent.com/91898542/229324036-c95470b5-9292-4454-b785-7085c9e87e33.png">
   <img width="197" alt="image" src="https://user-images.githubusercontent.com/91898542/229324052-bda99909-664d-47fd-89cf-1b7cf0f4465d.png">
 </p>
+
 
 Jiyou supports the following NIP's:
 
@@ -48,6 +51,7 @@ Jiyou supports the following NIP's:
   - [ ] NIP-65: Relay List Metadata
   
 ---
+
 To run the application, use
 
 $ npm install
