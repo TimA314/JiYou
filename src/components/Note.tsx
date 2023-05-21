@@ -11,12 +11,14 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { FullEventData } from '../nostr/Types';
-import { Box, Button } from '@mui/material';
+import { FullEventData, GettingReplies } from '../nostr/Types';
+import { Box, Button, Chip } from '@mui/material';
 import { useState } from 'react';
-import { SimplePool, nip19 } from 'nostr-tools';
+import { SimplePool, nip19, Event } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
+import ForumIcon from '@mui/icons-material/Forum';
+import NoteModal from './NoteModal';
 
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -56,9 +58,12 @@ interface NoteProps {
 export default function Note({pool, relays, eventData, followers, setFollowing}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
+  const [gettingReplies, setGettingReplies] = useState(GettingReplies.notRequested);
+  const [replies, setReplies] = useState<Event[]>([]);
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -80,7 +85,12 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
     if(likeCompleted === false) {
       setLiked(false);
     }
-}
+  }
+
+  const showReplyThread = () => {
+    console.log("show reply thread")
+    setNoteDetailsOpen(NoteDetailsOpen => !NoteDetailsOpen);
+  }
 
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
@@ -92,6 +102,18 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
         title={eventData.user.name}
         subheader={eventData.user.nip05}
       />
+      <NoteModal 
+        eventData={eventData}
+        replies={replies}
+        setReplies={setReplies}
+        gettingReplies={gettingReplies}
+        setGettingReplies={setGettingReplies}
+        open={noteDetailsOpen}
+        setNoteDetailsOpen={setNoteDetailsOpen}
+        pool={pool}
+        relays={relays}
+        followers={followers}
+        setFollowing={setFollowing}/>
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
@@ -126,6 +148,10 @@ export default function Note({pool, relays, eventData, followers, setFollowing}:
         <Typography variant="subtitle2">
           {moment.unix(eventData.created_at).fromNow()}
         </Typography>
+        <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
+             <Chip size="small" label={gettingReplies === GettingReplies.notRequested ? "View" 
+              : gettingReplies === GettingReplies.requestingReplies ? "Loading Replies..." : replies.length} variant="outlined" color="primary" icon={<ForumIcon />} onClick={showReplyThread}/>
+        </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <FavoriteIconButton 
             aria-label="Upvote note" 

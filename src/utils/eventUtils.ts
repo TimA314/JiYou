@@ -1,5 +1,28 @@
-import { Event } from "nostr-tools";
+import { Event, nip19 } from "nostr-tools";
+import { FullEventData, MetaData, ReactionCounts } from "../nostr/Types";
+import { DiceBears } from "./miscUtils";
 
+//set Events
+export const setEventData = (event: Event, metaData: MetaData, reactions: ReactionCounts) => {
+  const defaultAvatar = DiceBears();
+  const fullEventData: FullEventData = {
+      content: event.content,
+      user: {
+          name: metaData?.name ?? nip19.npubEncode(event.pubkey).slice(0, 10) + "...",
+          picture: metaData?.picture ?? defaultAvatar,
+          about: metaData?.about ?? "",
+          nip05: metaData?.nip05 ?? "",
+      },
+      pubkey: event.pubkey,
+      hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
+      eventId: event.id,
+      sig: event.sig,
+      created_at: event.created_at,
+      tags: event?.tags ?? [],
+      reaction: reactions,
+  }
+  return fullEventData;
+}
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(

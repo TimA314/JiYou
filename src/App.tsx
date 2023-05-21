@@ -11,6 +11,7 @@ import CreateNote from './pages/CreateNote';
 import { SimplePool } from 'nostr-tools';
 import { defaultRelays } from './nostr/Relays';
 import { Container, createTheme } from '@mui/material';
+import NoteDetails from './components/NoteModal';
 
 declare module '@mui/material/styles' {
   interface Theme {
