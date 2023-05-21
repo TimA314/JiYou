@@ -1,5 +1,4 @@
 import { Event, EventTemplate, Filter, Kind, SimplePool, getEventHash, validateEvent } from "nostr-tools";
-import * as secp from "noble-secp256k1";
 import { FullEventData } from "./Types";
 import { defaultRelays } from "./Relays";
 
@@ -51,7 +50,7 @@ export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex:
         
         const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === "p");
         for(let i=0; i<followerArray.length;i++){
-            if(secp.utils.isValidPrivateKey(BigInt(followerArray[i][1]))){
+            if(followerArray[i][1]){
                 followerPks.push(followerArray[i][1]);
             }
         }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Event, EventTemplate, SimplePool, getEventHash } from 'nostr-tools';
-import * as secp from 'noble-secp256k1';
 import { defaultRelays } from '../nostr/Relays';
 
 type UseFollowersProps = {
@@ -25,7 +24,7 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
   
       const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === 'p');
       for (let i = 0; i < followerArray.length; i++) {
-        if (secp.utils.isValidPrivateKey(BigInt(followerArray[i][1]))) {
+        if (followerArray[i][1]) {
           followerPks.push(followerArray[i][1]);
         }
       }
