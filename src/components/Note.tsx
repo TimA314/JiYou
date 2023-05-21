@@ -146,7 +146,21 @@ export default function Note({pool, relays, eventData, followers, setFollowing, 
         {eventData.hashtags
           .filter((tag) => eventData.hashtags.indexOf(tag) === eventData.hashtags.lastIndexOf(tag))
           .map((tag) => (
-          <Typography variant="caption" color="primary" key={tag} onClick={() => addHashtag(tag)}> #{tag}</Typography>
+            <Typography
+            variant="caption"
+            color="primary"
+            key={tag}
+            onClick={() => addHashtag(tag)}
+            sx={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              '&:hover': {
+                color: 'secondary.main',
+              },
+            }}
+          >
+            #{tag}
+          </Typography>
         ))}
       </CardContent>
       <CardContent sx={{ alignContent: "flex-end", alignItems: "flex-end", flexDirection: "row", alignSelf: "flex-end"}}>
