@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
-import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, GettingReplies, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { IconButton, Stack } from '@mui/material';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
@@ -33,10 +33,22 @@ interface NoteModalProps {
   relays: string[];
   followers: string[];
   setFollowing: (pubkey: string) => void;
+  setReplies: (replies: Event[]) => void;
+  setGettingReplies: (gettingReplies: GettingReplies) => void;
+  replies: Event[];
+  gettingReplies: GettingReplies;
 }
 
-export default function NoteModal({eventData, open, setNoteDetailsOpen, pool, relays, followers, setFollowing}: NoteModalProps) {
-  const [replies, setReplies] = useState<Event[]>([]);
+export default function NoteModal({eventData,
+                                    open, 
+                                    setNoteDetailsOpen,
+                                    pool,
+                                    relays,
+                                    followers,
+                                    setFollowing,
+                                    replies,
+                                    setReplies,
+                                    setGettingReplies}: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const handleClose = () => setNoteDetailsOpen(false);
@@ -48,6 +60,7 @@ export default function NoteModal({eventData, open, setNoteDetailsOpen, pool, re
   useEffect(() => {
     if (!pool) return;
     const getReplies = async () => {
+      setGettingReplies(GettingReplies.requestingReplies);
       const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
       const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
       setReplies(sanitizedReplyThreadEvents);
@@ -86,7 +99,8 @@ export default function NoteModal({eventData, open, setNoteDetailsOpen, pool, re
           }
         });
       });
-      setReactions(retrievedReactionObjects);   
+      setReactions(retrievedReactionObjects);
+      setGettingReplies(GettingReplies.requestComplete);
     }
     getReplies();
 
