@@ -3,7 +3,7 @@ import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
 import { FullEventData, GettingReplies, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
-import { IconButton, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
@@ -141,6 +141,7 @@ export default function NoteModal({eventData,
                         setFollowing={setFollowing}
                         setHashtags={setHashtags}
                         pk={pk}
+                        key={event.sig}
                       />
                     );
                   })}
