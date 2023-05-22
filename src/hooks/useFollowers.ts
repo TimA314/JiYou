@@ -11,12 +11,12 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
   const [followers, setFollowers] = useState<string[]>([]);
   
   useEffect(() => {
-    if (!pool || window.nostr) return;
+    if (!pool || !window.nostr) return;
 
     const getFollowers = async () => {
   
       const pk = await window.nostr.getPublicKey();
-  
+      
       let followerPks: string[] = [];
       const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
 
@@ -28,7 +28,7 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
           followerPks.push(followerArray[i][1]);
         }
       }
-  
+      console.log("followers " + followerPks)
       console.log(followerPks.length + ' followers found');
       setFollowers(followerPks);
     };
