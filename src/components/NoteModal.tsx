@@ -38,6 +38,7 @@ interface NoteModalProps {
   replies: Event[];
   gettingReplies: GettingReplies;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
+  pk: string;
 }
 
 export default function NoteModal({eventData,
@@ -50,7 +51,8 @@ export default function NoteModal({eventData,
                                     replies,
                                     setReplies,
                                     setGettingReplies,
-                                    setHashtags}: NoteModalProps) {
+                                    setHashtags,
+                                    pk}: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const handleClose = () => setNoteDetailsOpen(false);
@@ -122,7 +124,7 @@ export default function NoteModal({eventData,
           maxHeight: isMobile ? "90vh" : "80vh" 
         }}>
           <Stack direction="row" spacing={2} flexDirection="column">
-            <Note eventData={eventData} pool={pool} relays={relays} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags}/>
+            <Note eventData={eventData} pool={pool} relays={relays} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} pk={pk}/>
 
             <Box>
               {replies.length !== 0 && (
@@ -138,6 +140,7 @@ export default function NoteModal({eventData,
                         followers={followers}
                         setFollowing={setFollowing}
                         setHashtags={setHashtags}
+                        pk={pk}
                       />
                     );
                   })}

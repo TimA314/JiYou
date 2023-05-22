@@ -11,16 +11,16 @@ interface RelayProps {
     relays: string[];
     setRelayArray: (relays: string[]) => void;
     pool: SimplePool | null;
+    pk: string;
 }
 
-export default function Relays({relays, setRelayArray, pool}: RelayProps) {
+export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
 
     useEffect(() => {
-        if (!pool) return;
+        if (!pool || !window.nostr) return;
 
         const getEvents = async () => {
             try {
-                const pk = await window.nostr.getPublicKey();
                 let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk], limit: 1 }])
                 
                 if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
@@ -56,7 +56,6 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         }
 
         try{
-            const pk = await window.nostr.getPublicKey();
             const relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
 
             const relayFormatted = relayInput.value.startsWith("wss://") ? relayInput.value : "wss://" + relayInput.value;
@@ -124,7 +123,6 @@ export default function Relays({relays, setRelayArray, pool}: RelayProps) {
         console.log("Deleting Relay: " + relay);
 
         try{
-            const pk = await window.nostr.getPublicKey();
             
             const relayTags: string[][] = [];
 
