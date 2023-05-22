@@ -46,11 +46,11 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
         if (window.nostr){
             getEvents();
         }
-    }, [pool])
+    }, [pool, pk])
     
     
     const handleAddRelay = async () => {
-        if (!window.nostr) {
+        if (!window.nostr || pk === "") {
             alert("You need to install a Nostr extension to post to the relays")
             return;
         }
@@ -100,9 +100,8 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
             }
 
             const pubs = pool?.publish(defaultRelays, newEvent)
-            pubs?.on("ok", () => {
-                alert("Posted to relays")
-                console.log("Posted to relays")
+            pubs?.on("ok", (pub: any) => {
+                console.log(`Posted to ${pub}`)
             })
 
             relayInput.value = "";
@@ -115,7 +114,7 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
     }
 
     const DeleteRelay = async (relay: string) => {
-        if (!window.nostr) {
+        if (!window.nostr || pk === "") {
             alert("You need to install a Nostr extension to post to the relays")
             return;
         }
@@ -161,13 +160,11 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
             setRelayArray(relaysWithRemovedRelay);
 
             const pubs = pool?.publish(relays, newEvent)
-            pubs?.on("ok", () => {
-                alert("Posted to relays")
-                console.log("Posted to relays")
+            pubs?.on("ok", (pub: any) => {
+                console.log(`Posted to ${pub}`)
               })
               
         } catch (error) {
-            alert("Canceled")
             console.log("Error adding relay" + error);
         }
     }

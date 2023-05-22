@@ -1,6 +1,5 @@
 import { Event, EventTemplate, Filter, Kind, SimplePool, getEventHash, validateEvent } from "nostr-tools";
 import { FullEventData } from "./Types";
-import { defaultRelays } from "./Relays";
 
 
 export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
@@ -30,37 +29,6 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     }
 
     return options;
-}
-
-
-
-export const getFollowers = async (pool: SimplePool, relays: string[], tabIndex: number) => {
-            
-    if (!window.nostr) {
-        if(tabIndex === 0) return;
-        alert("You need to install a Nostr extension to provide your pubkey.")
-        return;
-    }
-    try {
-        const pk = await window.nostr.getPublicKey();
-        
-        const userFollowerEvent: Event[] = await pool.list([...defaultRelays, ...relays], [{kinds: [3], authors: [pk], limit: 1 }])
-        let followerPks: string[] = [];
-        if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return [];
-        
-        const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === "p");
-        for(let i=0; i<followerArray.length;i++){
-            if(followerArray[i][1]){
-                followerPks.push(followerArray[i][1]);
-            }
-        }
-
-        console.log(followerPks.length + " followers found")
-        return followerPks;
-    } catch (error) {
-        alert(error)
-        console.log(error);
-    }
 }
 
 export const likeEvent = async (pool: SimplePool, relays: string[], event: FullEventData) => {
