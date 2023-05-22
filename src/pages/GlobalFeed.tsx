@@ -29,6 +29,10 @@ type GlobalFeedProps = {
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        if (!window.nostr){
+            alert("Install a Nostr Extension to see your followers feed")
+            return;
+        }
         setTabIndex(newValue);
         setEvents([]);
     };
