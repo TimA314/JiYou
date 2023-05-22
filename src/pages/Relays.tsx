@@ -5,7 +5,7 @@ import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { EventTemplate, getEventHash, Kind, SimplePool, validateEvent, verifySignature, Event } from 'nostr-tools';
 import { sanitizeString } from "../utils/sanitizeUtils";
-import { defaultRelays } from "../nostr/Relays";
+import { defaultRelays } from "../nostr/DefaultRelays";
 
 interface RelayProps {
     relays: string[];
@@ -51,7 +51,7 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
     
     const handleAddRelay = async () => {
         if (!window.nostr || pk === "") {
-            alert("You need to install a Nostr extension to post to the relays")
+            alert("You need to install a Nostr extension to manage your relays")
             return;
         }
 
@@ -108,14 +108,13 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
             setRelayArray([...relays, relayFormatted]);
             
         } catch (error) {
-            alert("Canceled")
             console.log("Error adding relay" + error);
         }
     }
 
     const DeleteRelay = async (relay: string) => {
         if (!window.nostr || pk === "") {
-            alert("You need to install a Nostr extension to post to the relays")
+            alert("You need to install a Nostr extension to manage relays")
             return;
         }
 

@@ -14,9 +14,9 @@ export default function HashtagsFilter({ hashtags, setHashtags }: Props) {
 
   const onAddHashTag = () => {
     const hashtag = sanitizeString(input);
-    if (hashtag === "" || hashtags.includes(hashtag)) return;
+    if (hashtag.trim() === "" || hashtags.includes(hashtag)) return;
     setInput("");
-    setHashtags([...hashtags, hashtag]);
+    setHashtags([...hashtags, hashtag.trim()]);
   };
 
   const removeHashtag = (hashtag: string) => {

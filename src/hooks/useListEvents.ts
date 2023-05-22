@@ -3,7 +3,7 @@ import { Event, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
 import { getEventOptions } from '../nostr/FeedEvents';
-import { defaultRelays } from '../nostr/Relays';
+import { defaultRelays } from '../nostr/DefaultRelays';
 
 type useListEventsProps = {
   pool: SimplePool | null;

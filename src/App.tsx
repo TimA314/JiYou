@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import CreateNote from './pages/CreateNote';
 import { SimplePool } from 'nostr-tools';
-import { defaultRelays } from './nostr/Relays';
+import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
 
 declare module '@mui/material/styles' {
