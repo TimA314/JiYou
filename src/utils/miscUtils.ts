@@ -36,7 +36,7 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
       }
   
       // Check the file extension
-      const fileExtensions = ['jpg', 'png', 'gif'];
+      const fileExtensions = ['jpg', 'png', 'gif', 'jpeg'];
       if (!fileExtensions.includes(parsedUrl.pathname.split('.').pop() ?? '')) {
         return null;
       }
