@@ -5,7 +5,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { defaultRelays } from '../nostr/Relays';
+import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Event, EventTemplate, SimplePool, getEventHash } from 'nostr-tools';
-import { defaultRelays } from '../nostr/Relays';
+import { defaultRelays } from '../nostr/DefaultRelays';
 
 type UseFollowersProps = {
   pool: SimplePool | null;

@@ -10,7 +10,7 @@ import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
-import { defaultRelays } from '../nostr/Relays';
+import { defaultRelays } from '../nostr/DefaultRelays';
 import ClearIcon from '@mui/icons-material/Clear';
 
 const style = {
