@@ -1,15 +1,11 @@
-import { Box, Stack, Tab, Tabs } from '@mui/material';
-import { Event, Filter, nip19, SimplePool } from 'nostr-tools'
+import { Box, Tab, Tabs } from '@mui/material';
+import { SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
-import { FullEventData } from '../nostr/Types';
 import "./GlobalFeed.css";
-import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
-import { getEventOptions } from '../nostr/FeedEvents';
 import { useFollowers } from '../hooks/useFollowers';
-import { DiceBears } from '../utils/miscUtils';
 import { useListEvents } from '../hooks/useListEvents';
 import { setEventData } from '../utils/eventUtils';
 
@@ -18,9 +14,10 @@ import { setEventData } from '../utils/eventUtils';
 type GlobalFeedProps = {
     pool: SimplePool | null;
     relays: string[];
+    pk: string;
   };
   
-  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays }) => {
+  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk }) => {
     const { followers, setFollowing } = useFollowers({pool, relays});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
@@ -56,7 +53,7 @@ type GlobalFeedProps = {
             .map((event) => {
                 const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
                 return (
-                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} setHashtags={setHashtags} key={event.sig} />
+                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} setHashtags={setHashtags} key={event.sig} pk={pk} />
                 )
             })}
 

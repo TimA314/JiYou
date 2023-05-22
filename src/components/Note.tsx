@@ -48,6 +48,7 @@ interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
 interface NoteProps {
+  pk: string;
   eventData: FullEventData;
   pool: SimplePool | null;
   relays: string[];
@@ -56,7 +57,7 @@ interface NoteProps {
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export default function Note({pool, relays, eventData, followers, setFollowing, setHashtags}: NoteProps) {
+export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -120,7 +121,8 @@ export default function Note({pool, relays, eventData, followers, setFollowing, 
         relays={relays}
         followers={followers}
         setFollowing={setFollowing}
-        setHashtags={setHashtags}/>
+        setHashtags={setHashtags}
+        pk={pk}/>
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}

@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar, Typography} from '@mui/material'
 import { EventTemplate, getEventHash, SimplePool, Event, Kind} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
@@ -9,10 +9,12 @@ import { defaultRelays } from '../nostr/Relays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';
+import { useFollowers } from '../hooks/useFollowers';
 
 interface ProfileProps {
     relays: string[];
     pool: SimplePool | null;
+    pk: string;
 }
 
 interface ProfileContent {
@@ -22,16 +24,18 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool}: ProfileProps) {
+export default function Profile({relays, pool, pk}: ProfileProps) {
 const privateKey = window.localStorage.getItem("localSk");
 const profileRef = useRef<ProfileContent | null>(null);
 const [getProfileEvent, setGetProfileEvent] = useState(true);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
+const { followers } = useFollowers({pool, relays});
+
 
 
 useEffect(() => {
-    if (!pool) return;
+    if (!pool || pk === "") return;
 
     if (!window.nostr) {
         alert("You need to install a Nostr extension to provide your pubkey.")
@@ -45,11 +49,8 @@ useEffect(() => {
         const bannerUrlInput = document.getElementById("bannerImageUrlInput") as HTMLInputElement;
 
         try {
-            const pk = await window.nostr.getPublicKey();
             // Fetch user profile
             const profileEvent: Event[] = await pool.list(defaultRelays, [{kinds: [0], authors: [pk], limit: 1 }])
-
-            console.log(profileEvent)
             
             if (!profileEvent || profileEvent.length < 1) return;
 
@@ -102,14 +103,13 @@ useEffect(() => {
             });});
             setReactions(retrievedReactionObjects);
         } catch (error) {
-            alert(error)
             console.log(error);
         }
     }
 
     if (!getProfileEvent) return;
     getProfile();
-}, [pool, relays])
+}, [pool, relays, pk])
 
 
 
@@ -148,7 +148,7 @@ const updateProfileEvent = async () => {
             tags: [],
         } as EventTemplate
 
-        const pubkey = await window.nostr.getPublicKey();
+        const pubkey = pk;
         const sig = (await window.nostr.signEvent(_baseEvent)).sig;
         
         const newEvent: Event = {
@@ -229,6 +229,15 @@ const updateProfileEvent = async () => {
                                 sx={{ width: 200, height: 200 }}
                                 />
                         </div>
+                        <Box sx={{ 
+                                color: 'white', 
+                                padding: '5px',
+                                borderRadius: '5px',
+                                fontSize: '14px',
+                                textAlign: 'center',
+                            }}>
+                            <Chip label={"Followers: " + followers.length} />
+                        </Box>
                         </AppBar>
                     </Paper>
 
@@ -294,14 +303,16 @@ const updateProfileEvent = async () => {
                             </Stack>
                     </div>
                     <div style={{marginBottom: "15px"}}>
-                        {userNotes ? userNotes.map((event) => {
+                        {userNotes.length > 0 ? userNotes.map((event) => {
 
                             const fullEventData = setEventData(event);
 
                             return (
-                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} setHashtags={() => {}} />
+                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} setHashtags={() => {}} pk={pk} />
                             )
-                        }) : <div></div>}
+                        }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
+                                <CircularProgress color='primary'/>
+                            </Box>}
                     </div>
                 </Box>)
             }

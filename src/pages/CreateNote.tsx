@@ -12,10 +12,11 @@ interface RelaySwitches {
 interface Props {
   pool: SimplePool | null;
   relays: string[];
+  pk: string;
 }
 
 
-function CreateNote({pool, relays}: Props) {
+function CreateNote({pool, relays, pk}: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
     obj[relay] = true;
@@ -32,7 +33,6 @@ function CreateNote({pool, relays}: Props) {
 
   const handlePostToRelaysClick = async () => {
     if (!pool) {
-      alert("pool is null")
       return;
     }
     
@@ -48,13 +48,13 @@ function CreateNote({pool, relays}: Props) {
     } as EventTemplate
 
     //check if the user has a nostr extension
-    if (!window.nostr) {
+    if (!window.nostr || pk === "") {
       alert("You need to install a Nostr extension to post to the relays")
       return;
     }
 
     try {
-      const pubkey = await window.nostr.getPublicKey();
+      const pubkey = pk;
       //prompt the user to sign the event
       const sig = (await window.nostr.signEvent(_baseEvent)).sig;
       

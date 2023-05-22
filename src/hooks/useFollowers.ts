@@ -28,7 +28,6 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
           followerPks.push(followerArray[i][1]);
         }
       }
-      console.log("followers " + followerPks)
       console.log(followerPks.length + ' followers found');
       setFollowers(followerPks);
     };
@@ -79,12 +78,11 @@ export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
         })
 
         pubs.on("failed", (error: string) => {
-            alert("Failed to post to" + error)
+            console.log("Failed to post to" + error)
         })
 
         return newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1])
     } catch (error) {
-        alert(error)
         console.log(error);
     }
 }
