@@ -7,11 +7,9 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import CreateNote from './components/CreateNote';
 import { SimplePool } from 'nostr-tools';
 import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
-import { cookieStore } from 'cookie-store';
 import { createCookie, readCookie } from './utils/miscUtils';
 
 declare module '@mui/material/styles' {

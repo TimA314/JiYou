@@ -1,11 +1,10 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import { SimplePool } from 'nostr-tools';
 import { FullEventData, RelaySwitches } from '../nostr/Types';
 import Note from './Note';
-import { FormControlLabel, IconButton, Switch, TextField } from '@mui/material';
+import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateNote from './CreateNote';
 
