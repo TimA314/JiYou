@@ -31,15 +31,13 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     return options;
 }
 
-export const likeEvent = async (pool: SimplePool, relays: string[], event: FullEventData) => {
-    if (!window.nostr) {
+export const likeEvent = async (pool: SimplePool, relays: string[], event: FullEventData, pk: string) => {
+    if (pk === "") {
         alert("You need to install a Nostr extension to provide your pubkey.")
         return false;
     }
 
-    try {
-        const pubkey = await window.nostr.getPublicKey();
-        
+    try {        
         //cunstruct the event
         const _baseEvent = {
             kind: Kind.Reaction,
@@ -53,7 +51,7 @@ export const likeEvent = async (pool: SimplePool, relays: string[], event: FullE
         
         //prompt the user to sign the event
         const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-        
+        const pubkey = pk
         const newEvent: Event = {
           ..._baseEvent,
           id: getEventHash({..._baseEvent, pubkey}),
