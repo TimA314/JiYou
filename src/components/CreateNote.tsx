@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
+import { Box, FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool, validateEvent } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
+import { FullEventData } from '../nostr/Types';
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;
@@ -13,10 +14,12 @@ interface Props {
   pool: SimplePool | null;
   relays: string[];
   pk: string;
+  replyEventData: FullEventData | null;
+  setPostedNote: () => void;
 }
 
 
-function CreateNote({pool, relays, pk}: Props) {
+function CreateNote({pool, relays, pk, replyEventData, setPostedNote}: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
     obj[relay] = true;
@@ -32,10 +35,28 @@ function CreateNote({pool, relays, pk}: Props) {
   };
 
   const handlePostToRelaysClick = async () => {
-    if (!pool) {
+
+    if (!pool || pk === "") {
+      alert("You need to install a Nostr extension to post to the relays")
       return;
     }
     
+    const tags = replyEventData ? [
+      [
+        "e",
+        replyEventData.eventId,
+        "",
+        "root"
+      ],
+      [
+        "p",
+        pk
+      ]
+    ]
+    : [];
+
+    
+
     const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);
     console.log("relays to post: " + relaysToPostTo);
 
@@ -44,14 +65,8 @@ function CreateNote({pool, relays, pk}: Props) {
       kind: Kind.Text,
       content: sanitizeString(input),
       created_at: Math.floor(Date.now() / 1000),
-      tags: [],
+      tags: tags,
     } as EventTemplate
-
-    //check if the user has a nostr extension
-    if (!window.nostr || pk === "") {
-      alert("You need to install a Nostr extension to post to the relays")
-      return;
-    }
 
     try {
       const pubkey = pk;
@@ -72,9 +87,10 @@ function CreateNote({pool, relays, pk}: Props) {
 
       let clearedInput = false;
       
-      pubs.on("ok", () => {
-        alert("Posted to relays")
-        console.log("Posted to relays")
+      setPostedNote();
+
+      pubs.on("ok", (pub: any) => {
+        console.log(`Posted to ${pub}`)
         if (clearedInput) return;
         clearedInput = true;
         setInput("");
@@ -90,7 +106,7 @@ function CreateNote({pool, relays, pk}: Props) {
     }
   };
   return (
-    <div className="newNoteContainer">
+  <Box sx={{ marginTop: "20px",height: "auto", width: "auto"}} >
       <FormGroup>
         <TextField
           id="noteContent"
@@ -104,7 +120,7 @@ function CreateNote({pool, relays, pk}: Props) {
           rows={12}
           margin="normal"
         />
-        <Button type="button" variant="contained" color='warning' onClick={handlePostToRelaysClick}>Post To Relays</Button>
+        <Button type="button" variant="contained" color='secondary' onClick={handlePostToRelaysClick}>Post {replyEventData ? "Reply" : "Note"} To Relays</Button>
         <div className='relayListContainer'>
           {relays.map((relay) => (
             <div className='relaySwitch' key={relay}>
@@ -113,7 +129,7 @@ function CreateNote({pool, relays, pk}: Props) {
           ))}
         </div>
       </FormGroup>
-    </div>
+    </Box>
   )
 }
 

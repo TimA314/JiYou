@@ -39,6 +39,7 @@ declare global {
   }
 }
 
+
 type Nostr = {
   getPublicKey(): Promise<string>;
   signEvent(event: EventTemplate): Promise<Event>;
@@ -56,4 +57,8 @@ export interface MetaData {
 export type NoteUrls = {
   image: string;
   youtubeVideo: string;
+}
+
+export interface RelaySwitches {
+  [relayUrl: string]: boolean;
 }

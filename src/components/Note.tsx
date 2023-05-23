@@ -19,6 +19,8 @@ import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import NoteModal from './NoteModal';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import ReplyToNote from './ReplyToNote';
 
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -55,9 +57,10 @@ interface NoteProps {
   followers: string[];
   setFollowing: (pubkey: string) => void;
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
+  disableReplyIcon?: boolean;
 }
 
-export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags}: NoteProps) {
+export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags, disableReplyIcon}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -66,6 +69,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   const [gettingReplies, setGettingReplies] = useState(GettingReplies.notRequested);
   const [replies, setReplies] = useState<Event[]>([]);
+  const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -99,6 +103,11 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
     setHashtags(hashtags => [...hashtags, tag]);
   }
 
+  const handleReplyToNote = (eventData: FullEventData) => {
+    console.log("reply to note", eventData);
+    setReplyToNoteOpen(true);
+  }
+
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
@@ -123,6 +132,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         setFollowing={setFollowing}
         setHashtags={setHashtags}
         pk={pk}/>
+      <ReplyToNote open={replyToNoteOpen} setReplyToNoteOpen={setReplyToNoteOpen} eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
@@ -173,14 +183,22 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         </Typography>
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
              <Chip size="small" label={gettingReplies === GettingReplies.notRequested ? "View" 
-              : gettingReplies === GettingReplies.requestingReplies ? "Loading Replies..." : replies.length} variant="outlined" color="primary" icon={<ForumIcon />} onClick={showReplyThread}/>
+              : gettingReplies === GettingReplies.requestingReplies ? "Loading Replies..." : replies.length} 
+              variant="outlined" color="primary" icon={<ForumIcon />} 
+              onClick={showReplyThread}/>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <IconButton 
+            onClick={() => disableReplyIcon ? () => {} : handleReplyToNote(eventData)}
+            color="secondary"
+          >
+            <RateReviewIcon />
+          </IconButton>
           <FavoriteIconButton 
             aria-label="Upvote note" 
             onClick={likeNote} 
             disabled={liked} 
-            color={liked ? "primary" : "default"} 
+            color={liked ? "primary" : "default"}
             className={liked ? 'animateLike' : ''}
           >
           <Typography variant='caption'>

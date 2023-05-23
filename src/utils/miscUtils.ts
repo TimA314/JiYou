@@ -82,7 +82,35 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
       return str.split(urlRegex)[0];
   }
   
+  export function createCookie(name: string, value: any, days: number) {
+    var expires: string = '';
+    if (days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    expires = ';expires=' + date.toUTCString;
+    }
+
+    //set cookie
+    document.cookie = name + '=' + value + expires;
+    }
   
+    export function readCookie(name: string) {
+      var nameEQ = name + '=';
+      //reading the cookie
+      var ca = document.cookie.split(';');
+      //processing to get the content
+      for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) === ' ') {
+      c = c.substring(1, c.length);
+      }
+      if (c.indexOf(nameEQ) === 0) {
+      //returning actual content
+      return c.substring(nameEQ.length, c.length);
+      }
+      }
+      return "";
+      }
   
   export const DiceBears = () => {
     const dicebearArray = [
