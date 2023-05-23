@@ -80,3 +80,7 @@ export const likeEvent = async (pool: SimplePool, relays: string[], event: FullE
         return false;
     }
 }
+
+// const replyToEvent(eventData: FullEventData) {
+
+// }

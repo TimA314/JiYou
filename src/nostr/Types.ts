@@ -57,3 +57,7 @@ export type NoteUrls = {
   image: string;
   youtubeVideo: string;
 }
+
+export interface RelaySwitches {
+  [relayUrl: string]: boolean;
+}

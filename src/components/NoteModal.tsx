@@ -22,7 +22,7 @@ const style = {
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
-  overflowY: 'auto' as 'auto', // This will make your content scrollable
+  overflowY: 'auto' as 'auto', //scrollable
 };
 
 interface NoteModalProps {
@@ -124,7 +124,14 @@ export default function NoteModal({eventData,
           maxHeight: isMobile ? "90vh" : "80vh" 
         }}>
           <Stack direction="row" spacing={2} flexDirection="column">
-            <Note eventData={eventData} pool={pool} relays={relays} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} pk={pk}/>
+            <Note eventData={eventData}
+             pool={pool} relays={relays}
+              followers={followers}
+               setFollowing={setFollowing}
+                setHashtags={setHashtags}
+                 pk={pk}
+                 disableReplyIcon={false}
+                 />
 
             <Box>
               {replies.length !== 0 && (
@@ -142,6 +149,7 @@ export default function NoteModal({eventData,
                         setHashtags={setHashtags}
                         pk={pk}
                         key={event.sig}
+                        disableReplyIcon={false}
                       />
                     );
                   })}
