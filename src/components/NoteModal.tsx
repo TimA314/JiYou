@@ -112,53 +112,52 @@ export default function NoteModal({eventData,
 
   return (
     <Modal
-      open={open}
-      onClose={handleClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
     >
-      <Box>
-        <ClearIcon sx={{position: 'fixed', top: 8, right: 8, cursor: 'pointer'}} onClick={handleClose} />
-        <Box sx={{...style, 
-          width: isMobile ? "90%" : "90%", 
-          maxHeight: isMobile ? "90vh" : "80vh" 
-        }}>
-          <Stack direction="row" spacing={2} flexDirection="column">
-            <Note eventData={eventData}
-             pool={pool} relays={relays}
-              followers={followers}
-               setFollowing={setFollowing}
-                setHashtags={setHashtags}
-                 pk={pk}
-                 disableReplyIcon={false}
-                 />
+    <Box sx={{...style, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <Box sx={{position: 'absolute', top: 8, right: 8}}>
+            <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
+        </Box>
+        <Box sx={{overflowY: 'auto', width: '100%', maxHeight: isMobile ? "80vh" : "70vh"}}>
+            <Stack direction="row" spacing={2} flexDirection="column">
+                <Note eventData={eventData}
+                    pool={pool} relays={relays}
+                    followers={followers}
+                    setFollowing={setFollowing}
+                    setHashtags={setHashtags}
+                    pk={pk}
+                    disableReplyIcon={false}
+                />
 
-            <Box>
-              {replies.length !== 0 && (
-                <>
-                  <SubdirectoryArrowRightIcon />
-                  {replies.map((event) => {
-                    const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
-                    return (
-                      <Note 
-                        eventData={fullEventData}
-                        pool={pool}
-                        relays={relays}
-                        followers={followers}
-                        setFollowing={setFollowing}
-                        setHashtags={setHashtags}
-                        pk={pk}
-                        key={event.sig}
-                        disableReplyIcon={false}
-                      />
-                    );
-                  })}
-                </>
-              )}
-            </Box>
-          </Stack>
-        </Box>        
+                <Box>
+                    {replies.length !== 0 && (
+                        <>
+                            <SubdirectoryArrowRightIcon />
+                            {replies.map((event) => {
+                                const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
+                                return (
+                                    <Note 
+                                        eventData={fullEventData}
+                                        pool={pool}
+                                        relays={relays}
+                                        followers={followers}
+                                        setFollowing={setFollowing}
+                                        setHashtags={setHashtags}
+                                        pk={pk}
+                                        key={event.sig}
+                                        disableReplyIcon={false}
+                                    />
+                                );
+                            })}
+                        </>
+                      )}
+                  </Box>
+              </Stack>
+          </Box>      
       </Box>
     </Modal>
   );
-}
+} 

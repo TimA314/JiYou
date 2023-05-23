@@ -11,6 +11,8 @@ import CreateNote from './components/CreateNote';
 import { SimplePool } from 'nostr-tools';
 import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
+import { cookieStore } from 'cookie-store';
+import { createCookie, readCookie } from './utils/miscUtils';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -45,25 +47,35 @@ function App() {
   const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
   const [pk, setPk] = useState<string>("");
 
-
   useEffect(() => {
     //setup pool
     const _pool = new SimplePool()
     setPool(_pool);
 
     const getPublicKey = async () => {
-      if (window.nostr){
-        const publicKey = await window.nostr.getPublicKey();
-        if (publicKey) setPk(publicKey);
-      }
+      let publicKey: string = pk;
+      var cookie = readCookie("pk");
+
+      if (cookie && cookie !== "") {
+        setPk(cookie);
+      } else if (window.nostr){
+        try{
+            publicKey = await window.nostr.getPublicKey();
+            if (!publicKey) return;
+            createCookie("pk", publicKey, 30);
+            setPk(publicKey);
+          } catch {}
+        }
     }
-    getPublicKey();
+
+    if(pk === "") getPublicKey();
 
     return () => {
       pool?.close(defaultRelays)
     }
 
   }, [])
+
 
   return (
     <ThemeProvider theme={theme}>

@@ -53,6 +53,10 @@ export default function ReplyToNote({eventData, open, setReplyToNoteOpen, pool, 
     }));
   };
 
+  const setPostedNote = () => {
+    handleClose();
+  }
+
   return (
     <div>
       <Modal
@@ -74,7 +78,7 @@ export default function ReplyToNote({eventData, open, setReplyToNoteOpen, pool, 
             <CloseIcon />
           </IconButton>
             <Note eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} disableReplyIcon={true}/>
-            <CreateNote pool={pool} relays={relays} pk={pk}  isReply={true}/>
+            <CreateNote pool={pool} relays={relays} pk={pk}  replyEventData={eventData} setPostedNote={setPostedNote}/>
         </Box>
       </Modal>
     </div>

@@ -5,17 +5,16 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 type UseFollowersProps = {
   pool: SimplePool | null;
   relays: string[];
+  pk: string;
 };
 
-export const useFollowers = ({ pool, relays}: UseFollowersProps) => {
+export const useFollowers = ({ pool, relays, pk}: UseFollowersProps) => {
   const [followers, setFollowers] = useState<string[]>([]);
   
   useEffect(() => {
-    if (!pool || !window.nostr) return;
+    if (!pool || !window.nostr || pk === "") return;
 
     const getFollowers = async () => {
-  
-      const pk = await window.nostr.getPublicKey();
       
       let followerPks: string[] = [];
       const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])

@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar, Typography} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
 import { EventTemplate, getEventHash, SimplePool, Event, Kind} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
@@ -30,14 +30,14 @@ const profileRef = useRef<ProfileContent | null>(null);
 const [getProfileEvent, setGetProfileEvent] = useState(true);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-const { followers } = useFollowers({pool, relays});
+const { followers } = useFollowers({pool, relays, pk});
 
 
 
 useEffect(() => {
-    if (!pool || pk === "") return;
+    if (!pool) return;
 
-    if (!window.nostr) {
+    if (pk === "") {
         alert("You need to install a Nostr extension to provide your pubkey.")
         return;
     }

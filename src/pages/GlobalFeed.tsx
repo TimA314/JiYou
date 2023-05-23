@@ -36,7 +36,7 @@ type GlobalFeedProps = {
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk }) => {
-    const { followers, setFollowing } = useFollowers({pool, relays});
+    const { followers, setFollowing } = useFollowers({pool, relays, pk});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
@@ -63,6 +63,10 @@ type GlobalFeedProps = {
 
     const handleCreateNoteClose = () => {
         setCreateNoteOpen(false)
+    }
+
+    const setPostedNote = () => {
+        setCreateNoteOpen(false);
     }
 
 
@@ -103,10 +107,11 @@ type GlobalFeedProps = {
                         >
                         <CloseIcon />
                     </IconButton>
-                    <CreateNote isReply={false} 
+                    <CreateNote replyEventData={null} 
                                 pool={pool} 
                                 relays={relays} 
-                                pk={pk} />
+                                pk={pk}
+                                setPostedNote={setPostedNote} />
                 </Box>
             </Modal>
 
