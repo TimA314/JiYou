@@ -1,4 +1,4 @@
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
 import { SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -8,7 +8,25 @@ import "./GlobalFeed.css";
 import { useFollowers } from '../hooks/useFollowers';
 import { useListEvents } from '../hooks/useListEvents';
 import { setEventData } from '../utils/eventUtils';
+import EditIcon from '@mui/icons-material/Edit';
+import CreateNote from '../components/CreateNote';
+import CloseIcon from '@mui/icons-material/Close';
 
+
+const createNoteStyle = {
+    position: 'absolute' as 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: "95%",
+    maxWidth: "600px",
+    height: "70%",
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 2,
+    overflowY: 'auto' as 'auto', //scrollable
+  };
 
 
 type GlobalFeedProps = {
@@ -22,6 +40,7 @@ type GlobalFeedProps = {
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
+    const [createNoteOpen, setCreateNoteOpen] = useState(false);
 
 
     //global or followers
@@ -37,6 +56,15 @@ type GlobalFeedProps = {
     const setFollowers = (pubkey: string) => {
         setFollowing(pubkey, pool, relays);
     }
+
+    const handleCreateNoteOpen = () => {
+        setCreateNoteOpen(true)
+    }
+
+    const handleCreateNoteClose = () => {
+        setCreateNoteOpen(false)
+    }
+
 
     //render
 
@@ -56,6 +84,31 @@ type GlobalFeedProps = {
                     <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} setHashtags={setHashtags} key={event.sig} pk={pk} />
                 )
             })}
+            <Modal
+                open={createNoteOpen}
+                onClose={handleCreateNoteClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+                sx={createNoteStyle}
+                >
+                <Box>
+                    <IconButton 
+                        aria-label="close" 
+                        onClick={handleCreateNoteClose}
+                        sx={{
+                            position: 'absolute',
+                            right: 8,
+                            top: 8,
+                        }}
+                        >
+                        <CloseIcon />
+                    </IconButton>
+                    <CreateNote isReply={false} 
+                                pool={pool} 
+                                relays={relays} 
+                                pk={pk} />
+                </Box>
+            </Modal>
 
             <Box sx={{
                     bgcolor: 'background.paper',
@@ -65,7 +118,9 @@ type GlobalFeedProps = {
                     right: 0,
                 }}
                 >
-                
+                <Fab color="secondary" aria-label="edit" sx={{ position: "fixed", bottom: 70, right: 10 }} onClick={handleCreateNoteOpen}>
+                    <EditIcon /> 
+                </Fab>
                 <Tabs 
                     value={tabIndex} 
                     onChange={handleTabChange} 

@@ -39,6 +39,7 @@ declare global {
   }
 }
 
+
 type Nostr = {
   getPublicKey(): Promise<string>;
   signEvent(event: EventTemplate): Promise<Event>;

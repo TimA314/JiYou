@@ -7,6 +7,7 @@ import { FullEventData, RelaySwitches } from '../nostr/Types';
 import Note from './Note';
 import { FormControlLabel, IconButton, Switch, TextField } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import CreateNote from './CreateNote';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -73,17 +74,7 @@ export default function ReplyToNote({eventData, open, setReplyToNoteOpen, pool, 
             <CloseIcon />
           </IconButton>
             <Note eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} disableReplyIcon={true}/>
-            <Box sx={{marginTop: "7px"}}>
-                <TextField id="replyInput" label="Reply" variant="outlined" multiline rows={7} fullWidth/>
-                <Button variant="contained" sx={{marginTop: "7px"}} color="secondary">Post Reply To Relays</Button>
-            </Box>
-            <div className='relayListContainer'>
-          {relays.map((relay) => (
-            <div className='relaySwitch' key={relay}>
-              <FormControlLabel control={<Switch id={relay} checked={relaySwitches[relay]} size='small' onChange={handleRelaySwitchChange}/>} label={relay} />
-            </div>
-          ))}
-        </div>
+            <CreateNote pool={pool} relays={relays} pk={pk}  isReply={true}/>
         </Box>
       </Modal>
     </div>

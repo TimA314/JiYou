@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
+import { Box, FormControlLabel, FormGroup, IconButton, Modal, Switch, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool, validateEvent } from 'nostr-tools';
@@ -13,10 +13,11 @@ interface Props {
   pool: SimplePool | null;
   relays: string[];
   pk: string;
+  isReply: boolean;
 }
 
 
-function CreateNote({pool, relays, pk}: Props) {
+function CreateNote({pool, relays, pk, isReply}: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
     obj[relay] = true;
@@ -32,6 +33,7 @@ function CreateNote({pool, relays, pk}: Props) {
   };
 
   const handlePostToRelaysClick = async () => {
+
     if (!pool) {
       return;
     }
@@ -90,7 +92,7 @@ function CreateNote({pool, relays, pk}: Props) {
     }
   };
   return (
-    <div className="newNoteContainer">
+  <Box sx={{ marginTop: "20px",height: "auto", width: "auto"}} >
       <FormGroup>
         <TextField
           id="noteContent"
@@ -104,7 +106,7 @@ function CreateNote({pool, relays, pk}: Props) {
           rows={12}
           margin="normal"
         />
-        <Button type="button" variant="contained" color='warning' onClick={handlePostToRelaysClick}>Post To Relays</Button>
+        <Button type="button" variant="contained" color='secondary' onClick={handlePostToRelaysClick}>Post {isReply ? "Reply" : "Note"} To Relays</Button>
         <div className='relayListContainer'>
           {relays.map((relay) => (
             <div className='relaySwitch' key={relay}>
@@ -113,7 +115,7 @@ function CreateNote({pool, relays, pk}: Props) {
           ))}
         </div>
       </FormGroup>
-    </div>
+    </Box>
   )
 }
 
