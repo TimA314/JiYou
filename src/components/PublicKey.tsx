@@ -31,7 +31,7 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
   const [localPk, setLocalPk] = React.useState(pk);
 
   React.useEffect(() => {
-    setLocalPk(pk);
+    setLocalPk(nip19.npubEncode(pk));
   }, [pk]);
 
   const handleSave = () => {
