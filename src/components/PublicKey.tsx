@@ -6,7 +6,7 @@ import Modal from '@mui/material/Modal';
 import { TextField, Grid } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { nip19 } from 'nostr-tools';
-import { createCookie, readCookie } from './utils/miscUtils';
+import { createCookie, readCookie } from '../utils/miscUtils';
 
 const style = {
   position: 'absolute' as 'absolute',
