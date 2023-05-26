@@ -5,11 +5,16 @@ import CellTowerIcon from '@mui/icons-material/CellTower';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
 import "./NavBar.css";
+import NavMenu from './NavMenu';
 
+interface NavBarProps {
+  setPublicKeyClicked: (publicKeyOpen: boolean) => void;
+  setCustomizeClicked: (customizeOpen: boolean) => void;
+  setAboutClicked: (aboutOpen: boolean) => void;
+}
 
-const NavBar = () => {
+const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked}: NavBarProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -21,7 +26,7 @@ const NavBar = () => {
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
-      <Link className="nav-link" to="#">
+      <Link className="nav-link" to="/">
         <DynamicFeedIcon />
       </Link>
       <Link  className="nav-link" to="/relays">
@@ -30,9 +35,7 @@ const NavBar = () => {
       <Link  className="nav-link" to="/profile">
      <AccountCircleIcon />
       </Link>
-      <Link className="nav-link" to="/">
-        <MenuIcon/>
-      </Link>
+      <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
   </Paper>
 </Box>
   );

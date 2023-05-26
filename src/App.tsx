@@ -11,6 +11,7 @@ import { SimplePool } from 'nostr-tools';
 import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
 import { createCookie, readCookie } from './utils/miscUtils';
+import PublicKey from './components/PublicKey';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -44,6 +45,9 @@ function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
   const [pk, setPk] = useState<string>("");
+  const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
+  const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
+  const [aboutClicked, setAboutClicked] = useState<boolean>(false);
 
   useEffect(() => {
     //setup pool
@@ -84,7 +88,8 @@ function App() {
             <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool} pk={pk} />} />
             <Route path="/" element={<GlobalFeed pool={pool} relays={relayArray} pk={pk}/>} />
           </Routes>
-        <NavBar />
+        <PublicKey publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} />
+        <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
       </Container>
     </ThemeProvider>
   );
