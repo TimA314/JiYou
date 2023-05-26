@@ -6,6 +6,7 @@ import Modal from '@mui/material/Modal';
 import { TextField, Grid } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { nip19 } from 'nostr-tools';
+import { createCookie, readCookie } from './utils/miscUtils';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -53,7 +54,9 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
       alert("Invalid public key.");
       return;
     }
-  
+
+    
+    createCookie("pk", decodedPk.data.toString(), 30);
     setPk(decodedPk.data.toString());
     handleClose();
   };
