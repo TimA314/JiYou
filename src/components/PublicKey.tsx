@@ -8,6 +8,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import { nip19 } from 'nostr-tools';
 import { createCookie } from '../utils/miscUtils';
 import { useEffect, useState } from 'react';
+import ClearIcon from '@mui/icons-material/Clear';
+
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -83,7 +85,10 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <Typography id="pkTitle" variant="h6" color="Secondary" component="h2">
+        <Box sx={{position: 'absolute', top: 8, right: 8}}>
+            <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
+        </Box>
+          <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
             Public Key
           </Typography>
           <form onSubmit={handleSubmit}>
