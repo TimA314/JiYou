@@ -1,5 +1,5 @@
 import "./Relays.css";
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper } from '@mui/material';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
@@ -9,103 +9,31 @@ import { defaultRelays } from "../nostr/DefaultRelays";
 
 interface RelayProps {
     relays: string[];
-    setRelayArray: (relays: string[]) => void;
+    updateRelays: (relays: string[]) => void;
     pool: SimplePool | null;
     pk: string;
 }
 
-export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
-
-    useEffect(() => {
-        if (!pool || !window.nostr) return;
-
-        const getEvents = async () => {
-            try {
-                let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk], limit: 1 }])
-                
-                if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
-                    let relayStrings: string[] = [];
-                    currentRelaysEvent[0].tags.forEach((tag) => {
-                        if(tag[0] === "r") {
-                            const sanitizedRelay = sanitizeString(tag[1]);
-                            if (sanitizedRelay.startsWith("wss://")){
-                                relayStrings.push(sanitizedRelay);
-                            }
-                        }
-                    })
-                    console.log(relayStrings)
-                    setRelayArray(relayStrings);
-                }
-                
-            } catch (error) {
-              alert(error)
-              console.log(error);
-            }
-          }
-        
-        if (window.nostr){
-            getEvents();
-        }
-    }, [pool, pk])
+export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
+    const [relayInput, setRelayInput] = useState("");
     
-    
-    const handleAddRelay = async () => {
-        if (!window.nostr || pk === "") {
+    const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!window.nostr || relayInput.trim() === "") {
             alert("You need to install a Nostr extension to manage your relays")
             return;
         }
 
         try{
-            const relayInput: HTMLInputElement = document.getElementById("addRelayInput") as HTMLInputElement;
-
-            const relayFormatted = relayInput.value.startsWith("wss://") ? relayInput.value : "wss://" + relayInput.value;
+            const relayFormatted = relayInput.startsWith("wss://") ? relayInput : "wss://" + relayInput;
 
             if (relays.includes(relayFormatted)){
-                relayInput.value = "";
+                setRelayInput("");
                 alert("Relay already exists.");
                 return;
             }
             
-            const relayTags: string[][] = [];
-            //construct the tags
-            relays.forEach((r) => {
-                relayTags.push(["r", r])
-            })
-
-            relayTags.push(["r", relayFormatted]);
-            
-            //cunstruct the event
-            const _baseEvent = {
-                kind: Kind.RelayList,
-                content: "",
-                created_at: Math.floor(Date.now() / 1000),
-                tags: relayTags,
-            } as EventTemplate
-
-            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-
-            const newEvent: Event = {
-                ..._baseEvent,
-                id: getEventHash({
-                    ..._baseEvent,
-                    pubkey: pk
-                }),
-                sig: sig,
-                pubkey: pk,
-            }
-
-            if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
-                console.log("Event is Invalid")
-                return;
-            }
-
-            const pubs = pool?.publish(defaultRelays, newEvent)
-            pubs?.on("ok", (pub: any) => {
-                console.log(`Posted to ${pub}`)
-            })
-
-            relayInput.value = "";
-            setRelayArray([...relays, relayFormatted]);
+            updateRelays([...relays, relayFormatted]);
             
         } catch (error) {
             console.log("Error adding relay" + error);
@@ -113,7 +41,7 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
     }
 
     const DeleteRelay = async (relay: string) => {
-        if (!window.nostr || pk === "") {
+        if (!window.nostr) {
             alert("You need to install a Nostr extension to manage relays")
             return;
         }
@@ -131,43 +59,13 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
             
             console.log("deleted relaylist: " + relayTags);
 
-            const _baseEvent = {
-                kind: Kind.RelayList,
-                content: "",
-                created_at: Math.floor(Date.now() / 1000),
-                tags: relayTags,
-            } as EventTemplate
-
-            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-
-            const newEvent: Event = {
-                ..._baseEvent,
-                id: getEventHash({
-                    ..._baseEvent,
-                    pubkey: pk
-                }),
-                sig: sig,
-                pubkey: pk,
-            }
-
-            if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
-                console.log("Event is Invalid")
-                return;
-            }
 
             const relaysWithRemovedRelay = relays.filter((r) => r !== relay);
-            setRelayArray(relaysWithRemovedRelay);
-
-            const pubs = pool?.publish(relays, newEvent)
-            pubs?.on("ok", (pub: any) => {
-                console.log(`Posted to ${pub}`)
-              })
-              
+            updateRelays(relaysWithRemovedRelay);
         } catch (error) {
             console.log("Error adding relay" + error);
         }
     }
-
     
 
     return (
@@ -177,13 +75,16 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
             </Typography>
 
             <Box id="relayform">
-                <Button sx={{marginBottom: "10px"}} variant='outlined' color='secondary' onClick={handleAddRelay}>Add Relay</Button>
-                <TextField
-                id="addRelayInput"
-                label="New Relay"
-                defaultValue=""
-                helperText="wss://example.com"
-                />
+                <form onSubmit={handleAddRelay}>
+                    <TextField
+                        id="addRelayInput"
+                        label="New Relay"
+                        value={relayInput}
+                        onChange={(e) => setRelayInput(e.target.value)}
+                        helperText="wss://example.com"
+                    />
+                    <Button sx={{marginBottom: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
+                </form>
             </Box>
 
             <List>
@@ -213,7 +114,6 @@ export default function Relays({relays, setRelayArray, pool, pk}: RelayProps) {
                     )
                 })}
             </List>
-
         </Box>
     )
 }
