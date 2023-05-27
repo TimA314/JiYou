@@ -13,6 +13,7 @@ import { Container, createTheme } from '@mui/material';
 import { createCookie, readCookie } from './utils/miscUtils';
 import PublicKey from './components/PublicKey';
 import { useProfile } from './hooks/useProfile';
+import { useRelays } from './hooks/useRelays';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -44,12 +45,12 @@ const theme = createTheme({
 
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
-  const [relayArray, setRelayArray] = useState<string[]>(defaultRelays);
   const [pk, setPk] = useState<string>("");
+  const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
   const [aboutClicked, setAboutClicked] = useState<boolean>(false);
-  const { profile, updateProfile } = useProfile({ pool, relays: relayArray, pk });
+  const { profile, updateProfile } = useProfile({ pool, relays, pk });
 
   useEffect(() => {
     //setup pool
@@ -86,9 +87,9 @@ function App() {
       <CssBaseline />
       <Container>
           <Routes>
-            <Route path="/profile" element={<Profile relays={relayArray} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} />} />
-            <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool} pk={pk} />} />
-            <Route path="/" element={<GlobalFeed pool={pool} relays={relayArray} pk={pk}/>} />
+            <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} />} />
+            <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
+            <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk}/>} />
           </Routes>
         <PublicKey publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} />
         <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />

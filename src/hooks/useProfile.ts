@@ -36,7 +36,6 @@ export const useProfile = ({ pool, relays, pk}: UseProfileProps) => {
                     banner: content.banner ? content.banner : ""
                 }
                 
-                console.log("profileContent: " + JSON.stringify(profileContent))
                 setProfile(profileContent);
     };
   
