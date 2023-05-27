@@ -29,6 +29,7 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, prof
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
+      <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
       <Link className="nav-link" to="/">
         <DynamicFeedIcon />
       </Link>
@@ -38,7 +39,6 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, prof
       <Link  className="nav-link" to="/profile">
      {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon />}
       </Link>
-      <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
   </Paper>
 </Box>
   );
