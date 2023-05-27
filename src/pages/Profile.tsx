@@ -97,7 +97,7 @@ const handleFormSubmit = async () => {
 const styles = {
     banner: {
         height: 350,
-        backgroundImage: `url(${profileRef.current?.banner ?? ""})`,
+        backgroundImage: `url(${profile.banner})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         margin: -24,
