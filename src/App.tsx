@@ -12,6 +12,7 @@ import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
 import { createCookie, readCookie } from './utils/miscUtils';
 import PublicKey from './components/PublicKey';
+import { useProfile } from './hooks/useProfile';
 
 declare module '@mui/material/styles' {
   interface Theme {
@@ -48,6 +49,7 @@ function App() {
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
   const [aboutClicked, setAboutClicked] = useState<boolean>(false);
+  const { profile, updateProfile } = useProfile({ pool, relays: relayArray, pk });
 
   useEffect(() => {
     //setup pool
@@ -84,7 +86,7 @@ function App() {
       <CssBaseline />
       <Container>
           <Routes>
-            <Route path="/profile" element={<Profile relays={relayArray} pool={pool} pk={pk} />} />
+            <Route path="/profile" element={<Profile relays={relayArray} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} />} />
             <Route path="/relays" element={<Relays relays={relayArray.length > 0 ? relayArray : defaultRelays} setRelayArray={setRelayArray} pool={pool} pk={pk} />} />
             <Route path="/" element={<GlobalFeed pool={pool} relays={relayArray} pk={pk}/>} />
           </Routes>

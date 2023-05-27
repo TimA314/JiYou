@@ -15,6 +15,8 @@ interface ProfileProps {
     relays: string[];
     pool: SimplePool | null;
     pk: string;
+    profile: ProfileContent;
+    updateProfile: (name: string, about: string, picture: string, banner: string) => void;
 }
 
 interface ProfileContent {
@@ -24,55 +26,29 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, updateProfile}: ProfileProps) {
 const privateKey = window.localStorage.getItem("localSk");
 const profileRef = useRef<ProfileContent | null>(null);
 const [getProfileEvent, setGetProfileEvent] = useState(true);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
 const { followers } = useFollowers({pool, relays, pk});
+const [profileNameInput, setProfileNameInput] = useState("");
+const [profileAboutInput, setProfileAboutInput] = useState("");
+const [imageUrlInput, setImageUrlInput] = useState("");
+const [bannerUrlInput, setBannerUrlInput] = useState("");
 
 
 
 useEffect(() => {
-    if (!pool) return;
+    if (!pool || pk === "") return;
 
-    if (pk === "") {
-        alert("You need to install a Nostr extension to provide your pubkey.")
-        return;
-    }
-
-    const getProfile = async () => {
-        const profileNameInput = document.getElementById("profileNameInput") as HTMLInputElement;
-        const profileAboutInput = document.getElementById("profileAboutInput") as HTMLInputElement;
-        const imageUrlInput = document.getElementById("profileImageUrlInput") as HTMLInputElement;
-        const bannerUrlInput = document.getElementById("bannerImageUrlInput") as HTMLInputElement;
-
+    const loadProfile = async () => {
         try {
-            // Fetch user profile
-            const profileEvent: Event[] = await pool.list(defaultRelays, [{kinds: [0], authors: [pk], limit: 1 }])
-            
-            if (!profileEvent || profileEvent.length < 1) return;
-
-            const sanitizedEvent = sanitizeEvent(profileEvent[0]);
-
-            const content = JSON.parse(sanitizedEvent.content);
-
-            const profileContent: ProfileContent = {
-                name: content.name ? content.name : "",
-                picture: content.picture ? content.picture : "",
-                about: content.about ? content.about : "",
-                banner: content.banner ? content.banner : ""
-            }
-            console.log("profileContent: " + JSON.stringify(profileContent))
-
-            profileNameInput.value = profileContent.name;
-            profileAboutInput.value = profileContent.about;
-            imageUrlInput.value = profileContent.picture;
-            bannerUrlInput.value = profileContent.banner;
-
-            profileRef.current = profileContent;
-            setGetProfileEvent(false);
+            setProfileNameInput(profile.name);
+            setProfileAboutInput(profile.about);
+            setImageUrlInput(profile.picture);
+            setBannerUrlInput(profile.banner);
 
             // Fetch user notes
             const userNotes = await pool.list(defaultRelays, [{kinds: [1], authors: [pk] }])
@@ -107,110 +83,47 @@ useEffect(() => {
         }
     }
 
-    if (!getProfileEvent) return;
-    getProfile();
-}, [pool, relays, pk])
+    loadProfile();
+}, [pool, relays, pk , profile])
 
 
-
-const handleFormSubmit = () => {
-    updateProfileEvent();
-}
-
-const updateProfileEvent = async () => {
-    if (!pool) return;
-    
-    if (!window.nostr) {
-        alert("You need to install a Nostr extension to post to the relays")
-        return;
-    }
-
-    const profileNameInput = document.getElementById("profileNameInput") as HTMLInputElement;
-    const profileAboutInput = document.getElementById("profileAboutInput") as HTMLInputElement;
-    const imageUrlInput = document.getElementById("profileImageUrlInput") as HTMLInputElement;
-    const bannerUrlInput = document.getElementById("bannerImageUrlInput") as HTMLInputElement;
-    
-    try {
-        
-        const updatedProfileContent: ProfileContent = {
-            name: profileNameInput.value,
-            about: profileAboutInput.value,
-            picture: imageUrlInput.value,
-            banner: bannerUrlInput.value
-        }
-        
-        const newContent = JSON.stringify(updatedProfileContent);  
-        
-        const _baseEvent = {
-            kind: Kind.Metadata,
-            content: newContent,
-            created_at: Math.floor(Date.now() / 1000),
-            tags: [],
-        } as EventTemplate
-
-        const pubkey = pk;
-        const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-        
-        const newEvent: Event = {
-            ..._baseEvent,
-            id: getEventHash({..._baseEvent, pubkey}),
-            sig,
-            pubkey,
-        }
-
-        const pubs = pool.publish(relays, newEvent)
-      
-        pubs.on("ok", () => {
-            alert("Posted to relays")
-            console.log("Posted to relays")
-            profileRef.current = updatedProfileContent;
-            setGetProfileEvent(true);
-        })
-  
-        pubs.on("failed", (error: string) => {
-          alert("Failed to post to relays" + error)
-        })
-
-    } catch (error) {
-        alert(error);
-        return;
-    }       
+const handleFormSubmit = async () => {
+    if (!pool || pk === "") return;
+    updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
 }
     
-    // ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
     
-    const styles = {
-      banner: {
-          height: 350,
-          backgroundImage: `url(${profileRef.current?.banner ?? ""})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          margin: -24,
-          padding: 24,
-      }
-    };
-    
-    // ----------------------------------------------------------------------
-    
-    const setEventData = (event: Event) => {
-        const fullEventData: FullEventData = {
-            content: event.content,
-            user: {
-                name: profileRef.current?.name ?? "",
-                picture: profileRef.current?.picture ?? "",
-                about: profileRef.current?.about ?? "",
-                nip05: "",
-            },
-            pubkey: event.pubkey,
-            hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
-            eventId: event.id,
-            sig: event.sig,
-            created_at: event.created_at,
-            tags: event?.tags ?? [],
-            reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
-        }
-        return fullEventData;
+const styles = {
+    banner: {
+        height: 350,
+        backgroundImage: `url(${profileRef.current?.banner ?? ""})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        margin: -24,
+        padding: 24,
     }
+};
+    
+const setEventData = (event: Event) => {
+    const fullEventData: FullEventData = {
+        content: event.content,
+        user: {
+            name: profileRef.current?.name ?? "",
+            picture: profileRef.current?.picture ?? "",
+            about: profileRef.current?.about ?? "",
+            nip05: "",
+        },
+        pubkey: event.pubkey,
+        hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
+        eventId: event.id,
+        sig: event.sig,
+        created_at: event.created_at,
+        tags: event?.tags ?? [],
+        reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
+    }
+    return fullEventData;
+}
 
     return (
         <Box width="100%">
@@ -225,7 +138,7 @@ const updateProfileEvent = async () => {
                         </Toolbar>
                         <div className="avatarContainer">
                             <Avatar
-                                src={profileRef.current?.picture ?? ""}
+                                src={profile.picture}
                                 sx={{ width: 200, height: 200 }}
                                 />
                         </div>
@@ -250,7 +163,8 @@ const updateProfileEvent = async () => {
                                 id="profileNameInput"
                                 label="Name"
                                 color='secondary'
-                                defaultValue={profileRef.current?.name ?? ""} 
+                                value={profileNameInput}
+                                onChange={e => setProfileNameInput(e.target.value)}
                                 fullWidth
                                 InputProps={{
                                     startAdornment: 
@@ -263,7 +177,8 @@ const updateProfileEvent = async () => {
                                 id="profileAboutInput"
                                 label="About"
                                 color='secondary'
-                                defaultValue={profileRef.current?.about ?? ""} 
+                                value={profileAboutInput}
+                                onChange={e => setProfileAboutInput(e.target.value)}
                                 fullWidth
                                 multiline
                                 rows={4}
@@ -278,7 +193,8 @@ const updateProfileEvent = async () => {
                                 id="profileImageUrlInput"
                                 label="Profile Image URL"
                                 color='secondary'
-                                defaultValue={profileRef.current?.picture ?? ""} 
+                                value={imageUrlInput}
+                                onChange={e => setImageUrlInput(e.target.value)}
                                 fullWidth
                                 InputProps={{
                                     startAdornment: 
@@ -292,7 +208,8 @@ const updateProfileEvent = async () => {
                                     label="Banner Image URL"
                                     fullWidth
                                     color="secondary"
-                                    defaultValue={profileRef.current?.banner ?? ""} 
+                                    value={bannerUrlInput}
+                                    onChange={e => setBannerUrlInput(e.target.value)} 
                                     InputProps={{
                                         startAdornment: 
                                         <InputAdornment position="start">
