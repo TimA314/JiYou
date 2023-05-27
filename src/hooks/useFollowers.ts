@@ -12,7 +12,7 @@ export const useFollowers = ({ pool, relays, pk}: UseFollowersProps) => {
   const [followers, setFollowers] = useState<string[]>([]);
   
   useEffect(() => {
-    if (!pool || !window.nostr || pk === "") return;
+    if (!pool || pk === "") return;
 
     const getFollowers = async () => {
       
@@ -35,7 +35,7 @@ export const useFollowers = ({ pool, relays, pk}: UseFollowersProps) => {
   }, [pool, relays]);
   
   const setFollowing = async (followerPubkey: string, pool: SimplePool | null, relays: string[]) => {
-    if (!pool || !window.nostr) return;
+    if (!pool || !window.nostr || pk === "") return;
     
     try {
         const pubkey = await window.nostr.getPublicKey();

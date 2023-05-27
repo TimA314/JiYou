@@ -53,14 +53,12 @@ useEffect(() => {
             // Fetch user notes
             const userNotes = await pool.list(defaultRelays, [{kinds: [1], authors: [pk] }])
             const sanitizedEvents = userNotes.map((event) => sanitizeEvent(event));
-            console.log("user notes: " + JSON.stringify(sanitizedEvents));
             setUserNotes(sanitizedEvents);
 
             // Fetch reactions
             const eventIds = sanitizedEvents.map((event) => event.id);
 
             const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
-            console.log("reaction events: " + JSON.stringify(reactionEvents));
             const retrievedReactionObjects: Record<string, ReactionCounts> = {};
             reactionEvents.forEach((event) => {
             const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");

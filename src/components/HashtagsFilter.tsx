@@ -32,7 +32,7 @@ export default function HashtagsFilter({ hashtags, setHashtags }: Props) {
   return (
     <div className="hashTagFilterContainer">
       <Paper className="hashtagChips">
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {hashtags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
               <Chip size="small" key={tag} label={tag} onDelete={() => removeHashtag(tag)} />
           ))}

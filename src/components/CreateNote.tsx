@@ -36,7 +36,7 @@ function CreateNote({pool, relays, pk, replyEventData, setPostedNote}: Props) {
 
   const handlePostToRelaysClick = async () => {
 
-    if (!pool || pk === "") {
+    if (!pool || !window.nostr) {
       alert("You need to install a Nostr extension to post to the relays")
       return;
     }
@@ -54,8 +54,6 @@ function CreateNote({pool, relays, pk, replyEventData, setPostedNote}: Props) {
       ]
     ]
     : [];
-
-    
 
     const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);
     console.log("relays to post: " + relaysToPostTo);
@@ -87,19 +85,19 @@ function CreateNote({pool, relays, pk, replyEventData, setPostedNote}: Props) {
 
       let clearedInput = false;
       
-      setPostedNote();
-
+      
       pubs.on("ok", (pub: any) => {
         console.log(`Posted to ${pub}`)
         if (clearedInput) return;
         clearedInput = true;
         setInput("");
       })
-
+      
       pubs.on("failed", (error: string) => {
         alert("Failed to post to relays" + error)
       })
-
+      
+      setPostedNote();
     } catch (error) {
       alert("Canceled")
       console.log(error);

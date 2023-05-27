@@ -54,6 +54,7 @@ function App() {
 
   useEffect(() => {
     //setup pool
+
     const _pool = new SimplePool()
     setPool(_pool);
 
@@ -75,11 +76,7 @@ function App() {
 
     if(pk === "") getPublicKey();
 
-    return () => {
-      pool?.close(defaultRelays)
-    }
-
-  }, [])
+  }, [pk])
 
 
   return (
