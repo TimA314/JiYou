@@ -7,14 +7,17 @@ import Box from '@mui/material/Box';
 import { Link } from 'react-router-dom';
 import "./NavBar.css";
 import NavMenu from './NavMenu';
+import { Avatar } from '@mui/material';
+import { ProfileContent } from '../nostr/Types';
 
 interface NavBarProps {
   setPublicKeyClicked: (publicKeyOpen: boolean) => void;
   setCustomizeClicked: (customizeOpen: boolean) => void;
   setAboutClicked: (aboutOpen: boolean) => void;
+  profile: ProfileContent
 }
 
-const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked}: NavBarProps) => {
+const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, profile}: NavBarProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -33,7 +36,7 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked}: Nav
         <CellTowerIcon />
       </Link>
       <Link  className="nav-link" to="/profile">
-     <AccountCircleIcon />
+     {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon />}
       </Link>
       <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
   </Paper>

@@ -45,7 +45,7 @@ const theme = createTheme({
 
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
-  const [pk, setPk] = useState<string>("");
+  const [pk, setPk] = useState<string>(readCookie("pk") ?? "");
   const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
@@ -92,7 +92,7 @@ function App() {
             <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk}/>} />
           </Routes>
         <PublicKey publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} />
-        <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
+        <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} profile={profile} />
       </Container>
     </ThemeProvider>
   );

@@ -53,9 +53,10 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
         return;
       }
       
+      console.log(decodedPk.data.toString());
       createCookie("pk", decodedPk.data.toString(), 30);
-      handleClose();
       setPk(decodedPk.data.toString());
+      handleClose();
 
     } catch {
       alert("Invalid public key.");
