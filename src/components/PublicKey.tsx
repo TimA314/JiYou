@@ -6,7 +6,8 @@ import Modal from '@mui/material/Modal';
 import { TextField, Grid } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { nip19 } from 'nostr-tools';
-import { createCookie, readCookie } from '../utils/miscUtils';
+import { createCookie } from '../utils/miscUtils';
+import { useEffect, useState } from 'react';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -28,9 +29,9 @@ interface PublicKeyProps {
 }
 
 export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk}: PublicKeyProps) {
-  const [localPk, setLocalPk] = React.useState(pk);
+  const [localPk, setLocalPk] = useState(pk);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLocalPk(nip19.npubEncode(pk));
   }, [pk]);
 
@@ -43,22 +44,21 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
     }
   
     try{
-        var decodedPk = nip19.decode(localPk.trim());
-    } catch
-    {
+      var decodedPk = nip19.decode(localPk.trim());
+      
+      if (decodedPk === null) {
         alert("Invalid public key.");
         return;
-    }
-    
-    if (decodedPk === null) {
+      }
+      
+      createCookie("pk", decodedPk.data.toString(), 30);
+      handleClose();
+      setPk(decodedPk.data.toString());
+
+    } catch {
       alert("Invalid public key.");
       return;
     }
-
-    
-    createCookie("pk", decodedPk.data.toString(), 30);
-    setPk(decodedPk.data.toString());
-    handleClose();
   };
 
   const handleClose = () => {
