@@ -6,7 +6,6 @@ import Modal from '@mui/material/Modal';
 import { TextField, Grid } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import { nip19 } from 'nostr-tools';
-import { createCookie } from '../utils/miscUtils';
 import { useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 
@@ -54,7 +53,7 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
       }
       
       console.log(decodedPk.data.toString());
-      createCookie("pk", decodedPk.data.toString(), 30);
+      localStorage.setItem("pk", decodedPk.data.toString());
       setPk(decodedPk.data.toString());
       handleClose();
 
@@ -103,7 +102,7 @@ export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk
             </Grid>
           </form>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-            This is your public key. You can share this with others. Your public key will be stored in a cookie within your browser. It will be used to get your profile and other settings.
+            This is your public key. You can share this with others. Your public key will be stored within your browser's local storage. It will be used to get your profile and other settings.
             </Typography>
         </Box>
       </Modal>

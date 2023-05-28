@@ -1,5 +1,5 @@
 import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
-import { EventTemplate, getEventHash, SimplePool, Event, Kind} from 'nostr-tools';
+import { SimplePool, Event} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -27,9 +27,7 @@ interface ProfileContent {
 }
 
 export default function Profile({relays, pool, pk, profile, updateProfile}: ProfileProps) {
-const privateKey = window.localStorage.getItem("localSk");
-const profileRef = useRef<ProfileContent | null>(null);
-const [getProfileEvent, setGetProfileEvent] = useState(true);
+const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
 const { followers } = useFollowers({pool, relays, pk});
@@ -82,7 +80,7 @@ useEffect(() => {
     }
 
     loadProfile();
-}, [pool, relays, pk , profile])
+}, [pool, relays, profile])
 
 
 const handleFormSubmit = async () => {
@@ -125,7 +123,7 @@ const setEventData = (event: Event) => {
 
     return (
         <Box width="100%">
-            {privateKey && (
+            {pk !== "" && (
                 <Box>
                     <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >

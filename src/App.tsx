@@ -60,18 +60,22 @@ function App() {
 
     const getPublicKey = async () => {
       let publicKey: string = pk;
-      var cookie = readCookie("pk");
-
-      if (cookie && cookie !== "") {
-        setPk(cookie);
-      } else if (window.nostr){
+      var storedPk = localStorage.getItem("pk");
+      
+      if (window.nostr){
         try{
             publicKey = await window.nostr.getPublicKey();
             if (!publicKey) return;
-            createCookie("pk", publicKey, 30);
+            localStorage.setItem("pk", publicKey);
             setPk(publicKey);
           } catch {}
-        }
+      }
+
+      if (storedPk && storedPk !== "") {
+        setPk(storedPk);
+        return;
+      }
+
     }
 
     if(pk === "") getPublicKey();
