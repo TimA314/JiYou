@@ -120,14 +120,6 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
 
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
-      <CardHeader
-        avatar={
-          <Avatar aria-label="recipe" src={eventData.user.picture}>
-          </Avatar>
-        }
-        title={eventData.user.name}
-        subheader={eventData.user.nip05}
-      />
       <NoteModal 
         eventData={eventData}
         replies={replies}
@@ -142,6 +134,14 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         setFollowing={setFollowing}
         setHashtags={setHashtags}
         pk={pk}/>
+      <CardHeader
+        avatar={
+          <Avatar aria-label="recipe" src={eventData.user.picture}>
+          </Avatar>
+        }
+        title={eventData.user.name}
+        subheader={eventData.user.nip05}
+      />
       <ReplyToNote open={replyToNoteOpen} setReplyToNoteOpen={setReplyToNoteOpen} eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} />
       <CardContent>
         <Typography variant="body2" color="text.secondary">

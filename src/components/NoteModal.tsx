@@ -19,9 +19,9 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  width: "95%",
+  maxWidth: "1000px",
   boxShadow: 24,
-  p: 4,
   overflowY: 'auto' as 'auto', //scrollable
 };
 
@@ -56,6 +56,7 @@ export default function NoteModal({eventData,
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [rootEvents, setRootEvents] = useState<Event[]>([]);
+  const [fetched, setFetched] = useState(false);
   const handleClose = () => setNoteDetailsOpen(false);
   
   // Use a media query to check if the device is a mobile or desktop
@@ -118,8 +119,11 @@ export default function NoteModal({eventData,
       });
       setReactions(retrievedReactionObjects);
       setGettingReplies(GettingReplies.requestComplete);
+      setFetched(true);
     }
-    getReplies();
+    if(!fetched){
+      getReplies();
+    }
 
   }, [open, pool]);
 
@@ -131,13 +135,13 @@ export default function NoteModal({eventData,
         aria-describedby="modal-modal-description"
     >
     <Box sx={{...style, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-        <Box sx={{position: 'absolute', top: 8, right: 8}}>
+        <Box sx={{position: 'absolute', top: 8, right: 1}}>
             <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
         </Box>
-        <Box sx={{overflowY: 'auto', width: '100%', maxHeight: isMobile ? "80vh" : "70vh"}}>
+        <Box sx={{overflowY: 'auto', width: '95%', maxHeight: "80vh"}}>
             <Stack direction="row" spacing={2} flexDirection="column">
 
-                <Box>
+                <Box sx={{paddingRight: "15px"}}>
                     {rootEvents.length > 0 && (
                         <>
                                 {rootEvents.map((rootEvent) => {
@@ -162,7 +166,7 @@ export default function NoteModal({eventData,
                     )}
                 </Box>
 
-                <Box>
+                <Box sx={{paddingRight: "15px"}}>
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
                         followers={followers}
@@ -173,7 +177,7 @@ export default function NoteModal({eventData,
                         />
                 </Box>
 
-                <Box>
+                <Box sx={{paddingRight: "15px"}}>
                     {replies.length > 0 && (
                         <>
                             <SubdirectoryArrowRightIcon />
