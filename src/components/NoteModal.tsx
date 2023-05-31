@@ -56,7 +56,6 @@ export default function NoteModal({eventData,
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [rootEvents, setRootEvents] = useState<Event[]>([]);
-  const [fetched, setFetched] = useState(false);
   const handleClose = () => setNoteDetailsOpen(false);
   
   // Use a media query to check if the device is a mobile or desktop
@@ -119,12 +118,8 @@ export default function NoteModal({eventData,
       });
       setReactions(retrievedReactionObjects);
       setGettingReplies(GettingReplies.requestComplete);
-      setFetched(true);
     }
-    if(!fetched){
       getReplies();
-    }
-
   }, [open, pool]);
 
   return (
@@ -141,7 +136,7 @@ export default function NoteModal({eventData,
         <Box sx={{overflowY: 'auto', width: '95%', maxHeight: "80vh"}}>
             <Stack direction="row" spacing={2} flexDirection="column">
 
-                <Box sx={{paddingRight: "15px"}}>
+                <Box sx={{paddingRight: "20px"}}>
                     {rootEvents.length > 0 && (
                         <>
                                 {rootEvents.map((rootEvent) => {
@@ -166,7 +161,7 @@ export default function NoteModal({eventData,
                     )}
                 </Box>
 
-                <Box sx={{paddingRight: "15px"}}>
+                <Box sx={{padding: "20px"}}>
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
                         followers={followers}
@@ -177,7 +172,7 @@ export default function NoteModal({eventData,
                         />
                 </Box>
 
-                <Box sx={{paddingRight: "15px"}}>
+                <Box sx={{paddingRight: "20px"}}>
                     {replies.length > 0 && (
                         <>
                             <SubdirectoryArrowRightIcon />
