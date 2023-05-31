@@ -46,6 +46,7 @@ type GlobalFeedProps = {
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
+        setHashtags([]);
         setEvents([]);
     };
 
