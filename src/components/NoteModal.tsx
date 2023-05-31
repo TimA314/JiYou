@@ -55,6 +55,7 @@ export default function NoteModal({eventData,
                                     pk}: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
+  const [rootEvents, setRootEvents] = useState<Event[]>([]);
   const handleClose = () => setNoteDetailsOpen(false);
   
   // Use a media query to check if the device is a mobile or desktop
@@ -65,12 +66,24 @@ export default function NoteModal({eventData,
     if (!pool) return;
     const getReplies = async () => {
       setGettingReplies(GettingReplies.requestingReplies);
+
+      // Fetch replies
       const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
       const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
       setReplies(sanitizedReplyThreadEvents);
 
+      //Fetch root events
+      const eventTags= eventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== eventData.eventId);
+      let sanitizedRootEvents: Event[] = [];
+      if (eventTags && eventTags.length > 0) {
+        const recommendedRelays = [...new Set([...relays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
+        const rootEvents = await pool.list(recommendedRelays, [{ "kinds": [1], ids: eventTags.map((t) => t[1])}]);
+        sanitizedRootEvents = rootEvents.map((event) => sanitizeEvent(event));
+        setRootEvents(sanitizedRootEvents);
+      }
+
       // Fetch metadata
-      const authorPubkeys: string[] = sanitizedReplyThreadEvents.map(event => event.pubkey);
+      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
       const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
       const metaDataMap: Record<string, MetaData> = {};
@@ -80,8 +93,8 @@ export default function NoteModal({eventData,
       setMetaData(metaDataMap);
       
       // Fetch reactions
-      const reactionPubkeys = sanitizedReplyThreadEvents.map(event => event.pubkey);
-      const replyEventsIds = sanitizedReplyThreadEvents.map(event => event.id);
+      const reactionPubkeys = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
+      const replyEventsIds = [...sanitizedReplyThreadEvents.map(event => event.id), ...sanitizedRootEvents.map(event => event.id)];
 
       const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], 
         [{ "kinds": [7], "#e": replyEventsIds, "#p": reactionPubkeys}]);
@@ -123,21 +136,49 @@ export default function NoteModal({eventData,
         </Box>
         <Box sx={{overflowY: 'auto', width: '100%', maxHeight: isMobile ? "80vh" : "70vh"}}>
             <Stack direction="row" spacing={2} flexDirection="column">
-                <Note eventData={eventData}
-                    pool={pool} relays={relays}
-                    followers={followers}
-                    setFollowing={setFollowing}
-                    setHashtags={setHashtags}
-                    pk={pk}
-                    disableReplyIcon={false}
-                />
 
                 <Box>
-                    {replies.length !== 0 && (
+                    {rootEvents.length > 0 && (
+                        <>
+                                {rootEvents.map((rootEvent) => {
+                                    const fullRootEventData = setEventData(rootEvent, metaData[rootEvent.pubkey], reactions[rootEvent.id]);
+                                    return (
+                                        <>
+                                            <Note
+                                                eventData={fullRootEventData}
+                                                pool={pool}
+                                                relays={relays}
+                                                followers={followers}
+                                                setFollowing={setFollowing}
+                                                setHashtags={setHashtags}
+                                                pk={pk}
+                                                key={rootEvent.sig}
+                                                disableReplyIcon={false}
+                                            />
+                                        </>
+                                    )})}
+                                    <SubdirectoryArrowRightIcon />
+                        </>
+                    )}
+                </Box>
+
+                <Box>
+                    <Note eventData={eventData}
+                        pool={pool} relays={relays}
+                        followers={followers}
+                        setFollowing={setFollowing}
+                        setHashtags={setHashtags}
+                        pk={pk}
+                        disableReplyIcon={false}
+                        />
+                </Box>
+
+                <Box>
+                    {replies.length > 0 && (
                         <>
                             <SubdirectoryArrowRightIcon />
-                            {replies.map((event) => {
-                                const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
+                            {replies.map((replyEvent) => {
+                                const fullEventData = setEventData(replyEvent, metaData[replyEvent.pubkey], reactions[replyEvent.id]);
                                 return (
                                     <Note 
                                         eventData={fullEventData}
@@ -147,7 +188,7 @@ export default function NoteModal({eventData,
                                         setFollowing={setFollowing}
                                         setHashtags={setHashtags}
                                         pk={pk}
-                                        key={event.sig}
+                                        key={replyEvent.sig}
                                         disableReplyIcon={false}
                                     />
                                 );
@@ -155,6 +196,7 @@ export default function NoteModal({eventData,
                         </>
                       )}
                   </Box>
+
               </Stack>
           </Box>      
       </Box>

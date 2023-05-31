@@ -76,8 +76,7 @@ type GlobalFeedProps = {
             {events.length === 0 && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
             {events.filter(
-                (e, i, arr) => arr.findIndex(t => t.id === e.id) === i //remove duplicates
-            )
+                (e) => e.tags && e.tags.filter((t) => t[0] === "e").length === 0)
             .map((event) => {
                 const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
                 return (
