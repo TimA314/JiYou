@@ -12,7 +12,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData, GettingReplies } from '../nostr/Types';
-import { Box, Button, Chip } from '@mui/material';
+import { Badge, BadgeProps, Box, Button, Chip, CircularProgress, Fab } from '@mui/material';
 import { useState } from 'react';
 import { SimplePool, nip19, Event } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
@@ -46,6 +46,15 @@ const FavoriteIconButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
+const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 13,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: '0 4px',
+  },
+}));
+
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
@@ -70,6 +79,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
   const [gettingReplies, setGettingReplies] = useState(GettingReplies.notRequested);
   const [replies, setReplies] = useState<Event[]>([]);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -110,14 +120,6 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
 
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
-      <CardHeader
-        avatar={
-          <Avatar aria-label="recipe" src={eventData.user.picture}>
-          </Avatar>
-        }
-        title={eventData.user.name}
-        subheader={eventData.user.nip05}
-      />
       <NoteModal 
         eventData={eventData}
         replies={replies}
@@ -132,6 +134,14 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         setFollowing={setFollowing}
         setHashtags={setHashtags}
         pk={pk}/>
+      <CardHeader
+        avatar={
+          <Avatar aria-label="recipe" src={eventData.user.picture}>
+          </Avatar>
+        }
+        title={eventData.user.name}
+        subheader={eventData.user.nip05}
+      />
       <ReplyToNote open={replyToNoteOpen} setReplyToNoteOpen={setReplyToNoteOpen} eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
@@ -182,10 +192,11 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
           {moment.unix(eventData.created_at).fromNow()}
         </Typography>
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
-             <Chip size="small" label={gettingReplies === GettingReplies.notRequested ? "View" 
-              : gettingReplies === GettingReplies.requestingReplies ? "Loading Replies..." : replies.length} 
-              variant="outlined" color="primary" icon={<ForumIcon />} 
-              onClick={showReplyThread}/>
+        <IconButton aria-label="cart" onClick={showReplyThread}>
+          <StyledBadge color="secondary">
+            <ForumIcon color="primary"/>
+          </StyledBadge>
+        </IconButton>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <IconButton 
