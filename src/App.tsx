@@ -8,9 +8,7 @@ import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { SimplePool } from 'nostr-tools';
-import { defaultRelays } from './nostr/DefaultRelays';
 import { Container, createTheme } from '@mui/material';
-import { createCookie, readCookie } from './utils/miscUtils';
 import PublicKey from './components/PublicKey';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -45,7 +43,7 @@ const theme = createTheme({
 
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
-  const [pk, setPk] = useState<string>(readCookie("pk") ?? "");
+  const [pk, setPk] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
@@ -54,9 +52,9 @@ function App() {
 
   useEffect(() => {
     //setup pool
-
-    const _pool = new SimplePool()
-    setPool(_pool);
+    if (!pool) {
+      setPool(new SimplePool());
+    }
 
     const getPublicKey = async () => {
       let publicKey: string = pk;
@@ -80,7 +78,7 @@ function App() {
 
     if(pk === "") getPublicKey();
 
-  }, [pk])
+  }, [pool, pk])
 
 
   return (

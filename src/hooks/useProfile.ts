@@ -40,7 +40,7 @@ export const useProfile = ({ pool, relays, pk}: UseProfileProps) => {
     };
   
     getProfile();
-  }, [pool, relays, pk]);
+  }, [pool, pk]);
   
   
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {

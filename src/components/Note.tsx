@@ -11,8 +11,8 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { FullEventData, GettingReplies } from '../nostr/Types';
-import { Badge, BadgeProps, Box, Button, Chip, CircularProgress, Fab } from '@mui/material';
+import { FullEventData } from '../nostr/Types';
+import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
 import { useState } from 'react';
 import { SimplePool, nip19, Event } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
@@ -67,16 +67,17 @@ interface NoteProps {
   setFollowing: (pubkey: string) => void;
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
+  gettingThread?: boolean;
 }
 
-export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags, disableReplyIcon}: NoteProps) {
+export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags, disableReplyIcon, gettingThread}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
-  const [gettingReplies, setGettingReplies] = useState(GettingReplies.notRequested);
+  const [replyCount, setReplyCount] = useState(0);
   const [replies, setReplies] = useState<Event[]>([]);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
 
@@ -122,10 +123,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <NoteModal 
         eventData={eventData}
-        replies={replies}
-        setReplies={setReplies}
-        gettingReplies={gettingReplies}
-        setGettingReplies={setGettingReplies}
+        setReplyCount={setReplyCount}
         open={noteDetailsOpen}
         setNoteDetailsOpen={setNoteDetailsOpen}
         pool={pool}
@@ -194,7 +192,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            <ForumIcon color="primary"/>
+            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyCount} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>

@@ -37,7 +37,7 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, prof
         <CellTowerIcon />
       </Link>
       <Link  className="nav-link" to="/profile">
-     {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon />}
+        {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon />}
       </Link>
   </Paper>
 </Box>

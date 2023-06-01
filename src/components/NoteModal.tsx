@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
-import { FullEventData, GettingReplies, MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
@@ -33,10 +33,7 @@ interface NoteModalProps {
   relays: string[];
   followers: string[];
   setFollowing: (pubkey: string) => void;
-  setReplies: (replies: Event[]) => void;
-  setGettingReplies: (gettingReplies: GettingReplies) => void;
-  replies: Event[];
-  gettingReplies: GettingReplies;
+  setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
 }
@@ -48,14 +45,14 @@ export default function NoteModal({eventData,
                                     relays,
                                     followers,
                                     setFollowing,
-                                    replies,
-                                    setReplies,
-                                    setGettingReplies,
+                                    setReplyCount,
                                     setHashtags,
                                     pk}: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [rootEvents, setRootEvents] = useState<Event[]>([]);
+  const [replyEvents, setReplyEvents] = useState<Event[]>([]);
+  const [gettingThread, setGettingThread] = useState(true);
   const handleClose = () => setNoteDetailsOpen(false);
   
   // Use a media query to check if the device is a mobile or desktop
@@ -65,13 +62,11 @@ export default function NoteModal({eventData,
   useEffect(() => {
     if (!pool) return;
     const getReplies = async () => {
-      setGettingReplies(GettingReplies.requestingReplies);
 
       // Fetch replies
       const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
       const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
-      setReplies(sanitizedReplyThreadEvents);
-
+      
       //Fetch root events
       const eventTags= eventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== eventData.eventId);
       let sanitizedRootEvents: Event[] = [];
@@ -79,18 +74,16 @@ export default function NoteModal({eventData,
         const recommendedRelays = [...new Set([...relays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
         const rootEvents = await pool.list(recommendedRelays, [{ "kinds": [1], ids: eventTags.map((t) => t[1])}]);
         sanitizedRootEvents = rootEvents.map((event) => sanitizeEvent(event));
-        setRootEvents(sanitizedRootEvents);
       }
 
       // Fetch metadata
-      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
+      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey), eventData.pubkey];
       const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
       const metaDataMap: Record<string, MetaData> = {};
       fetchedMetaDataEvents.forEach((event) => {
         metaDataMap[event.pubkey] = JSON.parse(event.content);
       });
-      setMetaData(metaDataMap);
       
       // Fetch reactions
       const reactionPubkeys = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
@@ -116,11 +109,20 @@ export default function NoteModal({eventData,
           }
         });
       });
+
+      setRootEvents(sanitizedRootEvents);
+      setReplyEvents(sanitizedReplyThreadEvents);
+      setReplyCount(sanitizedReplyThreadEvents.length);
+      setMetaData(metaDataMap);
       setReactions(retrievedReactionObjects);
-      setGettingReplies(GettingReplies.requestComplete);
+      setGettingThread(false);
     }
+
+    if(gettingThread){
       getReplies();
-  }, [open, pool]);
+    }
+
+  }, [pool]);
 
   return (
     <Modal
@@ -151,8 +153,9 @@ export default function NoteModal({eventData,
                                                 setFollowing={setFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
-                                                key={rootEvent.sig}
+                                                key={rootEvent.sig + Math.random()}
                                                 disableReplyIcon={false}
+                                                gettingThread={gettingThread}
                                             />
                                         </>
                                     )})}
@@ -173,10 +176,10 @@ export default function NoteModal({eventData,
                 </Box>
 
                 <Box sx={{paddingRight: "20px"}}>
-                    {replies.length > 0 && (
+                    {replyEvents.length > 0 && (
                         <>
                             <SubdirectoryArrowRightIcon />
-                            {replies.map((replyEvent) => {
+                            {replyEvents.map((replyEvent) => {
                                 const fullEventData = setEventData(replyEvent, metaData[replyEvent.pubkey], reactions[replyEvent.id]);
                                 return (
                                     <Note 
@@ -187,7 +190,7 @@ export default function NoteModal({eventData,
                                         setFollowing={setFollowing}
                                         setHashtags={setHashtags}
                                         pk={pk}
-                                        key={replyEvent.sig}
+                                        key={replyEvent.sig + Math.random()}
                                         disableReplyIcon={false}
                                     />
                                 );
