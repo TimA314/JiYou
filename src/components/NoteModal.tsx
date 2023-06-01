@@ -83,7 +83,7 @@ export default function NoteModal({eventData,
       }
 
       // Fetch metadata
-      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
+      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey), eventData.pubkey];
       const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
       const metaDataMap: Record<string, MetaData> = {};
@@ -151,7 +151,7 @@ export default function NoteModal({eventData,
                                                 setFollowing={setFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
-                                                key={rootEvent.sig}
+                                                key={rootEvent.sig + Math.random()}
                                                 disableReplyIcon={false}
                                             />
                                         </>
@@ -187,7 +187,7 @@ export default function NoteModal({eventData,
                                         setFollowing={setFollowing}
                                         setHashtags={setHashtags}
                                         pk={pk}
-                                        key={replyEvent.sig}
+                                        key={replyEvent.sig + Math.random()}
                                         disableReplyIcon={false}
                                     />
                                 );

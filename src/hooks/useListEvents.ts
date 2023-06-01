@@ -27,73 +27,65 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
 
     const fetchEvents = async () => {
       try {
+        // Fetch events
+        console.log('Fetching events')
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
         const sanitizedEvents = fetchedFeedEvents.map((event) => sanitizeEvent(event));
-
-        const replyEventIds: string[] = [];
-        events.forEach(event => {
-            event.tags?.forEach(tag => {
-                if(tag[0] === "e" && tag[1]){
-                  replyEventIds.push(tag[1]);
-                }
-            })
-        })
-
-        let eventIds: string[] = sanitizedEvents.map(event => event.id);
-        let reactionPubkeys: string[] = sanitizedEvents.map(event => event.pubkey);
-        let newEvents: Event[] = [];
         
-        // Fetch reply thread events
-        if (replyEventIds.length !== 0){
-          const replyThreadEvents: Event[] = await pool.list(relays, [{kinds: [1], ids: replyEventIds }])
-          const sanitizedReplyThreadEvents = replyThreadEvents.map((event) => sanitizeEvent(event));
-
-          eventIds = eventIds.concat(replyThreadEvents.map(event => event.id));
-          reactionPubkeys = reactionPubkeys.concat(replyThreadEvents.map(event => event.pubkey));
-
-          newEvents = [...sanitizedEvents, ...sanitizedReplyThreadEvents];
-        } else {
-          newEvents = sanitizedEvents;
-        }
-        setEvents(newEvents);
+        const recommendedRelays: string[] = [...new Set([...relays, ...defaultRelays])];
+        
+        let eventIds: string[] = sanitizedEvents.map(event => event.id);
+        let eventsPubkeys: string[] = sanitizedEvents.map(event => event.pubkey);
 
         // Fetch reactions
-        const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": reactionPubkeys}]);
+        const reactionEvents = await pool.list(recommendedRelays, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
         reactionEvents.forEach((event) => {
           const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
           eventTagThatWasLiked.forEach((tag) => {
-            const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
+            const isValidEventTagThatWasLiked = tag && tag[1];
             if (isValidEventTagThatWasLiked) {
-              if (!retrievedReactionObjects[tag[1]]) {
+
+              if (!retrievedReactionObjects[tag[1]] && event.content === "+") {
                 retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
               }
-              if (event.content === "+") {
+              if (!retrievedReactionObjects[tag[1]] && event.content === "-") {
+                retrievedReactionObjects[tag[1]] = {upvotes: 0, downvotes: 1};
+              }
+              
+              if (retrievedReactionObjects[tag[1]] && event.content === "+") {
                 retrievedReactionObjects[tag[1]].upvotes++;
-              } else if(event.content === "-") {
+              }
+              if(retrievedReactionObjects[tag[1]] && event.content === "-") {
                 retrievedReactionObjects[tag[1]].downvotes++;
               }
+
             }
           });
         });
-
-        setReactions(retrievedReactionObjects);
-
-        // Fetch metadata
-        const authorPubkeys: string[] = newEvents.map(event => event.pubkey);
-        const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
-
+        
+        const fetchedMetaDataEvents = await pool.list(recommendedRelays, [{kinds: [0], authors: eventsPubkeys}]);
+        
         const metaDataMap: Record<string, MetaData> = {};
         fetchedMetaDataEvents.forEach((event) => {
-          metaDataMap[event.pubkey] = JSON.parse(event.content);
+          if(event.content){
+            try {
+              metaDataMap[event.pubkey] = JSON.parse(event.content);
+            } catch (error) {
+              console.error('Error parsing event content:', event.content, error);
+            }
+          }
         });
-
+        
+        setEvents(sanitizedEvents);
+        setReactions(retrievedReactionObjects);
         setMetaData(metaDataMap);
 
       } catch (error) {
         console.error('Error fetching events:', error);
       }
     };
+    
 
     fetchEvents();
   }, [pool, tabIndex, hashtags]);
