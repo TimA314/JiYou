@@ -43,7 +43,7 @@ const theme = createTheme({
 
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
-  const [pk, setPk] = useState<string>(localStorage.getItem("pk") ?? "");
+  const [pk, setPk] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);

@@ -10,12 +10,6 @@ export type ReactionCounts = {
     downvotes: number;
 };
 
-export enum GettingReplies {
-  notRequested,
-  requestingReplies,
-  requestComplete
-}
-
 export interface FullEventData {
     content: string;
     user: {
