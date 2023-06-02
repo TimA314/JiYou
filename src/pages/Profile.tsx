@@ -59,8 +59,8 @@ useEffect(() => {
             const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
             const retrievedReactionObjects: Record<string, ReactionCounts> = {};
             reactionEvents.forEach((event) => {
-            const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
-            eventTagThatWasLiked.forEach((tag) => {
+            const eventTagThatWasLiked = event.tags.filter((tag: string[]) => tag[0] === "e");
+            eventTagThatWasLiked.forEach((tag: (string | number)[] | undefined) => {
                 const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
                 if (isValidEventTagThatWasLiked) {
                 if (!retrievedReactionObjects[tag[1]]) {

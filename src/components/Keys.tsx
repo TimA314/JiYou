@@ -30,9 +30,10 @@ interface KeysProps {
     pk: string;
     setPk: (pk: string) => void;
     willUseNostrExtension: boolean;
+    setWillUseNostrExtension: (willUseNostrExtension: boolean) => void;
 }
 
-export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrExtension, setPk, pk}: KeysProps) {
+export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrExtension, setPk, pk, setWillUseNostrExtension}: KeysProps) {
   const [localPk, setLocalPk] = useState("");
   const [localSecretKey, setLocalSecretKey] = useState("");
 
@@ -43,8 +44,8 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       try{
         //Get pk from nostr extension
         var pkFromNostr = await window.nostr.getPublicKey();
-        console.log(pkFromNostr);
         if (!pkFromNostr) return false;
+        setWillUseNostrExtension(true);
         var encodedPk = nip19.npubEncode(pkFromNostr);
         if(pkFromNostr && encodedPk && encodedPk.startsWith("npub")) {
           setLocalPk(encodedPk);
@@ -58,12 +59,14 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
 
     getNostrPublicKey().then((result) =>  {
       if (result) return;
-
       //check local storage
       try {
         var pkStored = localStorage.getItem("pk");
-        if (pkStored && nip19.decode(pkStored)){
-          setLocalPk(pkStored);
+        console.log(pkStored);
+        var encoded =  pkStored ? nip19.npubEncode(pkStored!) : null;
+        if (pkStored && encoded){
+          setLocalPk(encoded);
+          setPk(pkStored)
         }
       } catch {
         return;
@@ -165,13 +168,11 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
     var pk = getPublicKey(sk);
 
     var encodedPk = nip19.npubEncode(pk);
-    console.log("encodedPk: " + encodedPk)
     setLocalPk(encodedPk);
-    setPk(encodedPk);
+    setPk(pk);
     localStorage.setItem("pk", encodedPk);
     
     var encodedSk = nip19.nsecEncode(sk);
-    console.log("encodedSk: " + encodedSk)
     setLocalSecretKey(encodedSk);
     localStorage.setItem("sk", encodedSk);
   }
@@ -224,7 +225,7 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
                 <form onSubmit={handleSaveSecretKey}>
                   <Grid container direction="column" spacing={2}>
                     <Grid item>
-                      <TextField id="secretKeyInput" label="nsec..." variant="outlined" color="secondary" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
+                      <TextField disabled={willUseNostrExtension} id="secretKeyInput" label="nsec..." variant="outlined" color="secondary" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
                     </Grid>
                     <Grid item>
                       <Button variant="contained" color="secondary" type="submit" startIcon={<SaveIcon />}>Save</Button>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Event, EventTemplate, Kind, SimplePool, getEventHash } from 'nostr-tools';
+import { Event, EventTemplate, Kind, SimplePool, finishEvent, getEventHash, nip19 } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { ProfileContent } from '../nostr/Types';
 
@@ -7,9 +7,11 @@ type UseProfileProps = {
   pool: SimplePool | null;
   relays: string[];
   pk: string;
+  setEventToSign: (event: EventTemplate) => void;
+  setSignEventOpen: (open: boolean) => void;
 };
 
-export const useProfile = ({ pool, relays, pk}: UseProfileProps) => {
+export const useProfile = ({ pool, relays, pk, setEventToSign, setSignEventOpen}: UseProfileProps) => {
   const [profile, setProfile] = useState<ProfileContent>({
     name: "",
     picture: "",
@@ -64,9 +66,20 @@ export const useProfile = ({ pool, relays, pk}: UseProfileProps) => {
             tags: [],
         } as EventTemplate
 
+        let sig = "";
         const pubkey = pk;
-        const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-        
+        if (window.nostr) {
+          sig = (await window.nostr.signEvent(_baseEvent)).sig;
+        } else {
+          const sk = localStorage.getItem("sk");
+          if (sk || sk !== "" || nip19.decode(sk)) {
+            var signedEvent = finishEvent(_baseEvent, sk!);
+            sig = signedEvent.sig;
+          }
+        }
+
+        if (sig === "") return;
+
         const newEvent: Event = {
             ..._baseEvent,
             id: getEventHash({..._baseEvent, pubkey}),
