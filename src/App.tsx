@@ -44,11 +44,13 @@ const theme = createTheme({
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [pk, setPk] = useState<string>("");
+  const [secretKey, setSecretKey] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
   const [aboutClicked, setAboutClicked] = useState<boolean>(false);
   const { profile, updateProfile } = useProfile({ pool, relays, pk });
+  const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
 
   useEffect(() => {
     //setup pool
@@ -66,6 +68,7 @@ function App() {
             if (!publicKey) return;
             localStorage.setItem("pk", publicKey);
             setPk(publicKey);
+            setWillUseNostrExtension(true);
           } catch {}
       }
 
@@ -73,7 +76,6 @@ function App() {
         setPk(storedPk);
         return;
       }
-
     }
 
     if(pk === "") getPublicKey();
