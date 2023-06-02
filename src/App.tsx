@@ -44,7 +44,6 @@ const theme = createTheme({
 function App() {
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [pk, setPk] = useState<string>("");
-  const [secretKey, setSecretKey] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
@@ -58,6 +57,12 @@ function App() {
       setPool(new SimplePool());
     }
 
+
+
+  }, [pool])
+
+  useEffect(() => {
+    
     const getPublicKey = async () => {
       let publicKey: string = pk;
       var storedPk = localStorage.getItem("pk");
@@ -78,10 +83,8 @@ function App() {
       }
     }
 
-    if(pk === "") getPublicKey();
-
-  }, [pool, pk])
-
+    getPublicKey();
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>

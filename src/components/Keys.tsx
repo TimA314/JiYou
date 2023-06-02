@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { TextField, Grid, Divider, Stack, Paper } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
-import { nip19 } from 'nostr-tools';
+import {nip19, generatePrivateKey, getPublicKey} from 'nostr-tools'
 import { useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -32,23 +32,56 @@ interface KeysProps {
     willUseNostrExtension: boolean;
 }
 
-export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, willUseNostrExtension}: KeysProps) {
-  const [localPk, setLocalPk] = useState(pk);
+export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrExtension, setPk, pk}: KeysProps) {
+  const [localPk, setLocalPk] = useState("");
   const [localSecretKey, setLocalSecretKey] = useState("");
 
   useEffect(() => {
-    setLocalPk(nip19.npubEncode(pk));
-  }, [pk]);
+    const getNostrPublicKey = async () => {
+      if (!window.nostr) return false;
+      
+      try{
+        //Get pk from nostr extension
+        var pkFromNostr = await window.nostr.getPublicKey();
+        console.log(pkFromNostr);
+        if (!pkFromNostr) return false;
+        var encodedPk = nip19.npubEncode(pkFromNostr);
+        if(pkFromNostr && encodedPk && encodedPk.startsWith("npub")) {
+          setLocalPk(encodedPk);
+          setPk(pkFromNostr);
+          return true;
+        }
+      } catch { 
+        return false;
+      }
+    }
+
+    getNostrPublicKey().then((result) =>  {
+      if (result) return;
+
+      //check local storage
+      try {
+        var pkStored = localStorage.getItem("pk");
+        if (pkStored && nip19.decode(pkStored)){
+          setLocalPk(pkStored);
+        }
+      } catch {
+        return;
+      }
+    }).catch((error) => {
+      console.log(error);
+    });
+
+  }, []);
 
   useEffect(() => {
     if (willUseNostrExtension) return;
 
+    //Get secret key from local storage
     try {
-    var secretKey = localStorage.getItem("SecretKey");
-    if (!secretKey) return;
+      var secretKey = localStorage.getItem("sk");
 
-      var decodedSecretKey = nip19.decode(secretKey)
-      if (decodedSecretKey) {
+      if (secretKey && nip19.decode(secretKey)) {
         setLocalSecretKey(secretKey);
       }
 
@@ -73,7 +106,10 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
         return;
       }
       
-      localStorage.setItem("SecretKey", localSecretKey.trim());
+      localStorage.setItem("sk", localSecretKey.trim());
+      var pubKeyFromSk = nip19.npubEncode(getPublicKey(decodedSecretKey.data.toString()));
+      setLocalPk(pubKeyFromSk);
+      localStorage.setItem("pk", pubKeyFromSk);
       handleClose();
 
     } catch {
@@ -91,20 +127,17 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
     }
   
     try{
-      var decodedPk = nip19.decode(localPk.trim());
-      
-      if (decodedPk === null) {
+
+      if (!nip19.decode(localPk.trim())) {
         alert("Invalid public key.");
         return;
       }
       
-      console.log(decodedPk.data.toString());
-      localStorage.setItem("pk", decodedPk.data.toString());
-      setPk(decodedPk.data.toString());
+      localStorage.setItem("pk", localPk.trim());
       handleClose();
 
-    } catch {
-      alert("Invalid public key.");
+    } catch (error){
+      alert("Invalid public key." + error);
       return;
     }
   };
@@ -118,6 +151,7 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
   };
 
   const handleSecretKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
     setLocalSecretKey(event.target.value);
   };
 
@@ -125,6 +159,22 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
     event.preventDefault();
     handleSavePubKey();
   };
+
+  const generateNewKeys = () => {
+    var sk = generatePrivateKey();
+    var pk = getPublicKey(sk);
+
+    var encodedPk = nip19.npubEncode(pk);
+    console.log("encodedPk: " + encodedPk)
+    setLocalPk(encodedPk);
+    setPk(encodedPk);
+    localStorage.setItem("pk", encodedPk);
+    
+    var encodedSk = nip19.nsecEncode(sk);
+    console.log("encodedSk: " + encodedSk)
+    setLocalSecretKey(encodedSk);
+    localStorage.setItem("sk", encodedSk);
+  }
 
   return (
     <div>
@@ -139,7 +189,7 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
               <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
           </Box>
           {willUseNostrExtension ?
-            <Paper>
+            <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
                 <CelebrationIcon color='success'/>
                 <CelebrationIcon color='success'/>
@@ -187,7 +237,13 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
             </Box>
       }
 
-        <Divider sx={{marginTop: 2, marginBottom: 2}}/>
+        {!willUseNostrExtension &&
+        <Box>
+          <Divider sx={{marginTop: 2, marginBottom: 2}}/>
+          <Button variant="contained" color="warning" type="button" onClick={generateNewKeys}>Generate New Keys</Button>
+          <Divider sx={{marginTop: 2, marginBottom: 2}}/>
+        </Box>
+        }
 
           <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
             Public Key
@@ -197,9 +253,11 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, wil
               <Grid item>
                 <TextField id="publicKeyInput" label="npub..." variant="outlined" value={localPk} onChange={handlePkChange} fullWidth />
               </Grid>
-              <Grid item>
-                <Button variant="contained" color="primary" type="submit" startIcon={<SaveIcon />}>Save</Button>
-              </Grid>
+              {!willUseNostrExtension &&
+                <Grid item>
+                  <Button variant="contained" color="primary" type="submit" startIcon={<SaveIcon />}>Save</Button>
+                </Grid>
+              }
             </Grid>
           </form>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
