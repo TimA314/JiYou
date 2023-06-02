@@ -9,6 +9,7 @@ import { nip19 } from 'nostr-tools';
 import { useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import WarningIcon from '@mui/icons-material/Warning';
+import CelebrationIcon from '@mui/icons-material/Celebration';
 
 
 const style = {
@@ -28,9 +29,10 @@ interface KeysProps {
     publicKeyOpen: boolean;
     pk: string;
     setPk: (pk: string) => void;
+    willUseNostrExtension: boolean;
 }
 
-export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk}: KeysProps) {
+export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk, willUseNostrExtension}: KeysProps) {
   const [localPk, setLocalPk] = useState(pk);
   const [localSecretKey, setLocalSecretKey] = useState("");
 
@@ -39,7 +41,8 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk}: Ke
   }, [pk]);
 
   useEffect(() => {
-   
+    if (willUseNostrExtension) return;
+
     try {
     var secretKey = localStorage.getItem("SecretKey");
     if (!secretKey) return;
@@ -132,45 +135,57 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk}: Ke
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-        <Box sx={{position: 'absolute', top: 8, right: 8}}>
-            <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
-        </Box>
-        <Box>
-
-        <Paper elevation={3} style={{padding: '10px', margin: '10px', textAlign: 'center'}}>
-          <Box>
-            <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
-              <WarningIcon color='warning'/>
-              <WarningIcon color='warning'/>
-            </Stack>
+          <Box sx={{position: 'absolute', top: 8, right: 8}}>
+              <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
           </Box>
-          <Typography fontSize="small" textAlign="center">
-            <strong style={{color: "red"}}> IT IS HIGHLY RECCOMENDED TO USE A NOSTR EXTENSION TO HANDLE YOUR SECRET KEY.</strong>
-          </Typography>
-          <Box>
-            <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
-              <WarningIcon color='warning'/>
-              <WarningIcon color='warning'/>
-            </Stack>
-          </Box>
-        </Paper>
-          <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
-            Secret Key
-          </Typography>
-          <form onSubmit={handleSaveSecretKey}>
-            <Grid container direction="column" spacing={2}>
-              <Grid item>
-                <TextField id="secretKeyInput" label="nsec..." variant="outlined" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
-              </Grid>
-              <Grid item>
-                <Button variant="contained" color="secondary" type="submit" startIcon={<SaveIcon />}>Save</Button>
-              </Grid>
-            </Grid>
-          </form>
-          <Typography id="modal-modal-description" color="warning" sx={{ mt: 2}}>
-            This is your secret key. <strong style={{color: "red"}}>DO NOT</strong> share this with others. Your private key will be stored within your browser's local storage. It will be used to sign events. <br/> 
-            </Typography>
-        </Box>
+          {willUseNostrExtension ?
+            <Paper>
+              <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
+                <CelebrationIcon color='success'/>
+                <CelebrationIcon color='success'/>
+                <CelebrationIcon color='success'/>
+              </Stack>
+              <Typography id="modal-modal-title" variant="h6" color="success" component="h2" textAlign="center" marginBottom="5px">
+                Good Job using a Nostr Extension! Your Secret Key will not be stored here.
+              </Typography> 
+            </Paper>
+              :  
+            <Box>
+              <Paper elevation={3} style={{padding: '10px', margin: '10px', textAlign: 'center'}}>
+                <Box>
+                  <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
+                    <WarningIcon color='warning'/>
+                    <WarningIcon color='warning'/>
+                  </Stack>
+                </Box>
+                <Typography fontSize="small" textAlign="center">
+                  <strong style={{color: "red"}}> IT IS HIGHLY RECCOMENDED TO USE A NOSTR EXTENSION TO HANDLE YOUR SECRET KEY.</strong>
+                </Typography>
+                <Box>
+                  <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
+                    <WarningIcon color='warning'/>
+                    <WarningIcon color='warning'/>
+                  </Stack>
+                </Box>
+              </Paper>
+                <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
+                  Secret Key
+                </Typography>
+                <form onSubmit={handleSaveSecretKey}>
+                  <Grid container direction="column" spacing={2}>
+                    <Grid item>
+                      <TextField id="secretKeyInput" label="nsec..." variant="outlined" color="secondary" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
+                    </Grid>
+                    <Grid item>
+                      <Button variant="contained" color="secondary" type="submit" startIcon={<SaveIcon />}>Save</Button>
+                    </Grid>
+                  </Grid>
+                </form>
+                <Typography id="modal-modal-description" color="warning" sx={{ mt: 2}}>
+                  This is your secret key. <strong style={{color: "red"}}>DO NOT</strong> share this with others. Your private key will be stored within your browser's local storage. It will be used to sign events. <br/> 
+                  </Typography>
+            </Box>
+      }
 
         <Divider sx={{marginTop: 2, marginBottom: 2}}/>
 
