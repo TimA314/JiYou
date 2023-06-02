@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { SimplePool } from 'nostr-tools';
 import { Container, createTheme } from '@mui/material';
-import PublicKey from './components/PublicKey';
+import Keys from './components/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
 
@@ -90,7 +90,7 @@ function App() {
             <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
             <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk}/>} />
           </Routes>
-        <PublicKey publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} />
+        <Keys publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} />
         <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} profile={profile} />
       </Container>
     </ThemeProvider>

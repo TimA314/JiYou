@@ -22,14 +22,14 @@ const style = {
   p: 4,
 };
 
-interface PublicKeyProps {
+interface KeysProps {
     setPublicKeyClicked: (publicKeyOpen: boolean) => void;
     publicKeyOpen: boolean;
     pk: string;
     setPk: (pk: string) => void;
 }
 
-export default function PublicKey({setPublicKeyClicked, publicKeyOpen, pk, setPk}: PublicKeyProps) {
+export default function Keys({setPublicKeyClicked, publicKeyOpen, pk, setPk}: KeysProps) {
   const [localPk, setLocalPk] = useState(pk);
 
   useEffect(() => {
