@@ -173,6 +173,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
             onClick={() => addHashtag(tag)}
             sx={{
               cursor: 'pointer',
+              marginRight: '5px',
               textDecoration: 'underline',
               '&:hover': {
                 color: 'secondary.main',

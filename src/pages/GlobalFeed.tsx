@@ -39,12 +39,13 @@ type GlobalFeedProps = {
     const { followers, setFollowing } = useFollowers({pool, relays, pk});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
-    const { events, setEvents, reactions, metaData } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
+    const { events, setEvents, reactions, metaData, eventsFetched, setEventsFetched } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
 
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setEventsFetched(false);
         setTabIndex(newValue);
         setHashtags([]);
         setEvents([]);
@@ -72,9 +73,9 @@ type GlobalFeedProps = {
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <HashtagsFilter hashtags={hashtags} setHashtags={setHashtags} />
+            <HashtagsFilter hashtags={hashtags} setHashtags={setHashtags} setEventsFetched={setEventsFetched}/>
 
-            {events.length === 0 && <Box sx={{textAlign: "center"}}><Loading /></Box>}
+            {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
             {events.filter(
                 (e) => e.tags && e.tags.filter((t) => t[0] === "e").length === 0)

@@ -6,8 +6,7 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     
     let options: Filter = {
         kinds: [1],
-        since: Math.floor((Date.now() / 1000) - (7 * 24 * 60 * 60)), //7 days ago
-        limit: 1000
+        limit: 500
     }
     
     switch (tabIndex) {

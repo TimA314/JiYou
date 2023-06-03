@@ -17,7 +17,7 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
   const [events, setEvents] = useState<Event[]>([]);
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
-
+  const [eventsFetched, setEventsFetched] = useState<boolean>(false);
 
   useEffect(() => {
     if (!pool) {
@@ -28,7 +28,14 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
     const fetchEvents = async () => {
       try {
         // Fetch events
-        console.log('Fetching events')
+        
+        if (tabIndex === 1 && followers.length === 0) {
+          setEventsFetched(true);
+          return;
+        }
+        
+        console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, followers));
+
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
         const sanitizedEvents = fetchedFeedEvents.map((event) => sanitizeEvent(event));
         
@@ -80,7 +87,7 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
         setEvents(sanitizedEvents);
         setReactions(retrievedReactionObjects);
         setMetaData(metaDataMap);
-
+        setEventsFetched(true);
       } catch (error) {
         console.error('Error fetching events:', error);
       }
@@ -90,5 +97,5 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
     fetchEvents();
   }, [pool, tabIndex, hashtags]);
 
-  return { events, setEvents, reactions, metaData: metaData };
+  return { events, setEvents, reactions, metaData: metaData, eventsFetched, setEventsFetched };
 };

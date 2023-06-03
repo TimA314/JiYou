@@ -78,13 +78,14 @@ function App() {
       }
       
       const storedPk = localStorage.getItem("pk");
-      const decodedPk = nip19.decode(storedPk ?? "");
+      const decodedPk = storedPk && storedPk.length < 90 ? nip19.decode(storedPk) : null;
       if (decodedPk && decodedPk.data.toString() !== "") {
         setPk(decodedPk.data.toString());
       }
 
       const storedSk = localStorage.getItem("secretKey");
-      const decodedSk = nip19.decode(storedSk ?? "");
+
+      const decodedSk = storedSk && storedSk.length < 90 ? nip19.decode(storedSk) : null;
       if (!decodedSk || decodedSk.data.toString() !== "") return;
       const pkFromSk = getPublicKey(decodedSk.data.toString());
       if (pkFromSk && pkFromSk !== "") {
@@ -98,7 +99,7 @@ function App() {
     };
 
     addpublicKeyToState();
-  }, []);
+  }, [pool]);
 
   return (
     <ThemeProvider theme={theme}>
