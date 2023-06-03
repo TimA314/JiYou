@@ -76,7 +76,7 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                         onChange={(e) => setRelayInput(e.target.value)}
                         helperText="wss://example.com"
                     />
-                    <Button sx={{marginBottom: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
+                    <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                 </form>
             </Box>
 
