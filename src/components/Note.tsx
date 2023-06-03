@@ -14,7 +14,7 @@ import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
 import { useState } from 'react';
-import { SimplePool, nip19, Event } from 'nostr-tools';
+import { SimplePool, nip19, Event, EventTemplate } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
@@ -68,9 +68,22 @@ interface NoteProps {
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
+  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function Note({pk, pool, relays, eventData, followers, setFollowing, setHashtags, disableReplyIcon, gettingThread}: NoteProps) {
+export default function Note({
+    pk,
+    pool, 
+    relays, 
+    eventData, 
+    followers, 
+    setFollowing, 
+    setHashtags, 
+    disableReplyIcon, 
+    gettingThread,
+    setEventToSign,
+    setSignEventOpen}: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -78,7 +91,6 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   const [replyCount, setReplyCount] = useState(0);
-  const [replies, setReplies] = useState<Event[]>([]);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
 
   const handleExpandClick = () => {
@@ -98,7 +110,7 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
     if(!pool) return;
 
     setLiked(true);
-    const likeCompleted = await likeEvent(pool, relays, eventData, pk)
+    const likeCompleted = await likeEvent(pool, relays, eventData, pk, setEventToSign, setSignEventOpen)
     if(likeCompleted === false) {
       setLiked(false);
     }
@@ -131,7 +143,9 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         followers={followers}
         setFollowing={setFollowing}
         setHashtags={setHashtags}
-        pk={pk}/>
+        pk={pk}
+        setSignEventOpen={setSignEventOpen}
+        setEventToSign={setEventToSign} />
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={eventData.user.picture}>
@@ -140,7 +154,18 @@ export default function Note({pk, pool, relays, eventData, followers, setFollowi
         title={eventData.user.name}
         subheader={eventData.user.nip05}
       />
-      <ReplyToNote open={replyToNoteOpen} setReplyToNoteOpen={setReplyToNoteOpen} eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} />
+      <ReplyToNote 
+        open={replyToNoteOpen} 
+        setReplyToNoteOpen={setReplyToNoteOpen} 
+        eventData={eventData} 
+        pool={pool} 
+        relays={relays} 
+        pk={pk} 
+        followers={followers} 
+        setFollowing={setFollowing} 
+        setHashtags={setHashtags}
+        setSignEventOpen={setSignEventOpen}
+        setEventToSign={setEventToSign} />
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}

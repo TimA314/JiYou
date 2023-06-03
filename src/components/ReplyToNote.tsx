@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { SimplePool } from 'nostr-tools';
+import { EventTemplate, SimplePool } from 'nostr-tools';
 import { FullEventData, RelaySwitches } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
@@ -33,10 +33,23 @@ interface ReplyToNoteProps {
     followers: string[];
     setFollowing: (pubkey: string) => void;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
+    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ReplyToNote({eventData, open, setReplyToNoteOpen, pool, relays, pk, followers,
-     setFollowing, setHashtags}: ReplyToNoteProps) {
+export default function ReplyToNote({
+  eventData, 
+  open, 
+  setReplyToNoteOpen, 
+  pool, 
+  relays, 
+  pk, 
+  followers,
+  setFollowing, 
+  setHashtags,
+  setEventToSign,
+  setSignEventOpen,
+}: ReplyToNoteProps) {
   const handleClose = () => setReplyToNoteOpen(false);
   
   const relaylist = relays.reduce((obj, relay) => {
@@ -76,7 +89,18 @@ export default function ReplyToNote({eventData, open, setReplyToNoteOpen, pool, 
           >
             <CloseIcon />
           </IconButton>
-            <Note eventData={eventData} pool={pool} relays={relays} pk={pk} followers={followers} setFollowing={setFollowing} setHashtags={setHashtags} disableReplyIcon={true}/>
+            <Note 
+              eventData={eventData} 
+              pool={pool} 
+              relays={relays} 
+              pk={pk} 
+              followers={followers} 
+              setFollowing={setFollowing} 
+              setHashtags={setHashtags} 
+              disableReplyIcon={true}
+              setSignEventOpen={setSignEventOpen}
+              setEventToSign={setEventToSign}
+              />
             <CreateNote pool={pool} relays={relays} pk={pk}  replyEventData={eventData} setPostedNote={setPostedNote}/>
         </Box>
       </Modal>

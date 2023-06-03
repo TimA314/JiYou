@@ -1,5 +1,5 @@
 import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
-import { SimplePool, Event} from 'nostr-tools';
+import { SimplePool, Event, EventTemplate} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -17,6 +17,8 @@ interface ProfileProps {
     pk: string;
     profile: ProfileContent;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
+    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ProfileContent {
@@ -26,7 +28,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, updateProfile}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
@@ -225,7 +227,17 @@ const setEventData = (event: Event) => {
                             const fullEventData = setEventData(event);
 
                             return (
-                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} setHashtags={() => {}} pk={pk} />
+                            <Note 
+                                pool={pool} 
+                                relays={relays} 
+                                eventData={fullEventData} 
+                                setFollowing={() => {}} 
+                                followers={[]} 
+                                key={event.sig} 
+                                setHashtags={() => {}} 
+                                pk={pk}
+                                setSignEventOpen={setSignEventOpen}
+                                setEventToSign={setEventToSign} />
                             )
                         }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
                                 {userEventsFetched ? <div></div> : <CircularProgress color='primary'/>}

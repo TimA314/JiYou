@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
-import { SimplePool } from 'nostr-tools'
+import { EventTemplate, SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
@@ -33,9 +33,11 @@ type GlobalFeedProps = {
     pool: SimplePool | null;
     relays: string[];
     pk: string;
+    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
   };
   
-  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk }) => {
+  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk, setEventToSign, setSignEventOpen }) => {
     const { followers, setFollowing } = useFollowers({pool, relays, pk});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
@@ -82,7 +84,17 @@ type GlobalFeedProps = {
             .map((event) => {
                 const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
                 return (
-                    <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={setFollowers} followers={followers} setHashtags={setHashtags} key={event.sig + Math.random()} pk={pk} />
+                    <Note 
+                        pool={pool} 
+                        relays={relays} 
+                        eventData={fullEventData} 
+                        setFollowing={setFollowers} 
+                        followers={followers} 
+                        setHashtags={setHashtags} 
+                        key={event.sig + Math.random()} 
+                        pk={pk}
+                        setSignEventOpen={setSignEventOpen}
+                        setEventToSign={setEventToSign} />
                 )
             })}
             <Modal

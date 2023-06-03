@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { Event, SimplePool } from 'nostr-tools';
+import { Event, EventTemplate, SimplePool } from 'nostr-tools';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
@@ -36,6 +36,8 @@ interface NoteModalProps {
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
+  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function NoteModal({eventData,
@@ -47,7 +49,10 @@ export default function NoteModal({eventData,
                                     setFollowing,
                                     setReplyCount,
                                     setHashtags,
-                                    pk}: NoteModalProps) {
+                                    pk,
+                                    setEventToSign,
+                                    setSignEventOpen
+                                  }: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [rootEvents, setRootEvents] = useState<Event[]>([]);
@@ -156,6 +161,8 @@ export default function NoteModal({eventData,
                                                 key={rootEvent.sig + Math.random()}
                                                 disableReplyIcon={false}
                                                 gettingThread={gettingThread}
+                                                setSignEventOpen={setSignEventOpen}
+                                                setEventToSign={setEventToSign}
                                             />
                                         </>
                                     )})}
@@ -172,6 +179,8 @@ export default function NoteModal({eventData,
                         setHashtags={setHashtags}
                         pk={pk}
                         disableReplyIcon={false}
+                        setSignEventOpen={setSignEventOpen}
+                        setEventToSign={setEventToSign}
                         />
                 </Box>
 
@@ -192,6 +201,8 @@ export default function NoteModal({eventData,
                                         pk={pk}
                                         key={replyEvent.sig + Math.random()}
                                         disableReplyIcon={false}
+                                        setSignEventOpen={setSignEventOpen}
+                                        setEventToSign={setEventToSign}
                                     />
                                 );
                             })}

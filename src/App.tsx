@@ -7,8 +7,8 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
-import { Box, Container, createTheme } from '@mui/material';
+import { EventTemplate, SimplePool, getPublicKey, nip19, signEvent } from 'nostr-tools';
+import { Container, createTheme } from '@mui/material';
 import Keys from './components/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -106,9 +106,9 @@ function App() {
       <CssBaseline />
       <Container>
         <Routes>
-          <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile}/>} />
+          <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
           <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
-          <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk}/>} />
+          <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
         </Routes>
         <SignEventDialog 
           signEventOpen={signEventOpen} 
@@ -119,7 +119,13 @@ function App() {
           relays={relays} setProfile={setProfile}
           setRelays={setRelays}
           />
-        <Keys publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} willUseNostrExtension={willUseNostrExtension} setWillUseNostrExtension={setWillUseNostrExtension} />
+        <Keys 
+          publicKeyOpen={publicKeyClicked}
+          setPublicKeyClicked={setPublicKeyClicked} 
+          pk={pk} 
+          setPk={setPk} 
+          willUseNostrExtension={willUseNostrExtension} 
+          setWillUseNostrExtension={setWillUseNostrExtension} />
         <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} profile={profile} />
       </Container>
     </ThemeProvider>
