@@ -7,8 +7,15 @@ import DialogTitle from '@mui/material/DialogTitle';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { EventTemplate, Kind, SimplePool, finishEvent, nip19, validateEvent } from 'nostr-tools';
-import { Box } from '@mui/material';
+import { Box, Paper, styled } from '@mui/material';
 import { ProfileContent } from '../nostr/Types';
+
+const CustomDialog = styled(Dialog)(({ }) => ({
+  '& .MuiDialog-paper': {
+    width: '80%',
+    maxWidth: '800px'
+  },
+}));
 
 interface SignEventDialogProps {
     signEventOpen: boolean;
@@ -18,9 +25,18 @@ interface SignEventDialogProps {
     pool: SimplePool | null;
     relays: string[];
     setProfile: React.Dispatch<React.SetStateAction<ProfileContent>>;
+    setRelays: React.Dispatch<React.SetStateAction<string[]>>;
   }
 
-export default function SignEventDialog({ signEventOpen, setSignEventOpen, setEventToSign, event, pool, relays, setProfile }: SignEventDialogProps) {
+export default function SignEventDialog({ 
+    signEventOpen, 
+    setSignEventOpen,
+    setEventToSign, 
+    event, 
+    pool, 
+    relays, 
+    setProfile, 
+    setRelays }: SignEventDialogProps) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -66,6 +82,15 @@ export default function SignEventDialog({ signEventOpen, setSignEventOpen, setEv
     setEventToSign(null);
     setSignEventOpen(false);
 
+    // Update relays if it's a relay list event
+    if (signedEvent.kind === Kind.RelayList){
+      const relaysFromEvent = signedEvent.tags
+      .filter((tags) => tags[0] === 'r' && tags[1].startsWith('wss://'))
+      .map((tags) => tags[1]);
+      setRelays(relaysFromEvent);
+    }
+    
+    // Update profile if it's a metadata event
     if (signedEvent.kind === Kind.Metadata) {
       const profileContent = JSON.parse(signedEvent.content);
 
@@ -88,20 +113,20 @@ export default function SignEventDialog({ signEventOpen, setSignEventOpen, setEv
 
 
   return (
-    <div>
-      <Dialog
+      <CustomDialog
         fullScreen={fullScreen}
         open={signEventOpen}
         onClose={handleClose}
         aria-labelledby="responsive-dialog-title"
-      >
+        sx={{ width: '100%', maxWidth: '800px' }}
+        >
         <DialogTitle id="responsive-dialog-title">
           {"Sign Event and send to relays"}
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            <pre>{formattedEvent}</pre>
-          </DialogContentText>
+            <Paper sx={{paddingLeft: "10px"}}>
+              <pre>{formattedEvent}</pre>
+            </Paper>
         </DialogContent>
           <Box sx={{display: "flex", justifyContent: "space-between", padding: "15px"}}>
             <Button autoFocus onClick={handleClose}>
@@ -111,7 +136,6 @@ export default function SignEventDialog({ signEventOpen, setSignEventOpen, setEv
               Sign
             </Button>
           </Box>
-      </Dialog>
-    </div>
+      </CustomDialog>
   );
 }
