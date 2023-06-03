@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Event, EventTemplate, Kind, SimplePool, finishEvent, getEventHash, nip19 } from 'nostr-tools';
+import { Event, EventTemplate, Kind, SimplePool, getEventHash, nip19 } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { ProfileContent } from '../nostr/Types';
 
@@ -43,13 +43,49 @@ export const useProfile = ({ pool, relays, pk, setEventToSign, setSignEventOpen}
   
     getProfile();
   }, [pool, pk]);
+
   
+const signNostrEventWithNostrExtension = async (_baseEvent: EventTemplate) => {
+  if (!window.nostr || !pool) return false;
+
+  try{
+    const pubkey = await window.nostr.getPublicKey();
+    if (!pubkey) return false;
+    const encodedPk = nip19.npubEncode(pubkey);
+    if (!encodedPk || !encodedPk.startsWith("npub")) return false;
+
+    //sign event
+    const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+    const newEvent: Event = {
+      ..._baseEvent,
+      id: getEventHash({..._baseEvent, pubkey}),
+      sig,
+      pubkey: pubkey,
+    }
+
+  const pubs = pool.publish(relays, newEvent)
+  
+  pubs.on("ok", (pub: string) => {
+      console.log("Posted to relay " + pub)
+
+  })
+
+  pubs.on("failed", (error: string) => {
+    console.log("Failed to post to relay " + error)
+  })
+  
+  return true;
+
+  } catch { 
+    return false;
+  }
+}
   
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
-    if (!pool || pk === "") return;
-
+    if (!pool) return;
+    console.log("Updating profile");
     try {
-        
+
         const updatedProfileContent: ProfileContent = {
             name: name,
             about: about,
@@ -66,39 +102,18 @@ export const useProfile = ({ pool, relays, pk, setEventToSign, setSignEventOpen}
             tags: [],
         } as EventTemplate
 
-        let sig = "";
-        const pubkey = pk;
-        if (window.nostr) {
-          sig = (await window.nostr.signEvent(_baseEvent)).sig;
-        } else {
-          const sk = localStorage.getItem("sk");
-          if (sk || sk !== "" || nip19.decode(sk)) {
-            var signedEvent = finishEvent(_baseEvent, sk!);
-            sig = signedEvent.sig;
-          }
+         
+      if (window.nostr) {
+        const signed = await signNostrEventWithNostrExtension(_baseEvent);
+        if (signed) {
+          setProfile(updatedProfileContent);
+          return;
         }
+      }
 
-        if (sig === "") return;
 
-        const newEvent: Event = {
-            ..._baseEvent,
-            id: getEventHash({..._baseEvent, pubkey}),
-            sig,
-            pubkey,
-        }
-
-        const pubs = pool.publish(relays, newEvent)
-        
-        pubs.on("ok", () => {
-            console.log("Posted to relays")
-
-        })
-  
-        pubs.on("failed", (error: string) => {
-          alert("Failed to post to relays" + error)
-        })
-
-        setProfile(updatedProfileContent);
+      setSignEventOpen(true);
+      setEventToSign(_baseEvent);
 
     } catch (error) {
         alert(error);
@@ -106,5 +121,5 @@ export const useProfile = ({ pool, relays, pk, setEventToSign, setSignEventOpen}
     }       
 }
 
-  return { profile, updateProfile };
+  return { profile, updateProfile, setProfile };
 };

@@ -7,7 +7,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { SimplePool } from 'nostr-tools';
+import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
 import { Container, createTheme } from '@mui/material';
 import Keys from './components/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -44,6 +44,7 @@ const theme = createTheme({
 
 
 function App() {
+  const [eventToSign, setEventToSign] = useState<EventTemplate | null>(null);
   const [pool, setPool] = useState<SimplePool | null>(null);
   const [pk, setPk] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk });
@@ -51,43 +52,52 @@ function App() {
   const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
   const [aboutClicked, setAboutClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
-  const [eventToSign, setEventToSign] = useState<any>(null);
   const [signEventOpen, setSignEventOpen] = useState<boolean>(false);
-  const [signed, setSigned] = useState<boolean>(false);
-  const { profile, updateProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
+  const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
 
   useEffect(() => {
     //setup pool
     if (!pool) {
       setPool(new SimplePool());
     }
-
-
-
   }, [pool])
 
-  useEffect(() => {
 
-    const getPublicKey = async () => {
+  useEffect(() => {
+    const addpublicKeyToState = async () => {
       let publicKey: string = pk;
-      var storedPk = localStorage.getItem("pk");
       
       if (window.nostr){
         try{
-            publicKey = await window.nostr.getPublicKey();
-            if (!publicKey) return;
-            setPk(publicKey);
-            setWillUseNostrExtension(true);
-          } catch {}
+          publicKey = await window.nostr.getPublicKey();
+          if (!publicKey) return;
+          setPk(publicKey);
+          setWillUseNostrExtension(true);
+          return;
+        } catch {}
+      }
+      
+      const storedPk = localStorage.getItem("pk");
+      const decodedPk = nip19.decode(storedPk ?? "");
+      if (decodedPk && decodedPk.data.toString() !== "") {
+        setPk(decodedPk.data.toString());
       }
 
-      if (storedPk && storedPk !== "") {
-        setPk(storedPk);
-        return;
+      const storedSk = localStorage.getItem("secretKey");
+      const decodedSk = nip19.decode(storedSk ?? "");
+      if (!decodedSk || decodedSk.data.toString() !== "") return;
+      const pkFromSk = getPublicKey(decodedSk.data.toString());
+      if (pkFromSk && pkFromSk !== "") {
+        setPk(pkFromSk);
       }
-    }
 
-    getPublicKey();
+      const encodedPk = nip19.npubEncode(pkFromSk)
+      if (encodedPk !== storedPk) {
+        localStorage.setItem("pk", encodedPk);
+      }
+    };
+
+    addpublicKeyToState();
   }, []);
 
   return (
@@ -99,7 +109,7 @@ function App() {
             <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
             <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk}/>} />
           </Routes>
-        <SignEventDialog open={signEventOpen} setOpen={setSignEventOpen} setSigned={setSigned} event={eventToSign} />
+        <SignEventDialog signEventOpen={signEventOpen} setSignEventOpen={setSignEventOpen} setEventToSign={setEventToSign} event={eventToSign} pool={pool} relays={relays} setProfile={setProfile} />
         <Keys publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} willUseNostrExtension={willUseNostrExtension} setWillUseNostrExtension={setWillUseNostrExtension} />
         <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} profile={profile} />
       </Container>
