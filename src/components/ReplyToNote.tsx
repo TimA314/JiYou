@@ -112,7 +112,7 @@ export default function ReplyToNote({
               setPostedNote={setPostedNote} 
               setEventToSign={setEventToSign}
               setSignEventOpen={setSignEventOpen}
-              hashTags={hashTags}/>
+              />
         </Box>
       </Modal>
     </div>

@@ -13,6 +13,7 @@ import Keys from './components/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
 import SignEventDialog from './components/SignEventDialog';
+import { useFollowers } from './hooks/useFollowers';
 
 
 declare module '@mui/material/styles' {
@@ -54,6 +55,7 @@ function App() {
   const [aboutClicked, setAboutClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
+  const {setFollowing, followers} = useFollowers({pool, relays, pk, setEventToSign, setSignEventOpen});
 
   useEffect(() => {
     //setup pool
@@ -108,7 +110,7 @@ function App() {
         <Routes>
           <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
           <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
-          <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
+          <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk} followers={followers} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen} setFollowing={setFollowing}/>} />
         </Routes>
         <SignEventDialog 
           signEventOpen={signEventOpen} 

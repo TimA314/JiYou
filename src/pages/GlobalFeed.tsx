@@ -5,7 +5,6 @@ import HashtagsFilter from '../components/HashtagsFilter';
 import Loading from '../components/Loading';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
-import { useFollowers } from '../hooks/useFollowers';
 import { useListEvents } from '../hooks/useListEvents';
 import { setEventData } from '../utils/eventUtils';
 import EditIcon from '@mui/icons-material/Edit';
@@ -35,10 +34,11 @@ type GlobalFeedProps = {
     pk: string;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setFollowing: (pubkey: string) => void;
+    followers: string[];
   };
   
-  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk, setEventToSign, setSignEventOpen }) => {
-    const { followers, setFollowing } = useFollowers({pool, relays, pk, setSignEventOpen, setEventToSign});
+  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk, followers, setEventToSign, setSignEventOpen, setFollowing }) => {
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const { events, setEvents, reactions, metaData, eventsFetched, setEventsFetched } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
@@ -54,7 +54,7 @@ type GlobalFeedProps = {
     };
 
     const setFollowers = (pubkey: string) => {
-        setFollowing(pubkey, pool, relays);
+        setFollowing(pubkey);
     }
 
     const handleCreateNoteOpen = () => {
@@ -117,14 +117,15 @@ type GlobalFeedProps = {
                         >
                         <CloseIcon />
                     </IconButton>
-                    <CreateNote replyEventData={null} 
-                                pool={pool} 
-                                relays={relays} 
-                                pk={pk}
-                                setPostedNote={setPostedNote} 
-                                setEventToSign={setEventToSign}
-                                setSignEventOpen={setSignEventOpen}
-                                hashTags={hashtags}/>
+                    <CreateNote 
+                        replyEventData={null} 
+                        pool={pool} 
+                        relays={relays} 
+                        pk={pk}
+                        setPostedNote={setPostedNote} 
+                        setEventToSign={setEventToSign}
+                        setSignEventOpen={setSignEventOpen}
+                        />
                 </Box>
             </Modal>
 

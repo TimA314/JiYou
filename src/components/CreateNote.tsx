@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { FullEventData } from '../nostr/Types';
+import { extractHashtags } from '../utils/eventUtils';
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;
@@ -18,7 +19,6 @@ interface Props {
   setPostedNote: () => void;
   setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
   setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  hashTags: string[];
 }
 
 
@@ -29,8 +29,7 @@ function CreateNote({
   replyEventData, 
   setPostedNote, 
   setEventToSign, 
-  setSignEventOpen,
-  hashTags
+  setSignEventOpen
 }: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
@@ -67,8 +66,11 @@ function CreateNote({
     ]
     : [];
 
+    const hashTags: string[] = extractHashtags(input);
     if (hashTags.length > 0) {
-      tags.push(["t", ...hashTags]);
+      hashTags.forEach(tag => {
+        tags.push(["t", tag]);
+      })
     }
 
     const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);

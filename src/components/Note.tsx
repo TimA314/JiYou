@@ -14,7 +14,7 @@ import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
 import { useState } from 'react';
-import { SimplePool, nip19, Event, EventTemplate } from 'nostr-tools';
+import { SimplePool, nip19, EventTemplate } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
@@ -79,35 +79,31 @@ export default function Note({
     relays, 
     eventData, 
     followers, 
-    setFollowing, 
     setHashtags, 
     disableReplyIcon, 
     gettingThread,
     setEventToSign,
     setSignEventOpen,
-    hashTags
+    hashTags,
+    setFollowing
   }: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const imageFromPost = GetImageFromPost(eventData.content);
-  const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
+
+  const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
   
   const handleFollowButtonClicked = () => {
-    if(!window.nostr) {
-      alert("You need to install a Nostr extension to follow this user");
-      return;
-    }
-    
+    setFollowing(eventData.pubkey);
     setIsFollowing(!isFollowing)
-    setFollowing(eventData.pubkey)
   }
   const likeNote = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if(!pool) return;

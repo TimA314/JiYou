@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Event, EventTemplate, SimplePool, getEventHash } from 'nostr-tools';
+import { Event, EventTemplate, SimplePool, getEventHash, getPublicKey, nip19 } from 'nostr-tools';
 import { defaultRelays } from '../nostr/DefaultRelays';
 
 type UseFollowersProps = {
@@ -14,13 +14,15 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
   const [followers, setFollowers] = useState<string[]>([]);
   
   useEffect(() => {
+    console.log("useFollowers pk: " + pk)
     if (!pool || pk === "") return;
+    
 
     const getFollowers = async () => {
       
       let followerPks: string[] = [];
       const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
-
+      
       if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return;
   
       const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === 'p');
@@ -38,9 +40,8 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
 
   const signNostrEventWithNostrExtension = async (_baseEvent: EventTemplate, pubkey: string) => {
     try {
+      if (!window.nostr || !pool || !pubkey) return false;
 
-      if (!window.nostr || !pool) return false;
-      if (!pubkey) return false;
       const sig = (await window.nostr.signEvent(_baseEvent)).sig;
       
       const newEvent: Event = {
@@ -59,45 +60,52 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
       pubs.on("failed", (error: string) => {
         console.log("Failed to post to" + error)
       })
-    }
-    catch {}
 
-    return true;
+      return true;
+    }
+    catch {
+      return false;
+    }
+
   }
   
-  const setFollowing = async (
-    followerPubkey: string, 
-    pool: SimplePool | null, 
-    relays: string[]
-  ) => {
-
+  const setFollowing = async (followerPubkey: string) => {
+    console.log("here")
     if (!pool) return;
 
     try {
-      let pubkey: string = pk;
-
+      const sk = localStorage.getItem("sk") || "";
+      const decodedSk = nip19.decode(sk);
+      const pubkeyFromStorage = getPublicKey(decodedSk.data.toString());
+      let pubkey: string = pubkeyFromStorage;
       if (window.nostr) {
-        pubkey = await window.nostr.getPublicKey();
+        try{
+          pubkey = await window.nostr.getPublicKey();
+        } catch {}
       }
 
-      const userFollowerEvent: Event[] = await pool.list([...defaultRelays, ...relays], [{kinds: [3], authors: [pubkey], limit: 1 }])
-      console.log("user follower event " + JSON.stringify(userFollowerEvent[0]))
+      if (!pubkey || pubkey === "") {
+        console.log("No pubkey")
+        return;
+      }
       
-      const isUnfollowing: boolean = !!userFollowerEvent.find((e) =>
-      e.tags.some((t) => t[1] === followerPubkey)
-      );
+      const isUnfollowing: boolean = !!followers.find((follower) => follower === followerPubkey);
     
       console.log("setIsFollowing " + followerPubkey + " " + isUnfollowing)
-      
-      const currentTags = userFollowerEvent[0]?.tags || [];
-      
-      const newTags = isUnfollowing
-      ? currentTags.filter((tag) => tag[1] !== followerPubkey)
-      : currentTags.concat([["p", followerPubkey]]);
-      
+            
+      const newTags: string[][] = isUnfollowing ? [] : [["p", followerPubkey]];
+      console.log(followers)
+      followers.forEach((follower) => {
+        if (follower === followerPubkey && isUnfollowing) {
+          return
+        } else {
+          newTags.push(["p", follower])
+        }
+      })
+
       const _baseEvent = {
         kind: 3,
-        content: userFollowerEvent[0]?.content ?? "",
+        content: "",
         created_at: Math.floor(Date.now() / 1000),
         tags: newTags,
       } as EventTemplate
@@ -106,13 +114,15 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
       if (window.nostr) {
         const signed = await signNostrEventWithNostrExtension(_baseEvent, pubkey);
         if (signed) {
-          return newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1])
+          setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
+          return
         }
       }
 
+      //sign manually
       setSignEventOpen(true);
-      setEventToSign(_baseEvent);
-      return newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1])
+      setEventToSign(_baseEvent);          
+      setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
 
     } catch (error) {
         console.log(error);
