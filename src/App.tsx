@@ -7,7 +7,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { EventTemplate, SimplePool, getPublicKey, nip19, signEvent } from 'nostr-tools';
+import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
 import { Container, createTheme } from '@mui/material';
 import Keys from './components/Keys';
 import { useProfile } from './hooks/useProfile';
