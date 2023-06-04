@@ -101,7 +101,14 @@ export default function ReplyToNote({
               setSignEventOpen={setSignEventOpen}
               setEventToSign={setEventToSign}
               />
-            <CreateNote pool={pool} relays={relays} pk={pk}  replyEventData={eventData} setPostedNote={setPostedNote}/>
+            <CreateNote 
+              pool={pool} 
+              relays={relays} 
+              pk={pk}  
+              replyEventData={eventData} 
+              setPostedNote={setPostedNote} 
+              setEventToSign={setEventToSign}
+              setSignEventOpen={setSignEventOpen}/>
         </Box>
       </Modal>
     </div>

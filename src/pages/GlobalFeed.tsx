@@ -120,7 +120,9 @@ type GlobalFeedProps = {
                                 pool={pool} 
                                 relays={relays} 
                                 pk={pk}
-                                setPostedNote={setPostedNote} />
+                                setPostedNote={setPostedNote} 
+                                setEventToSign={setEventToSign}
+                                setSignEventOpen={setSignEventOpen}/>
                 </Box>
             </Modal>
 
