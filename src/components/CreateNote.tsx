@@ -47,8 +47,7 @@ function CreateNote({
 
   const handlePostToRelaysClick = async () => {
 
-    if (!pool || !window.nostr) {
-      alert("You need to install a Nostr extension to post to the relays")
+    if (!pool) {
       return;
     }
     
