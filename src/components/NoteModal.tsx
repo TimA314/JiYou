@@ -4,7 +4,7 @@ import { Event, EventTemplate, SimplePool } from 'nostr-tools';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
-import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
+import SouthIcon from '@mui/icons-material/South';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
@@ -84,7 +84,9 @@ export default function NoteModal({eventData,
       }
 
       // Fetch metadata
-      const authorPubkeys: string[] = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey), eventData.pubkey];
+      const mappedReplyKeys = sanitizedReplyThreadEvents.map(reply => reply.pubkey);
+      const mappedRootKeys = sanitizedRootEvents.map(root => root.pubkey);
+      const authorPubkeys: string[] = [...mappedReplyKeys, ...mappedRootKeys, eventData.pubkey];
       const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
       const metaDataMap: Record<string, MetaData> = {};
@@ -142,16 +144,16 @@ export default function NoteModal({eventData,
         <Box sx={{position: 'absolute', top: 8, right: 1}}>
             <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
         </Box>
-        <Box sx={{overflowY: 'auto', width: '95%', maxHeight: "80vh"}}>
-            <Stack direction="row" spacing={2} flexDirection="column">
+        <Box sx={{overflowY: 'auto', width: '98%', maxHeight: "80vh"}}>
+            <Stack direction="row" spacing={0} flexDirection="column">
 
-                <Box sx={{paddingRight: "20px"}}>
+                <Box>
                     {rootEvents.length > 0 && (
                         <>
                                 {rootEvents.map((rootEvent) => {
                                     const fullRootEventData = setEventData(rootEvent, metaData[rootEvent.pubkey], reactions[rootEvent.id]);
                                     return (
-                                        <>
+                                        <Box sx={{ marginBottom: "10px", justifyContent: "center", flexDirection: "row", alignItems: "center" }}>
                                             <Note
                                                 eventData={fullRootEventData}
                                                 pool={pool}
@@ -167,14 +169,16 @@ export default function NoteModal({eventData,
                                                 setEventToSign={setEventToSign}
                                                 hashTags={hashTags}
                                             />
-                                        </>
+                                            <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+                                              <SouthIcon />
+                                            </Box>
+                                        </Box>
                                     )})}
-                                    <SubdirectoryArrowRightIcon />
                         </>
                     )}
                 </Box>
 
-                <Box sx={{padding: "20px"}}>
+                <Box>
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
                         followers={followers}
@@ -188,29 +192,31 @@ export default function NoteModal({eventData,
                         />
                 </Box>
 
-                <Box sx={{paddingRight: "20px"}}>
+                <Box>
                     {replyEvents.length > 0 && (
                         <>
-                            <SubdirectoryArrowRightIcon />
-                            {replyEvents.map((replyEvent) => {
-                                const fullEventData = setEventData(replyEvent, metaData[replyEvent.pubkey], reactions[replyEvent.id]);
-                                return (
-                                    <Note 
-                                        eventData={fullEventData}
-                                        pool={pool}
-                                        relays={relays}
-                                        followers={followers}
-                                        setFollowing={setFollowing}
-                                        setHashtags={setHashtags}
-                                        pk={pk}
-                                        key={replyEvent.sig + Math.random()}
-                                        disableReplyIcon={false}
-                                        setSignEventOpen={setSignEventOpen}
-                                        setEventToSign={setEventToSign}
-                                        hashTags={hashTags}
-                                    />
-                                );
-                            })}
+                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <SouthIcon />
+                          </Box>
+                          {replyEvents.map((replyEvent) => {
+                              const fullEventData = setEventData(replyEvent, metaData[replyEvent.pubkey], reactions[replyEvent.id]);
+                              return (
+                                  <Note 
+                                      eventData={fullEventData}
+                                      pool={pool}
+                                      relays={relays}
+                                      followers={followers}
+                                      setFollowing={setFollowing}
+                                      setHashtags={setHashtags}
+                                      pk={pk}
+                                      key={replyEvent.sig + Math.random()}
+                                      disableReplyIcon={false}
+                                      setSignEventOpen={setSignEventOpen}
+                                      setEventToSign={setEventToSign}
+                                      hashTags={hashTags}
+                                  />
+                              );
+                          })}
                         </>
                       )}
                   </Box>

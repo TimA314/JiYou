@@ -12,7 +12,8 @@ import { ProfileContent } from '../nostr/Types';
 const CustomDialog = styled(Dialog)(({ }) => ({
   '& .MuiDialog-paper': {
     width: '80%',
-    maxWidth: '800px'
+    maxWidth: '800px',
+    maxHeight: '90%',
   },
 }));
 
@@ -117,7 +118,6 @@ export default function SignEventDialog({
         open={signEventOpen}
         onClose={handleClose}
         aria-labelledby="responsive-dialog-title"
-        sx={{ width: '100%', maxWidth: '800px' }}
         >
         <DialogTitle id="responsive-dialog-title">
           {"Sign Event and send to relays"}
