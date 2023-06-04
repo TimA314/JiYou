@@ -62,7 +62,19 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       if (retrievedPK) {
         return;
       }
-      //check local storage
+
+      //Get secret key from local storage
+      try {
+        var secretKey = localStorage.getItem("sk");
+
+        if (secretKey && nip19.decode(secretKey)) {
+          setLocalSecretKey(secretKey);
+          setLocalPk(nip19.npubEncode(getPublicKey(nip19.decode(secretKey).data.toString())));
+          return;
+        }
+
+      } catch {}
+
       try {
         var pkStored = localStorage.getItem("pk");
         console.log(pkStored);
@@ -71,33 +83,15 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
           setLocalPk(encoded);
           setPk(pkStored)
         }
-      } catch {
-        return;
-      }
+      } catch {}
     }
+    
     if (localPk === ""){
       setKey();
     }
 
   }, []);
 
-  useEffect(() => {
-    if (willUseNostrExtension) return;
-
-    //Get secret key from local storage
-    try {
-      var secretKey = localStorage.getItem("sk");
-
-      if (secretKey && nip19.decode(secretKey)) {
-        setLocalSecretKey(secretKey);
-        setLocalPk(nip19.npubEncode(getPublicKey(nip19.decode(secretKey).data.toString())));
-      }
-
-    } catch {
-      return;
-    }
-
-  }, []);
 
   const handleSaveSecretKey = () => {
   

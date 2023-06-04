@@ -9,13 +9,13 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';
-import { useFollowers } from '../hooks/useFollowers';
 
 interface ProfileProps {
     relays: string[];
     pool: SimplePool | null;
     pk: string;
     profile: ProfileContent;
+    followers: string[];
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,11 +28,10 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, followers, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-const { followers } = useFollowers({pool, relays, pk, setSignEventOpen, setEventToSign});
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");

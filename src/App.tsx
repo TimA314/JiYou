@@ -108,7 +108,7 @@ function App() {
       <CssBaseline />
       <Container>
         <Routes>
-          <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} profile={profile} updateProfile={updateProfile} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
+          <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} followers={followers} profile={profile} updateProfile={updateProfile} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
           <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
           <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk} followers={followers} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen} setFollowing={setFollowing}/>} />
         </Routes>
