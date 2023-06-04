@@ -6,9 +6,11 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 type UseRelaysProps = {
   pool: SimplePool | null;
   pk: string;
+  setEventToSign: (event: EventTemplate) => void;
+  setSignEventOpen: (open: boolean) => void;
 };
 
-export const useRelays = ({ pool, pk}: UseRelaysProps) => {
+export const useRelays = ({ pool, pk, setEventToSign, setSignEventOpen}: UseRelaysProps) => {
   const [relays, setRelays] = useState<string[]>(defaultRelays);
   
   useEffect(() => {
@@ -43,7 +45,7 @@ export const useRelays = ({ pool, pk}: UseRelaysProps) => {
   
   
 const updateRelays = async (relays: string[]) => {
-    if (!pool || pk === "" || !window.nostr) return;
+    if (!pool) return;
 
     try{
         
@@ -62,33 +64,43 @@ const updateRelays = async (relays: string[]) => {
         } as EventTemplate
 
 
-        const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+        if (window.nostr) {
+            try{
 
-        const newEvent: Event = {
-            ..._baseEvent,
-            id: getEventHash({
-                ..._baseEvent,
-                pubkey: pk
-            }),
-            sig: sig,
-            pubkey: pk,
+                const sig = (await window.nostr.signEvent(_baseEvent)).sig;
+                
+                const newEvent: Event = {
+                    ..._baseEvent,
+                    id: getEventHash({
+                        ..._baseEvent,
+                        pubkey: pk
+                    }),
+                    sig: sig,
+                    pubkey: pk,
+                }
+                
+                if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
+                    console.log("Event is Invalid")
+                    return;
+                }
+                
+                const pubs = pool.publish(defaultRelays, newEvent)
+                pubs.on("ok", (pub: any) => {
+                    console.log(`Posted to ${pub}`)
+                })
+
+                setRelays(relays);
+                return;
+            } catch{}
         }
 
-        if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
-            console.log("Event is Invalid")
-            return;
-        }
+        setSignEventOpen(true);
+        setEventToSign(_baseEvent);
 
-        const pubs = pool.publish(defaultRelays, newEvent)
-        pubs.on("ok", (pub: any) => {
-            console.log(`Posted to ${pub}`)
-        })
-
-        setRelays(relays);
     } catch (error) {
         console.log("Error adding relay" + error);
     }
 }
 
-  return { relays, updateRelays };
+  return { relays, updateRelays, setRelays };
 };

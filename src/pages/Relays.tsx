@@ -1,11 +1,9 @@
 import "./Relays.css";
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper } from '@mui/material';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { EventTemplate, getEventHash, Kind, SimplePool, validateEvent, verifySignature, Event } from 'nostr-tools';
-import { sanitizeString } from "../utils/sanitizeUtils";
-import { defaultRelays } from "../nostr/DefaultRelays";
+import { SimplePool } from 'nostr-tools';
 
 interface RelayProps {
     relays: string[];
@@ -19,10 +17,7 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
     
     const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!window.nostr || relayInput.trim() === "") {
-            alert("You need to install a Nostr extension to manage your relays")
-            return;
-        }
+        if (relayInput.trim() === "") return;
 
         try{
             const relayFormatted = relayInput.startsWith("wss://") ? relayInput : "wss://" + relayInput;
@@ -34,7 +29,8 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
             }
             
             updateRelays([...relays, relayFormatted]);
-            
+            setRelayInput("");
+
         } catch (error) {
             console.log("Error adding relay" + error);
         }
@@ -56,9 +52,6 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                 if (r === relay) return;
                 relayTags.push(["r", r])
             })
-            
-            console.log("deleted relaylist: " + relayTags);
-
 
             const relaysWithRemovedRelay = relays.filter((r) => r !== relay);
             updateRelays(relaysWithRemovedRelay);
@@ -83,7 +76,7 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                         onChange={(e) => setRelayInput(e.target.value)}
                         helperText="wss://example.com"
                     />
-                    <Button sx={{marginBottom: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
+                    <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                 </form>
             </Box>
 

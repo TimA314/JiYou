@@ -7,9 +7,10 @@ import { sanitizeString } from "../utils/sanitizeUtils";
 interface Props {
   hashtags: string[];
   setHashtags: (hashtags: string[]) => void;
+  setEventsFetched: (eventsFetched: boolean) => void;
 }
 
-export default function HashtagsFilter({ hashtags, setHashtags }: Props) {
+export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched }: Props) {
   const [input, setInput] = useState("");
 
   const onAddHashTag = () => {
@@ -17,6 +18,7 @@ export default function HashtagsFilter({ hashtags, setHashtags }: Props) {
     if (hashtag.trim() === "" || hashtags.includes(hashtag)) return;
     setInput("");
     setHashtags([...hashtags, hashtag.trim()]);
+    setEventsFetched(false);
   };
 
   const removeHashtag = (hashtag: string) => {

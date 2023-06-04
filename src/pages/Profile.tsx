@@ -1,5 +1,5 @@
 import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
-import { SimplePool, Event} from 'nostr-tools';
+import { SimplePool, Event, EventTemplate} from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -9,14 +9,16 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';
-import { useFollowers } from '../hooks/useFollowers';
 
 interface ProfileProps {
     relays: string[];
     pool: SimplePool | null;
     pk: string;
     profile: ProfileContent;
+    followers: string[];
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
+    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ProfileContent {
@@ -26,15 +28,15 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, updateProfile}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, followers, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-const { followers } = useFollowers({pool, relays, pk});
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
+const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
 
 
 
@@ -47,33 +49,35 @@ useEffect(() => {
             setProfileAboutInput(profile.about);
             setImageUrlInput(profile.picture);
             setBannerUrlInput(profile.banner);
-
+            setUserEventsFetched(false);
             // Fetch user notes
             const userNotes = await pool.list(defaultRelays, [{kinds: [1], authors: [pk] }])
             const sanitizedEvents = userNotes.map((event) => sanitizeEvent(event));
-            setUserNotes(sanitizedEvents);
-
+            
             // Fetch reactions
             const eventIds = sanitizedEvents.map((event) => event.id);
-
+            
             const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
             const retrievedReactionObjects: Record<string, ReactionCounts> = {};
             reactionEvents.forEach((event) => {
-            const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
-            eventTagThatWasLiked.forEach((tag) => {
-                const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
-                if (isValidEventTagThatWasLiked) {
-                if (!retrievedReactionObjects[tag[1]]) {
-                    retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
-                }
-                if (event.content === "+") {
+                const eventTagThatWasLiked = event.tags.filter((tag: string[]) => tag[0] === "e");
+                eventTagThatWasLiked.forEach((tag: (string | number)[] | undefined) => {
+                    const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
+                    if (isValidEventTagThatWasLiked) {
+                        if (!retrievedReactionObjects[tag[1]]) {
+                            retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
+                        }
+                        if (event.content === "+") {
                     retrievedReactionObjects[tag[1]].upvotes++;
                 } else if(event.content === "-") {
                     retrievedReactionObjects[tag[1]].downvotes++;
                 }
-                }
-            });});
-            setReactions(retrievedReactionObjects);
+            }
+        });});
+
+        setUserEventsFetched(true);
+        setReactions(retrievedReactionObjects);
+        setUserNotes(sanitizedEvents);
         } catch (error) {
             console.log(error);
         }
@@ -83,8 +87,9 @@ useEffect(() => {
 }, [pool, relays, profile])
 
 
-const handleFormSubmit = async () => {
-    if (!pool || pk === "") return;
+const handleFormSubmit = (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    if (!pool) return;
     updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
 }
     
@@ -158,7 +163,7 @@ const setEventData = (event: Event) => {
                                 <TextField 
                                 id="profileNameInput"
                                 label="Name"
-                                color='secondary'
+                                color='primary'
                                 value={profileNameInput}
                                 onChange={e => setProfileNameInput(e.target.value)}
                                 fullWidth
@@ -172,7 +177,7 @@ const setEventData = (event: Event) => {
                                 <TextField 
                                 id="profileAboutInput"
                                 label="About"
-                                color='secondary'
+                                color='primary'
                                 value={profileAboutInput}
                                 onChange={e => setProfileAboutInput(e.target.value)}
                                 fullWidth
@@ -188,7 +193,7 @@ const setEventData = (event: Event) => {
                                 <TextField 
                                 id="profileImageUrlInput"
                                 label="Profile Image URL"
-                                color='secondary'
+                                color='primary'
                                 value={imageUrlInput}
                                 onChange={e => setImageUrlInput(e.target.value)}
                                 fullWidth
@@ -203,7 +208,7 @@ const setEventData = (event: Event) => {
                                     id="bannerImageUrlInput"
                                     label="Banner Image URL"
                                     fullWidth
-                                    color="secondary"
+                                    color="primary"
                                     value={bannerUrlInput}
                                     onChange={e => setBannerUrlInput(e.target.value)} 
                                     InputProps={{
@@ -221,10 +226,21 @@ const setEventData = (event: Event) => {
                             const fullEventData = setEventData(event);
 
                             return (
-                            <Note pool={pool} relays={relays} eventData={fullEventData} setFollowing={() => {}} followers={[]} key={event.sig} setHashtags={() => {}} pk={pk} />
+                            <Note 
+                                pool={pool} 
+                                relays={relays} 
+                                eventData={fullEventData} 
+                                setFollowing={() => {}} 
+                                followers={[]} 
+                                key={event.sig} 
+                                setHashtags={() => {}} 
+                                pk={pk}
+                                setSignEventOpen={setSignEventOpen}
+                                setEventToSign={setEventToSign}
+                                hashTags={[]}/>
                             )
                         }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
-                                <CircularProgress color='primary'/>
+                                {userEventsFetched ? <div></div> : <CircularProgress color='primary'/>}
                             </Box>}
                     </div>
                 </Box>)

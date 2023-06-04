@@ -69,3 +69,15 @@ export function insertEventIntoDescendingList<T extends Event>(
   
     return sortedArray;
   }
+
+  export function extractHashtags(content: string): string[] {
+    const regex = /#(\w+)/g;
+    const matches = content.match(regex);
+    
+    if (matches) {
+      return matches.map(match => match.slice(1));
+    }
+    
+    return [];
+  }
+  
