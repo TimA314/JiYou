@@ -5,7 +5,6 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
-import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
@@ -64,7 +63,6 @@ export default function NoteModal({eventData,
   
   // Use a media query to check if the device is a mobile or desktop
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     if (!pool) return;
@@ -153,7 +151,14 @@ export default function NoteModal({eventData,
                                 {rootEvents.map((rootEvent) => {
                                     const fullRootEventData = setEventData(rootEvent, metaData[rootEvent.pubkey], reactions[rootEvent.id]);
                                     return (
-                                        <Box sx={{ marginBottom: "10px", justifyContent: "center", flexDirection: "row", alignItems: "center" }}>
+                                        <Box 
+                                          key={rootEvent.sig + Math.random()}                                        
+                                          sx={{ 
+                                            marginBottom: "10px", 
+                                            justifyContent: "center", 
+                                            flexDirection: "row", 
+                                            alignItems: "center" 
+                                            }}>
                                             <Note
                                                 eventData={fullRootEventData}
                                                 pool={pool}
@@ -162,7 +167,6 @@ export default function NoteModal({eventData,
                                                 setFollowing={setFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
-                                                key={rootEvent.sig + Math.random()}
                                                 disableReplyIcon={false}
                                                 gettingThread={gettingThread}
                                                 setSignEventOpen={setSignEventOpen}
@@ -189,6 +193,7 @@ export default function NoteModal({eventData,
                         setSignEventOpen={setSignEventOpen}
                         setEventToSign={setEventToSign}
                         hashTags={hashTags}
+                        key={eventData.sig + Math.random()}
                         />
                 </Box>
 
