@@ -57,8 +57,11 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       }
     }
 
-    getNostrPublicKey().then((result) =>  {
-      if (result) return;
+    const setKey = async () => {
+      const retrievedPK = await getNostrPublicKey();
+      if (retrievedPK) {
+        return;
+      }
       //check local storage
       try {
         var pkStored = localStorage.getItem("pk");
@@ -71,9 +74,10 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       } catch {
         return;
       }
-    }).catch((error) => {
-      console.log(error);
-    });
+    }
+    if (localPk === ""){
+      setKey();
+    }
 
   }, []);
 
@@ -86,6 +90,7 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
 
       if (secretKey && nip19.decode(secretKey)) {
         setLocalSecretKey(secretKey);
+        setLocalPk(nip19.npubEncode(getPublicKey(nip19.decode(secretKey).data.toString())));
       }
 
     } catch {
