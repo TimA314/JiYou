@@ -18,10 +18,20 @@ interface Props {
   setPostedNote: () => void;
   setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
   setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  hashTags: string[];
 }
 
 
-function CreateNote({pool, relays, pk, replyEventData, setPostedNote, setEventToSign, setSignEventOpen}: Props) {
+function CreateNote({
+  pool, 
+  relays, 
+  pk, 
+  replyEventData, 
+  setPostedNote, 
+  setEventToSign, 
+  setSignEventOpen,
+  hashTags
+}: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
     obj[relay] = true;
@@ -56,6 +66,10 @@ function CreateNote({pool, relays, pk, replyEventData, setPostedNote, setEventTo
       ]
     ]
     : [];
+
+    if (hashTags.length > 0) {
+      tags.push(["t", ...hashTags]);
+    }
 
     const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);
     console.log("relays to post: " + relaysToPostTo);

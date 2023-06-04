@@ -31,6 +31,7 @@ interface ReplyToNoteProps {
     relays: string[];
     pk: string;
     followers: string[];
+    hashTags: string[];
     setFollowing: (pubkey: string) => void;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
@@ -45,6 +46,7 @@ export default function ReplyToNote({
   relays, 
   pk, 
   followers,
+  hashTags,
   setFollowing, 
   setHashtags,
   setEventToSign,
@@ -100,6 +102,7 @@ export default function ReplyToNote({
               disableReplyIcon={true}
               setSignEventOpen={setSignEventOpen}
               setEventToSign={setEventToSign}
+              hashTags={hashTags}
               />
             <CreateNote 
               pool={pool} 
@@ -108,7 +111,8 @@ export default function ReplyToNote({
               replyEventData={eventData} 
               setPostedNote={setPostedNote} 
               setEventToSign={setEventToSign}
-              setSignEventOpen={setSignEventOpen}/>
+              setSignEventOpen={setSignEventOpen}
+              hashTags={hashTags}/>
         </Box>
       </Modal>
     </div>

@@ -38,7 +38,7 @@ type GlobalFeedProps = {
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk, setEventToSign, setSignEventOpen }) => {
-    const { followers, setFollowing } = useFollowers({pool, relays, pk});
+    const { followers, setFollowing } = useFollowers({pool, relays, pk, setSignEventOpen, setEventToSign});
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
     const { events, setEvents, reactions, metaData, eventsFetched, setEventsFetched } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
@@ -94,7 +94,8 @@ type GlobalFeedProps = {
                         key={event.sig + Math.random()} 
                         pk={pk}
                         setSignEventOpen={setSignEventOpen}
-                        setEventToSign={setEventToSign} />
+                        setEventToSign={setEventToSign}
+                        hashTags={hashtags} />
                 )
             })}
             <Modal
@@ -122,7 +123,8 @@ type GlobalFeedProps = {
                                 pk={pk}
                                 setPostedNote={setPostedNote} 
                                 setEventToSign={setEventToSign}
-                                setSignEventOpen={setSignEventOpen}/>
+                                setSignEventOpen={setSignEventOpen}
+                                hashTags={hashtags}/>
                 </Box>
             </Modal>
 

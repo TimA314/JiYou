@@ -38,6 +38,7 @@ interface NoteModalProps {
   pk: string;
   setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
   setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  hashTags: string[];
 }
 
 export default function NoteModal({eventData,
@@ -51,7 +52,8 @@ export default function NoteModal({eventData,
                                     setHashtags,
                                     pk,
                                     setEventToSign,
-                                    setSignEventOpen
+                                    setSignEventOpen,
+                                    hashTags,
                                   }: NoteModalProps) {
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
@@ -163,6 +165,7 @@ export default function NoteModal({eventData,
                                                 gettingThread={gettingThread}
                                                 setSignEventOpen={setSignEventOpen}
                                                 setEventToSign={setEventToSign}
+                                                hashTags={hashTags}
                                             />
                                         </>
                                     )})}
@@ -181,6 +184,7 @@ export default function NoteModal({eventData,
                         disableReplyIcon={false}
                         setSignEventOpen={setSignEventOpen}
                         setEventToSign={setEventToSign}
+                        hashTags={hashTags}
                         />
                 </Box>
 
@@ -203,6 +207,7 @@ export default function NoteModal({eventData,
                                         disableReplyIcon={false}
                                         setSignEventOpen={setSignEventOpen}
                                         setEventToSign={setEventToSign}
+                                        hashTags={hashTags}
                                     />
                                 );
                             })}

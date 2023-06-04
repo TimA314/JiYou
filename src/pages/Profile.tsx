@@ -32,7 +32,7 @@ export default function Profile({relays, pool, pk, profile, updateProfile, setEv
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-const { followers } = useFollowers({pool, relays, pk});
+const { followers } = useFollowers({pool, relays, pk, setSignEventOpen, setEventToSign});
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
@@ -237,7 +237,8 @@ const setEventData = (event: Event) => {
                                 setHashtags={() => {}} 
                                 pk={pk}
                                 setSignEventOpen={setSignEventOpen}
-                                setEventToSign={setEventToSign} />
+                                setEventToSign={setEventToSign}
+                                hashTags={[]}/>
                             )
                         }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
                                 {userEventsFetched ? <div></div> : <CircularProgress color='primary'/>}

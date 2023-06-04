@@ -70,6 +70,7 @@ interface NoteProps {
   gettingThread?: boolean;
   setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
   setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  hashTags: string[];
 }
 
 export default function Note({
@@ -83,7 +84,9 @@ export default function Note({
     disableReplyIcon, 
     gettingThread,
     setEventToSign,
-    setSignEventOpen}: NoteProps) {
+    setSignEventOpen,
+    hashTags
+  }: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -145,7 +148,8 @@ export default function Note({
         setHashtags={setHashtags}
         pk={pk}
         setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign} />
+        setEventToSign={setEventToSign}
+        hashTags={hashTags} />
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={eventData.user.picture}>
@@ -165,7 +169,8 @@ export default function Note({
         setFollowing={setFollowing} 
         setHashtags={setHashtags}
         setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign} />
+        setEventToSign={setEventToSign} 
+        hashTags={hashTags}/>
       <CardContent>
         <Typography variant="body2" color="text.secondary">
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
