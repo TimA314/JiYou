@@ -15,7 +15,6 @@ const style = {
 };
 
 interface KeysProps {
-    setPublicKeyClicked: (publicKeyOpen: boolean) => void;
     publicKeyOpen: boolean;
     pk: string;
     setPk: (pk: string) => void;

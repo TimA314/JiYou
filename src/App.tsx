@@ -51,8 +51,6 @@ function App() {
   const [pk, setPk] = useState<string>("");
   const { relays, updateRelays, setRelays } = useRelays({ pool, pk, setEventToSign, setSignEventOpen });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
-  const [customizeClicked, setCustomizeClicked] = useState<boolean>(false);
-  const [aboutClicked, setAboutClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
   const {setFollowing, followers} = useFollowers({pool, relays, pk, setEventToSign, setSignEventOpen});
@@ -108,10 +106,42 @@ function App() {
       <CssBaseline />
       <Container>
         <Routes>
-          <Route path="/profile" element={<Profile relays={relays} pool={pool} pk={pk} followers={followers} profile={profile} updateProfile={updateProfile} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen}/>} />
-          <Route path="/relays" element={<Relays relays={relays} updateRelays={updateRelays} pool={pool} pk={pk} />} />
-          <Route path="/" element={<GlobalFeed pool={pool} relays={relays} pk={pk} followers={followers} setEventToSign={setEventToSign} setSignEventOpen={setSignEventOpen} setFollowing={setFollowing}/>} />
-          <Route path="/keys" element={<Keys publicKeyOpen={publicKeyClicked} setPublicKeyClicked={setPublicKeyClicked} pk={pk} setPk={setPk} willUseNostrExtension={willUseNostrExtension} setWillUseNostrExtension={setWillUseNostrExtension} />} />
+          <Route path="/profile" element={
+            <Profile 
+              relays={relays} 
+              pool={pool} 
+              pk={pk} 
+              followers={followers} 
+              profile={profile} 
+              updateProfile={updateProfile} 
+              setEventToSign={setEventToSign} 
+              setSignEventOpen={setSignEventOpen}
+              />} />
+          <Route path="/relays" element={
+            <Relays 
+              relays={relays} 
+              updateRelays={updateRelays} 
+              pool={pool} 
+              pk={pk} 
+              />} />
+          <Route path="/" element={
+            <GlobalFeed 
+              pool={pool} 
+              relays={relays} 
+              pk={pk} 
+              followers={followers} 
+              setEventToSign={setEventToSign} 
+              setSignEventOpen={setSignEventOpen} 
+              setFollowing={setFollowing}
+              />} />
+          <Route path="/keys" element={
+            <Keys 
+            publicKeyOpen={publicKeyClicked} 
+            pk={pk} 
+            setPk={setPk} 
+            willUseNostrExtension={willUseNostrExtension} 
+            setWillUseNostrExtension={setWillUseNostrExtension} 
+            />} />
         </Routes>
         <SignEventDialog 
           signEventOpen={signEventOpen} 
@@ -122,7 +152,9 @@ function App() {
           relays={relays} setProfile={setProfile}
           setRelays={setRelays}
           />
-        <NavBar setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} profile={profile} />
+        <NavBar 
+          profile={profile} 
+          />
       </Container>
     </ThemeProvider>
   );
