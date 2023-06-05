@@ -29,7 +29,7 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, prof
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
-      <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
+      <NavMenu setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
       <Link className="nav-link" to="/">
         <DynamicFeedIcon />
       </Link>
