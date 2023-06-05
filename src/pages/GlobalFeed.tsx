@@ -75,29 +75,34 @@ type GlobalFeedProps = {
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <HashtagsFilter hashtags={hashtags} setHashtags={setHashtags} setEventsFetched={setEventsFetched}/>
+            <HashtagsFilter 
+                hashtags={hashtags} 
+                setHashtags={setHashtags} 
+                setEventsFetched={setEventsFetched}/>
 
             {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
             {events.filter(
                 (e) => e.tags && e.tags.filter((t) => t[0] === "e").length === 0)
-            .map((event) => {
-                const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
-                return (
-                    <Note 
-                        pool={pool} 
-                        relays={relays} 
-                        eventData={fullEventData} 
-                        setFollowing={setFollowers} 
-                        followers={followers} 
-                        setHashtags={setHashtags} 
-                        key={event.sig + Math.random()} 
-                        pk={pk}
-                        setSignEventOpen={setSignEventOpen}
-                        setEventToSign={setEventToSign}
-                        hashTags={hashtags} />
-                )
-            })}
+                    .map((event) => {
+                        const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
+                        return (
+                            <Note 
+                                pool={pool} 
+                                relays={relays} 
+                                eventData={fullEventData} 
+                                setFollowing={setFollowers} 
+                                followers={followers} 
+                                setHashtags={setHashtags} 
+                                key={event.sig + Math.random()} 
+                                pk={pk}
+                                setSignEventOpen={setSignEventOpen}
+                                setEventToSign={setEventToSign}
+                                hashTags={hashtags} />
+                        )
+                    })
+            }
+
             <Modal
                 open={createNoteOpen}
                 onClose={handleCreateNoteClose}
@@ -137,9 +142,15 @@ type GlobalFeedProps = {
                     right: 0,
                 }}
                 >
-                <Fab color="secondary" aria-label="edit" sx={{ position: "fixed", bottom: 70, right: 10 }} onClick={handleCreateNoteOpen}>
+                    
+                <Fab 
+                    color="secondary" 
+                    aria-label="edit" 
+                    sx={{ position: "fixed", bottom: 70, right: 10 }} 
+                    onClick={handleCreateNoteOpen}>
                     <EditIcon /> 
                 </Fab>
+
                 <Tabs 
                     value={tabIndex} 
                     onChange={handleTabChange} 

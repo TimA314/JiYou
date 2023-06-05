@@ -6,14 +6,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import InfoIcon from '@mui/icons-material/Info';
 import TuneIcon from '@mui/icons-material/Tune';
 import KeyIcon from '@mui/icons-material/Key';
+import { Link } from 'react-router-dom';
 
-interface NavMenuProps {
-    setPublicKeyClicked: (publicKeyOpen: boolean) => void;
-    setCustomizeClicked: (customizeOpen: boolean) => void;
-    setAboutClicked: (aboutOpen: boolean) => void;
-}
 
-export default function NavMenu({setPublicKeyClicked, setCustomizeClicked, setAboutClicked}: NavMenuProps) {
+export default function NavMenu() {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
@@ -21,18 +17,11 @@ export default function NavMenu({setPublicKeyClicked, setCustomizeClicked, setAb
     setAnchorEl(event.currentTarget);
     };
 
-    const handlePublicKeyClicked = () => {
-        setPublicKeyClicked(true);
-        handleClose();
-    };
-
     const handleCustomizeClicked = () => {
-        setCustomizeClicked(true);
         handleClose();
     };
 
     const handleAboutClicked = () => {
-        setAboutClicked(true);
         handleClose();
     };
 
@@ -68,9 +57,13 @@ export default function NavMenu({setPublicKeyClicked, setCustomizeClicked, setAb
                 'aria-labelledby': 'basic-button',
             }}
             >
-            <MenuItem onClick={handleAboutClicked}><InfoIcon /></MenuItem>
-            <MenuItem onClick={handleCustomizeClicked}><TuneIcon /></MenuItem>
-            <MenuItem onClick={handlePublicKeyClicked}><KeyIcon /></MenuItem>
+            <MenuItem onClick={handleClose}><InfoIcon /></MenuItem>
+            <MenuItem onClick={handleClose}><TuneIcon /></MenuItem>
+                <MenuItem onClick={handleClose}>
+                    <Link to="/keys" >
+                        <KeyIcon color="secondary" />
+                    </Link>
+                </MenuItem>
             </Menu>
         </div>
     );

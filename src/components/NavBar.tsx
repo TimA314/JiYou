@@ -11,13 +11,10 @@ import { Avatar } from '@mui/material';
 import { ProfileContent } from '../nostr/Types';
 
 interface NavBarProps {
-  setPublicKeyClicked: (publicKeyOpen: boolean) => void;
-  setCustomizeClicked: (customizeOpen: boolean) => void;
-  setAboutClicked: (aboutOpen: boolean) => void;
   profile: ProfileContent
 }
 
-const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, profile}: NavBarProps) => {
+const NavBar = ({profile}: NavBarProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -29,7 +26,7 @@ const NavBar = ({setPublicKeyClicked, setCustomizeClicked, setAboutClicked, prof
   return (
 <Box sx={{ pb: 7 }} ref={ref}>
   <Paper className="navbar" >
-      <NavMenu setPublicKeyClicked={setPublicKeyClicked} setCustomizeClicked={setCustomizeClicked} setAboutClicked={setAboutClicked} />
+      <NavMenu />
       <Link className="nav-link" to="/">
         <DynamicFeedIcon />
       </Link>

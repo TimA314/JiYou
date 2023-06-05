@@ -9,16 +9,14 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
         limit: 500
     }
     
+    if(hashtags.length > 0) {
+        options["#t"] = hashtags;
+    }
+    
     switch (tabIndex) {
         case 0: //Global
-            if(hashtags.length > 0) {
-                options["#t"] = hashtags;
-            }
             break;
         case 1: //Followers
-            if(hashtags.length > 0) {
-                options["#t"] = hashtags;
-            }
             if(followers.length > 0){
                 options.authors = followers;
             }

@@ -150,7 +150,7 @@ const setEventData = (event: Event) => {
                                 fontSize: '14px',
                                 textAlign: 'center',
                             }}>
-                            <Chip label={"Followers: " + followers.length} />
+                            <Chip label={"Following: " + followers.length} />
                         </Box>
                         </AppBar>
                     </Paper>
@@ -232,7 +232,7 @@ const setEventData = (event: Event) => {
                                 eventData={fullEventData} 
                                 setFollowing={() => {}} 
                                 followers={[]} 
-                                key={event.sig} 
+                                key={event.sig + Math.random()} 
                                 setHashtags={() => {}} 
                                 pk={pk}
                                 setSignEventOpen={setSignEventOpen}

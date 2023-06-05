@@ -2,30 +2,19 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import Modal from '@mui/material/Modal';
 import { TextField, Grid, Divider, Stack, Paper } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import {nip19, generatePrivateKey, getPublicKey} from 'nostr-tools'
 import { useEffect, useState } from 'react';
-import ClearIcon from '@mui/icons-material/Clear';
 import WarningIcon from '@mui/icons-material/Warning';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 
 
 const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: "95%",
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  p: 4,
+  p: 1,
 };
 
 interface KeysProps {
-    setPublicKeyClicked: (publicKeyOpen: boolean) => void;
     publicKeyOpen: boolean;
     pk: string;
     setPk: (pk: string) => void;
@@ -33,7 +22,7 @@ interface KeysProps {
     setWillUseNostrExtension: (willUseNostrExtension: boolean) => void;
 }
 
-export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrExtension, setPk, pk, setWillUseNostrExtension}: KeysProps) {
+export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostrExtension}: KeysProps) {
   const [localPk, setLocalPk] = useState("");
   const [localSecretKey, setLocalSecretKey] = useState("");
 
@@ -112,7 +101,6 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       var pubKeyFromSk = nip19.npubEncode(getPublicKey(decodedSecretKey.data.toString()));
       setLocalPk(pubKeyFromSk);
       localStorage.setItem("pk", pubKeyFromSk);
-      handleClose();
 
     } catch {
       alert("Error, Key NOT saved.");
@@ -136,17 +124,12 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
       }
       
       localStorage.setItem("pk", localPk.trim());
-      handleClose();
 
     } catch (error){
       alert("Invalid public key." + error);
       return;
     }
   };
-
-  const handleClose = () => {
-    setPublicKeyClicked(false);
-    };
   
   const handlePkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setLocalPk(event.target.value);
@@ -177,17 +160,8 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
   }
 
   return (
-    <div>
-      <Modal
-        open={publicKeyOpen}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+    <Box>
         <Box sx={style}>
-          <Box sx={{position: 'absolute', top: 8, right: 8}}>
-              <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
-          </Box>
           {willUseNostrExtension ?
             <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
@@ -240,7 +214,9 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
         {!willUseNostrExtension &&
         <Box>
           <Divider sx={{marginTop: 2, marginBottom: 2}}/>
-          <Button variant="contained" color="warning" type="button" onClick={generateNewKeys}>Generate New Keys</Button>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button variant="contained" color="warning" type="button" onClick={generateNewKeys}>Generate New Keys</Button>
+            </Box>
           <Divider sx={{marginTop: 2, marginBottom: 2}}/>
         </Box>
         }
@@ -264,7 +240,6 @@ export default function Keys({setPublicKeyClicked, publicKeyOpen, willUseNostrEx
             This is your public key. You can share this with others. Your public key will be stored within your browser's local storage. It will be used to get your profile and other settings.
             </Typography>
         </Box>
-      </Modal>
-    </div>
+    </Box>
   );
 }

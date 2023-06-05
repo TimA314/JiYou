@@ -29,6 +29,7 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
       try {
         // Fetch events
         
+        //If no followers and on the followers tab, don't fetch events
         if (tabIndex === 1 && followers.length === 0) {
           setEventsFetched(true);
           return;
