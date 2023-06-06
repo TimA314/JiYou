@@ -1,7 +1,23 @@
 import React, { useContext } from 'react';
-import { ThemeContext } from '../theme/ThemeContext';
+import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
 import { ChromePicker } from 'react-color';
-import { Card, CardContent, Typography, Grid } from '@mui/material';
+import { Card, CardContent, Typography, Grid, Button } from '@mui/material';
+
+const colorLabels: Record<keyof ThemeColors, string> = {
+    primary: 'Main Color',
+    secondary: 'Accent Color',
+    paper: 'Content Background',
+    background: 'Background Color',
+    mode: 'dark'
+};
+
+  const defaultThemeColors: ThemeColors = {
+    mode: 'dark',
+    primary: '#7047c9',
+    secondary: '#ff0024',
+    paper: '#121212',
+    background: '#000000',
+  };
 
 const Settings: React.FC = () => {
   const { themeColors, setThemeColors } = useContext(ThemeContext);
@@ -13,46 +29,38 @@ const Settings: React.FC = () => {
     }));
   };
 
+  const handleSetDefault = () => {
+    setThemeColors(defaultThemeColors);
+  };
+
+  const handleSaveColors = () => {
+    localStorage.setItem('themeColors', JSON.stringify(themeColors));
+  };
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Typography variant="h4">Settings</Typography>
       </Grid>
 
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Primary Color</Typography>
-            <ChromePicker color={themeColors.primary} onChange={handleColorChange('primary')} />
-          </CardContent>
-        </Card>
-      </Grid>
+      {Object.keys(themeColors).map((colorKey) => {
+        const key = colorKey as keyof ThemeColors;
 
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Secondary Color</Typography>
-            <ChromePicker color={themeColors.secondary} onChange={handleColorChange('secondary')} />
-          </CardContent>
-        </Card>
-      </Grid>
+        return (
+          <Grid item xs={12} sm={6} md={4} lg={3} key={key}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6">{colorLabels[key]}</Typography>
+                <ChromePicker color={themeColors[key]} onChange={handleColorChange(key)} />
+              </CardContent>
+            </Card>
+          </Grid>
+        );
+      })}
 
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Background Color</Typography>
-            <ChromePicker color={themeColors.background} onChange={handleColorChange('background')} />
-          </CardContent>
-        </Card>
-      </Grid>
-
-      <Grid item xs={12} md={6}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Paper Color</Typography>
-            <ChromePicker color={themeColors.paper} onChange={handleColorChange('paper')} />
-          </CardContent>
-        </Card>
+      <Grid item xs={12}>
+        <Button onClick={handleSetDefault} variant="contained" color="primary">Set Default</Button>
+        <Button onClick={handleSaveColors} variant="contained" color="primary">Save Colors</Button>
       </Grid>
     </Grid>
   );

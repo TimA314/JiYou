@@ -7,6 +7,7 @@ export interface ThemeColors {
   primary: string;
   secondary: string;
   paper: string;
+  mode?: Theme;
 }
 
 export interface ThemeContextProps {
@@ -24,6 +25,7 @@ export const ThemeContext = React.createContext<ThemeContextProps>({
     secondary: '#f50057',
     paper: '#ffffff',
     background: '#f5f5f5',
+    mode: 'dark',
   },
   setThemeColors: () => {},
 });

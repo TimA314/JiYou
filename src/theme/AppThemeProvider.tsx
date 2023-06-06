@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState, ReactNode, useEffect } from 'react';
 import { ThemeContext, Theme, ThemeColors } from './ThemeContext';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
@@ -14,6 +14,14 @@ const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
     paper: '#ffffff',
     background: '#f5f5f5',
   });
+
+  useEffect(() => {
+    const savedColors = localStorage.getItem('themeColors');
+    if (savedColors) {
+      setThemeColors(JSON.parse(savedColors));
+    }
+  }, []);
+  
 
   const currentTheme = createTheme({
     palette: {
