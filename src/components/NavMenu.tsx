@@ -58,7 +58,11 @@ export default function NavMenu() {
             }}
             >
             <MenuItem onClick={handleClose}><InfoIcon /></MenuItem>
-            <MenuItem onClick={handleClose}><TuneIcon /></MenuItem>
+                <MenuItem onClick={handleClose}>
+                    <Link to="/settings" >
+                        <TuneIcon />
+                    </Link>
+                </MenuItem>
                 <MenuItem onClick={handleClose}>
                     <Link to="/keys" >
                         <KeyIcon color="secondary" />
