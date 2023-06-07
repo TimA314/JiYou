@@ -9,10 +9,12 @@ interface AppThemeProviderProps {
 const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>('light');
   const [themeColors, setThemeColors] = useState<ThemeColors>({
-    primary: '#3f51b5',
+    primary: '#4527a0',
     secondary: '#f50057',
-    paper: '#ffffff',
-    background: '#f5f5f5',
+    paper: '#121212',
+    background: '#1f1b24',
+    textSize: 16,
+    textColor: '#000000',
   });
 
   useEffect(() => {
@@ -36,8 +38,9 @@ const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
         paper: themeColors.paper,
         default: themeColors.background,
       },
-    },
+    }
   });
+  
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, themeColors, setThemeColors }}>

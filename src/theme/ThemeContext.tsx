@@ -3,11 +3,12 @@ import React from 'react';
 export type Theme = 'light' | 'dark';
 
 export interface ThemeColors {
-  background: string | undefined;
   primary: string;
   secondary: string;
   paper: string;
-  mode?: Theme;
+  background: string;
+  textSize: number;
+  textColor: string;
 }
 
 export interface ThemeContextProps {
@@ -21,11 +22,12 @@ export const ThemeContext = React.createContext<ThemeContextProps>({
   theme: 'dark',
   setTheme: () => {},
   themeColors: {
-    primary: '#8E5AC3', // Default colors
+    primary: '#4527a0',
     secondary: '#f50057',
-    paper: '#ffffff',
-    background: '#f5f5f5',
-    mode: 'dark',
+    paper: '#121212',
+    background: '#1f1b24',
+    textSize: 16,
+    textColor: '#000000',
   },
   setThemeColors: () => {},
 });
