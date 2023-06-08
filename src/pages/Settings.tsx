@@ -14,10 +14,10 @@ const colorLabels: Record<keyof ThemeColors, string> = {
 };
 
 const defaultThemeColors: ThemeColors = {
-  primary: '#4527a0',
+  primary: '#5D37D5',
   secondary: '#f50057',
   paper: '#121212',
-  background: '#141414',
+  background: '#111111',
   textSize: 14,
   textColor: '#CFCFCF',
 };
@@ -59,7 +59,7 @@ const Settings: React.FC = () => {
     <Grid item xs={12}>
       <Typography variant="h4" style={{color: themeColors.textColor}}><SettingsSuggestIcon color="primary" /> Settings</Typography>
     </Grid>
-    
+
     <Divider />
 
     <Grid item xs={12}>

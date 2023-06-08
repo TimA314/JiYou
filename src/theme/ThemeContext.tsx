@@ -22,10 +22,10 @@ export const ThemeContext = React.createContext<ThemeContextProps>({
   theme: 'dark',
   setTheme: () => {},
   themeColors: {
-    primary: '#4527a0',
+    primary: '#5D37D5',
     secondary: '#f50057',
     paper: '#121212',
-    background: '#141414',
+    background: '#111111',
     textSize: 16,
     textColor: '#CFCFCF',
   },
