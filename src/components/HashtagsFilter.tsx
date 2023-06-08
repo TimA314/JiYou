@@ -3,6 +3,10 @@ import { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./HashtagsFilter.css";
 import { sanitizeString } from "../utils/sanitizeUtils";
+import { ThemeContext } from '../theme/ThemeContext';
+import { useContext } from 'react';
+import { Close } from "@mui/icons-material";
+
 
 interface Props {
   hashtags: string[];
@@ -12,6 +16,7 @@ interface Props {
 
 export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched }: Props) {
   const [input, setInput] = useState("");
+  const { themeColors } = useContext(ThemeContext);
 
   const onAddHashTag = () => {
     const hashtag = sanitizeString(input);
@@ -36,12 +41,23 @@ export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched
       <Paper className="hashtagChips">
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {hashtags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
-              <Chip size="small" key={tag} label={tag} onDelete={() => removeHashtag(tag)} />
+              <Chip 
+                size="small" 
+                key={tag} 
+                sx={{color: themeColors.textColor}}
+                deleteIcon={
+                  <IconButton size="small">
+                    <Close sx={{ color: themeColors.textColor }} />
+                  </IconButton>
+                }
+                label={tag}  
+                onDelete={() => removeHashtag(tag)} 
+                />
           ))}
         </Stack>
       </Paper>
       <Paper sx={{ p: '2px 4px', display: 'flex', width: "100%" }} >
-        <IconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={onAddHashTag}>
+        <IconButton type="button" sx={{ p: '10px', color: themeColors.textColor }} aria-label="search" onClick={onAddHashTag}>
           <SearchIcon />
         </IconButton>
         <InputBase
@@ -51,13 +67,14 @@ export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched
           autoComplete="on"
           autoFocus
           onKeyDown={handleKeyDown}
-          inputProps={{ 'aria-label': 'search google maps' }}
+          inputProps={{ 'aria-label': 'search google maps', color: themeColors.textColor }}
           onChange={(e) => setInput(e.target.value)}
           sx={{ 
             width: "100%",
             marginTop: "10px",
             ml: 1,
-            flex: 1
+            flex: 1,
+            color: themeColors.textColor
           }}
           />
       </Paper>

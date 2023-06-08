@@ -200,10 +200,27 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                 <form onSubmit={handleSaveSecretKey}>
                   <Grid container direction="column" spacing={2}>
                     <Grid item>
-                      <TextField disabled={willUseNostrExtension} id="secretKeyInput" label="nsec..." InputLabelProps={{style: {color: themeColors.textColor}}} inputProps={{style: {color: themeColors.textColor}}} variant="outlined" color="secondary" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
+                      <TextField 
+                        disabled={willUseNostrExtension} 
+                        id="secretKeyInput" 
+                        label="nsec..." 
+                        InputLabelProps={{style: {color: themeColors.textColor}}} 
+                        inputProps={{style: {color: themeColors.textColor}}} 
+                        variant="outlined" 
+                        color="secondary" 
+                        value={localSecretKey} 
+                        onChange={handleSecretKeyChange} fullWidth />
                     </Grid>
                     <Grid item>
-                      <Button variant="contained" color="secondary" type="submit" startIcon={<SaveIcon />}>Save</Button>
+                      <Button 
+                        variant="contained" 
+                        color="secondary" 
+                        type="submit" 
+                        startIcon={
+                          <SaveIcon />
+                          }>
+                            Save
+                      </Button>
                     </Grid>
                   </Grid>
                 </form>

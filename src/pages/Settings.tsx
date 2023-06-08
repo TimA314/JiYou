@@ -14,12 +14,12 @@ const colorLabels: Record<keyof ThemeColors, string> = {
 };
 
 const defaultThemeColors: ThemeColors = {
-  primary: '#7047c9',
-  secondary: '#ff0024',
+  primary: '#4527a0',
+  secondary: '#f50057',
   paper: '#121212',
-  background: '#1F1B24',
-  textSize: 16,
-  textColor: '#B2B2B2',
+  background: '#141414',
+  textSize: 14,
+  textColor: '#CFCFCF',
 };
 
 const Settings: React.FC = () => {

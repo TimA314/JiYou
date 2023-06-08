@@ -4,6 +4,8 @@ import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon,
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { SimplePool } from 'nostr-tools';
+import { ThemeContext } from '../theme/ThemeContext';
+import { useContext } from 'react';
 
 interface RelayProps {
     relays: string[];
@@ -14,6 +16,7 @@ interface RelayProps {
 
 export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
     const [relayInput, setRelayInput] = useState("");
+    const { themeColors } = useContext(ThemeContext);
     
     const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -63,7 +66,7 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
 
     return (
         <Box id="RelaysBox">
-            <Typography sx={{ mt: 4, mb: 2 }} variant="h5" component="div">
+            <Typography sx={{ mt: 4, mb: 2 }} variant="h5" component="div" color={themeColors.textColor}>
                 Relays
             </Typography>
 
@@ -75,6 +78,8 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                         value={relayInput}
                         onChange={(e) => setRelayInput(e.target.value)}
                         helperText="wss://example.com"
+                        inputProps={{style: {color: themeColors.textColor}}}
+                        InputLabelProps={{style: {color: themeColors.textColor}}} 
                     />
                     <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                 </form>
@@ -87,18 +92,21 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                             <ListItem >
                                 <Grid container >
                                     <Grid item={true} xs={1}>
-                                            <ListItemIcon>
-                                                <SettingsInputAntennaIcon />
+                                            <ListItemIcon >
+                                                <SettingsInputAntennaIcon color="success" />
                                             </ListItemIcon>
                                     </Grid>
                                     <Grid item={true} xs={10} >
-                                        <Typography variant="body1" sx={{marginLeft: "7px"}}>
+                                        <Typography 
+                                            variant="body1" 
+                                            sx={{marginLeft: "7px"}} 
+                                            color={themeColors.textColor}>
                                             {relay}
                                         </Typography>
                                     </Grid>
                                     <Grid item={true} xs={1} >
                                         <Button onClick={() => DeleteRelay(relay)}>
-                                            <DeleteForeverIcon /> 
+                                            <DeleteForeverIcon color="error"/> 
                                         </Button>
                                     </Grid>
                                 </Grid>
