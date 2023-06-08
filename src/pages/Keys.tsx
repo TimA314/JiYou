@@ -5,14 +5,11 @@ import Typography from '@mui/material/Typography';
 import { TextField, Grid, Divider, Stack, Paper } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import {nip19, generatePrivateKey, getPublicKey} from 'nostr-tools'
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import WarningIcon from '@mui/icons-material/Warning';
 import CelebrationIcon from '@mui/icons-material/Celebration';
+import { ThemeContext } from '../theme/ThemeContext';
 
-
-const style = {
-  p: 1,
-};
 
 interface KeysProps {
     publicKeyOpen: boolean;
@@ -25,6 +22,7 @@ interface KeysProps {
 export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostrExtension}: KeysProps) {
   const [localPk, setLocalPk] = useState("");
   const [localSecretKey, setLocalSecretKey] = useState("");
+  const { themeColors } = useContext(ThemeContext);
 
   useEffect(() => {
     const getNostrPublicKey = async () => {
@@ -160,8 +158,14 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
   }
 
   return (
-    <Box>
-        <Box sx={style}>
+    <Grid
+    container
+    direction="column"
+    justifyContent="center"
+    alignItems="center"
+    style={{ minHeight: '100vh' }}
+    >
+        <Box >
           {willUseNostrExtension ?
             <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
@@ -169,7 +173,7 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                 <CelebrationIcon color='success'/>
                 <CelebrationIcon color='success'/>
               </Stack>
-              <Typography id="modal-modal-title" variant="h6" color="success" component="h2" textAlign="center" marginBottom="5px">
+              <Typography id="modal-modal-title" variant="h6" color={themeColors.textColor} component="h2" textAlign="center" marginBottom="5px">
                 Good Job using a Nostr Extension! Your Secret Key will not be stored here.
               </Typography> 
             </Paper>
@@ -182,8 +186,8 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                     <WarningIcon color='warning'/>
                   </Stack>
                 </Box>
-                <Typography fontSize="small" textAlign="center">
-                  <strong style={{color: "red"}}> IT IS HIGHLY RECCOMENDED TO USE A NOSTR EXTENSION TO HANDLE YOUR SECRET KEY.</strong>
+                <Typography fontSize="small" textAlign="center" color={themeColors.textColor}>
+                  <strong > IT IS HIGHLY RECCOMENDED TO USE A NOSTR EXTENSION TO HANDLE YOUR SECRET KEY.</strong>
                 </Typography>
                 <Box>
                   <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
@@ -192,20 +196,37 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                   </Stack>
                 </Box>
               </Paper>
-                <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
+                <Typography id="pkTitle" variant="h6" color="secondary" component="h2" marginBottom="5px">
                   Secret Key
                 </Typography>
                 <form onSubmit={handleSaveSecretKey}>
                   <Grid container direction="column" spacing={2}>
                     <Grid item>
-                      <TextField disabled={willUseNostrExtension} id="secretKeyInput" label="nsec..." variant="outlined" color="secondary" value={localSecretKey} onChange={handleSecretKeyChange} fullWidth />
+                      <TextField 
+                        disabled={willUseNostrExtension} 
+                        id="secretKeyInput" 
+                        label="nsec..." 
+                        InputLabelProps={{style: {color: themeColors.textColor}}} 
+                        inputProps={{style: {color: themeColors.textColor}}} 
+                        variant="outlined" 
+                        color="secondary" 
+                        value={localSecretKey} 
+                        onChange={handleSecretKeyChange} fullWidth />
                     </Grid>
                     <Grid item>
-                      <Button variant="contained" color="secondary" type="submit" startIcon={<SaveIcon />}>Save</Button>
+                      <Button 
+                        variant="contained" 
+                        color="secondary" 
+                        type="submit" 
+                        startIcon={
+                          <SaveIcon />
+                          }>
+                            Save
+                      </Button>
                     </Grid>
                   </Grid>
                 </form>
-                <Typography id="modal-modal-description" color="warning" sx={{ mt: 2}}>
+                <Typography id="modal-modal-description" color={themeColors.textColor} sx={{ mt: 2}}>
                   This is your secret key. <strong style={{color: "red"}}>DO NOT</strong> share this with others. Your private key will be stored within your browser's local storage. It will be used to sign events. <br/> 
                   </Typography>
             </Box>
@@ -221,13 +242,21 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
         </Box>
         }
 
-          <Typography id="pkTitle" variant="h6" color="Secondary" component="h2" marginBottom="5px">
+          <Typography id="pkTitle" variant="h6" color={themeColors.textColor} component="h2" marginBottom="5px">
             Public Key
           </Typography>
           <form onSubmit={handlePkSubmit}>
             <Grid container direction="column" spacing={2}>
               <Grid item>
-                <TextField id="publicKeyInput" label="npub..." variant="outlined" value={localPk} onChange={handlePkChange} fullWidth />
+                <TextField 
+                  id="publicKeyInput" 
+                  label="npub..." 
+                  InputLabelProps={{style: {color: themeColors.textColor}}} 
+                  inputProps={{style: {color: themeColors.textColor}}} 
+                  variant="outlined" 
+                  value={localPk} 
+                  onChange={handlePkChange} 
+                  fullWidth />
               </Grid>
               {!willUseNostrExtension &&
                 <Grid item>
@@ -236,10 +265,10 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
               }
             </Grid>
           </form>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }} color={themeColors.textColor}>
             This is your public key. You can share this with others. Your public key will be stored within your browser's local storage. It will be used to get your profile and other settings.
             </Typography>
         </Box>
-    </Box>
+    </Grid>
   );
 }

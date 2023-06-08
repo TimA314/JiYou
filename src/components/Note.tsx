@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
@@ -21,7 +21,7 @@ import ForumIcon from '@mui/icons-material/Forum';
 import NoteModal from './NoteModal';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import ReplyToNote from './ReplyToNote';
-
+import { ThemeContext } from '../theme/ThemeContext';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -94,6 +94,7 @@ export default function Note({
   const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
   const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
+  const { themeColors } = useContext(ThemeContext);
 
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
 
@@ -153,6 +154,8 @@ export default function Note({
         }
         title={eventData.user.name}
         subheader={eventData.user.nip05}
+        subheaderTypographyProps={{color: themeColors.textColor}}
+        style={{color: themeColors.textColor}}
       />
       <ReplyToNote 
         open={replyToNoteOpen} 
@@ -167,15 +170,15 @@ export default function Note({
         setSignEventOpen={setSignEventOpen}
         setEventToSign={setEventToSign} 
         hashTags={hashTags}/>
-      <CardContent>
-        <Typography variant="body2" color="text.secondary">
+      <CardContent >
+        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
         {imageFromPost ? eventData.content.replace(imageFromPost, "") : eventData.content}
         {imageFromPost && (
         <CardMedia
           component="img"
           image={imageFromPost}
           alt="picture"
-          sx={{maxHeight: "500px", objectFit: "contain"}}
+          sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
         />)
       }
       {youtubeFromPost && (
@@ -210,10 +213,8 @@ export default function Note({
           </Typography>
         ))}
       </CardContent>
-      <CardContent sx={{ alignContent: "flex-end", alignItems: "flex-end", flexDirection: "row", alignSelf: "flex-end"}}>
-      </CardContent>
       <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="subtitle2">
+        <Typography variant="subtitle2" sx={{color: themeColors.textColor}}>
           {moment.unix(eventData.created_at).fromNow()}
         </Typography>
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
@@ -237,7 +238,7 @@ export default function Note({
             color={liked ? "primary" : "default"}
             className={liked ? 'animateLike' : ''}
           >
-          <Typography variant='caption'>
+          <Typography variant='caption' sx={{color: themeColors.textColor}}>
             {(eventData.reaction?.upvotes ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
@@ -247,6 +248,7 @@ export default function Note({
             onClick={handleExpandClick}
             aria-expanded={expanded}
             aria-label="show more"
+            sx={{color: themeColors.textColor}}
           >
             <ExpandMoreIcon />
           </ExpandMore>
@@ -259,32 +261,32 @@ export default function Note({
               {isFollowing ? "UnFollow" : "Follow"}
             </Button>
           </Box>
-          <Typography paragraph display="h6">MetaData:</Typography>
-          <Typography variant="caption" display="block">
+          <Typography paragraph display="h6" color={themeColors.textColor}>MetaData:</Typography>
+          <Typography variant="caption" display="block" color={themeColors.textColor}>
             Event Id: {eventData.eventId}
           </Typography>
-          <Typography variant='caption' display="block">
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
             Up Votes: {eventData.reaction?.upvotes}
           </Typography>
-          <Typography variant='caption' display="block">
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
             Down Votes: {eventData.reaction?.downvotes}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             PubKey: {nip19.npubEncode(eventData.pubkey)}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             PubKey hex: {eventData.pubkey}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Created: {moment.unix(eventData.created_at).format("LLLL")}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             UnixTime: {eventData.created_at}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Sig: {eventData.sig}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
           </Typography>
         </CardContent>

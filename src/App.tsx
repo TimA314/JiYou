@@ -1,5 +1,4 @@
 import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider } from '@mui/material/styles';
 import './App.css';
 import { Route, Routes } from 'react-router-dom';
 import Profile from './pages/Profile';
@@ -8,40 +7,13 @@ import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
-import { Container, createTheme } from '@mui/material';
-import Keys from './components/Keys';
+import { Box, Container } from '@mui/material';
+import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
 import SignEventDialog from './components/SignEventDialog';
 import { useFollowers } from './hooks/useFollowers';
-
-
-declare module '@mui/material/styles' {
-  interface Theme {
-    status: {
-      danger: string;
-    };
-  }
-  // allow configuration using `createTheme`
-  interface ThemeOptions {
-    status?: {
-      danger?: string;
-    };
-  }
-}
-
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#8E5AC3',
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-  },
-});
+import Settings from './pages/Settings';
 
 
 function App() {
@@ -102,7 +74,7 @@ function App() {
   }, [pool]);
 
   return (
-    <ThemeProvider theme={theme}>
+    <Box>
       <CssBaseline />
       <Container>
         <Routes>
@@ -142,6 +114,9 @@ function App() {
             willUseNostrExtension={willUseNostrExtension} 
             setWillUseNostrExtension={setWillUseNostrExtension} 
             />} />
+          <Route path="/settings" element={
+            <Settings />
+            } />
         </Routes>
         <SignEventDialog 
           signEventOpen={signEventOpen} 
@@ -156,7 +131,7 @@ function App() {
           profile={profile} 
           />
       </Container>
-    </ThemeProvider>
+    </Box>
   );
 }
 

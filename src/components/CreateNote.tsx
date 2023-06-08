@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Box, FormControlLabel, FormGroup, Switch, TextField } from '@mui/material';
+import React, { useContext, useState } from 'react';
+import { Box, FormControlLabel, FormGroup, Switch, TextField, Typography } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { Event, EventTemplate, getEventHash, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { FullEventData } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
+import { ThemeContext } from '../theme/ThemeContext';
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;
@@ -37,6 +38,8 @@ function CreateNote({
     return obj;
   }, {} as RelaySwitches);
   const [relaySwitches, setRelaysSwitches] = useState(relaylist);
+  const { themeColors } = useContext(ThemeContext);
+
 
   const handleRelaySwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setRelaysSwitches(prevState => ({
@@ -139,12 +142,33 @@ function CreateNote({
           focused 
           rows={12}
           margin="normal"
-        />
-        <Button type="button" variant="contained" color='secondary' onClick={handlePostToRelaysClick}>Post {replyEventData ? "Reply" : "Note"} To Relays</Button>
+          inputProps={{style: {color: themeColors.textColor}}} 
+          />
+        <Button type="button" 
+          variant="contained" 
+          color='secondary' 
+          onClick={handlePostToRelaysClick}
+          >
+            Post {replyEventData ? "Reply" : "Note"} To Relays
+        </Button>
         <div className='relayListContainer'>
           {relays.map((relay) => (
             <div className='relaySwitch' key={relay}>
-              <FormControlLabel control={<Switch id={relay} checked={relaySwitches[relay]} size='small' onChange={handleRelaySwitchChange}/>} label={relay} />
+              <FormControlLabel 
+                control={
+                  <Switch 
+                    id={relay} 
+                    checked={relaySwitches[relay]} 
+                    size='small' 
+                    onChange={handleRelaySwitchChange}
+                  />
+                } 
+                label={
+                  <Typography sx={{ color: themeColors.textColor }}>
+                    {relay}
+                  </Typography>
+                }
+              />
             </div>
           ))}
         </div>

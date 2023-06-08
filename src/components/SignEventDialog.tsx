@@ -8,6 +8,9 @@ import { useTheme } from '@mui/material/styles';
 import { EventTemplate, Kind, SimplePool, finishEvent, nip19, validateEvent } from 'nostr-tools';
 import { Box, Paper, styled } from '@mui/material';
 import { ProfileContent } from '../nostr/Types';
+import { ThemeContext } from '../theme/ThemeContext';
+import { useContext } from 'react';
+
 
 const CustomDialog = styled(Dialog)(({ }) => ({
   '& .MuiDialog-paper': {
@@ -37,8 +40,9 @@ export default function SignEventDialog({
     relays, 
     setProfile, 
     setRelays }: SignEventDialogProps) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+    const { themeColors } = useContext(ThemeContext);
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
 
   const signEventManually = async () => {
@@ -48,7 +52,6 @@ export default function SignEventDialog({
     };
 
     const secretKey = localStorage.getItem("sk");
-    console.log("secret key: " + secretKey);
     const decodedSk = nip19.decode(secretKey ?? "");
 
     if (!decodedSk || decodedSk.data.toString().trim() === "") {
@@ -119,11 +122,11 @@ export default function SignEventDialog({
         onClose={handleClose}
         aria-labelledby="responsive-dialog-title"
         >
-        <DialogTitle id="responsive-dialog-title">
+        <DialogTitle id="responsive-dialog-title" color={themeColors.textColor}>
           {"Sign Event and send to relays"}
         </DialogTitle>
         <DialogContent>
-            <Paper sx={{paddingLeft: "10px"}}>
+            <Paper sx={{paddingLeft: "10px", color: themeColors.textColor}}>
               <pre>{formattedEvent}</pre>
             </Paper>
         </DialogContent>

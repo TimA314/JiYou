@@ -9,6 +9,8 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';
+import { ThemeContext } from '../theme/ThemeContext';
+import { useContext } from 'react';
 
 interface ProfileProps {
     relays: string[];
@@ -37,6 +39,7 @@ const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
+const { themeColors } = useContext(ThemeContext);
 
 
 
@@ -127,9 +130,9 @@ const setEventData = (event: Event) => {
 }
 
     return (
-        <Box width="100%">
+        <Box justifyContent="center" >
             {pk !== "" && (
-                <Box>
+                <Paper>
                     <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Toolbar >
@@ -144,13 +147,16 @@ const setEventData = (event: Event) => {
                                 />
                         </div>
                         <Box sx={{ 
-                                color: 'white', 
+                                color: themeColors.textColor,
                                 padding: '5px',
                                 borderRadius: '5px',
                                 fontSize: '14px',
                                 textAlign: 'center',
                             }}>
-                            <Chip label={"Following: " + followers.length} />
+                            <Chip 
+                                label={"Following: " + followers.length}
+                                sx={{ color: themeColors.textColor }}
+                                 />
                         </Box>
                         </AppBar>
                     </Paper>
@@ -163,20 +169,23 @@ const setEventData = (event: Event) => {
                                 <TextField 
                                 id="profileNameInput"
                                 label="Name"
+                                InputLabelProps={{style: {color: themeColors.textColor}}} 
                                 color='primary'
                                 value={profileNameInput}
                                 onChange={e => setProfileNameInput(e.target.value)}
                                 fullWidth
                                 InputProps={{
+                                    style: { color: themeColors.textColor},
                                     startAdornment: 
                                     <InputAdornment position="start">
-                                        <BadgeIcon />
+                                        <BadgeIcon sx={{ color: themeColors.textColor }}/>
                                     </InputAdornment>
                                 }}
                                 />
                                 <TextField 
                                 id="profileAboutInput"
                                 label="About"
+                                InputLabelProps={{style: {color: themeColors.textColor}}} 
                                 color='primary'
                                 value={profileAboutInput}
                                 onChange={e => setProfileAboutInput(e.target.value)}
@@ -184,37 +193,42 @@ const setEventData = (event: Event) => {
                                 multiline
                                 rows={4}
                                 InputProps={{
+                                    style: { color: themeColors.textColor},
                                     startAdornment: 
                                     <InputAdornment position="start">
-                                        <AutoStoriesIcon />
+                                        <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
                                     </InputAdornment>
                                 }}
                                 />     
                                 <TextField 
                                 id="profileImageUrlInput"
                                 label="Profile Image URL"
+                                InputLabelProps={{style: {color: themeColors.textColor}}} 
                                 color='primary'
                                 value={imageUrlInput}
                                 onChange={e => setImageUrlInput(e.target.value)}
                                 fullWidth
                                 InputProps={{
+                                    style: { color: themeColors.textColor},
                                     startAdornment: 
                                     <InputAdornment position="start">
-                                        <ImageIcon />
+                                        <ImageIcon sx={{ color: themeColors.textColor }}/>
                                     </InputAdornment>
                                 }}
                                 />
                                 <TextField
                                     id="bannerImageUrlInput"
                                     label="Banner Image URL"
+                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
                                     fullWidth
                                     color="primary"
                                     value={bannerUrlInput}
                                     onChange={e => setBannerUrlInput(e.target.value)} 
                                     InputProps={{
+                                        style: { color: themeColors.textColor},
                                         startAdornment: 
                                         <InputAdornment position="start">
-                                            <ImageIcon />
+                                            <ImageIcon sx={{ color: themeColors.textColor }} />
                                         </InputAdornment>
                                     }}
                                     />
@@ -243,7 +257,7 @@ const setEventData = (event: Event) => {
                                 {userEventsFetched ? <div></div> : <CircularProgress color='primary'/>}
                             </Box>}
                     </div>
-                </Box>)
+                </Paper>)
             }
         </Box>
     )

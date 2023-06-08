@@ -28,13 +28,13 @@ const NavBar = ({profile}: NavBarProps) => {
   <Paper className="navbar" >
       <NavMenu />
       <Link className="nav-link" to="/">
-        <DynamicFeedIcon />
+        <DynamicFeedIcon color="primary"/>
       </Link>
       <Link  className="nav-link" to="/relays">
-        <CellTowerIcon />
+        <CellTowerIcon color="primary"/>
       </Link>
       <Link  className="nav-link" to="/profile">
-        {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon />}
+        {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon color="primary" />}
       </Link>
   </Paper>
 </Box>

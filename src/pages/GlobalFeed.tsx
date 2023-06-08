@@ -10,7 +10,8 @@ import { setEventData } from '../utils/eventUtils';
 import EditIcon from '@mui/icons-material/Edit';
 import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
-
+import { ThemeContext } from '../theme/ThemeContext';
+import { useContext } from 'react';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -43,6 +44,7 @@ type GlobalFeedProps = {
     const [tabIndex, setTabIndex] = useState(0);
     const { events, setEvents, reactions, metaData, eventsFetched, setEventsFetched } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
+    const { themeColors } = useContext(ThemeContext);
 
 
     //global or followers
@@ -118,6 +120,7 @@ type GlobalFeedProps = {
                             position: 'absolute',
                             right: 8,
                             top: 8,
+                            color: themeColors.textColor
                         }}
                         >
                         <CloseIcon />
@@ -153,9 +156,11 @@ type GlobalFeedProps = {
 
                 <Tabs 
                     value={tabIndex} 
-                    onChange={handleTabChange} 
+                    onChange={handleTabChange}
                     centered>
-                    <Tab label="Global"/>
+                    <Tab 
+                        label="Global"
+                        />
                     <Tab label="Followers"/>
                 </Tabs>
 
