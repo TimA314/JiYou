@@ -6,11 +6,12 @@ import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
 import { useTheme } from '@mui/material/styles';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import ClearIcon from '@mui/icons-material/Clear';
+import { ThemeContext } from '../theme/ThemeContext';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -60,6 +61,8 @@ export default function NoteModal({eventData,
   const [replyEvents, setReplyEvents] = useState<Event[]>([]);
   const [gettingThread, setGettingThread] = useState(true);
   const handleClose = () => setNoteDetailsOpen(false);
+  const { themeColors } = useContext(ThemeContext);
+
   
   // Use a media query to check if the device is a mobile or desktop
   const theme = useTheme();
@@ -140,7 +143,9 @@ export default function NoteModal({eventData,
     >
     <Box sx={{...style, display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
         <Box sx={{position: 'absolute', top: 8, right: 1}}>
-            <ClearIcon style={{cursor: 'pointer'}} onClick={handleClose} />
+            <ClearIcon            
+              sx={{color: themeColors.textColor, cursor: 'pointer'}}
+              onClick={handleClose} />
         </Box>
         <Box sx={{overflowY: 'auto', width: '98%', maxHeight: "80vh"}}>
             <Stack direction="row" spacing={0} flexDirection="column">
@@ -174,7 +179,7 @@ export default function NoteModal({eventData,
                                                 hashTags={hashTags}
                                             />
                                             <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-                                              <SouthIcon />
+                                              <SouthIcon sx={{color: themeColors.textColor}}/>
                                             </Box>
                                         </Box>
                                     )})}

@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
 import { ChromePicker } from 'react-color';
-import { Card, CardContent, Typography, Grid, Button, Slider, Box } from '@mui/material';
-
+import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider } from '@mui/material';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -57,8 +57,10 @@ const Settings: React.FC = () => {
   return (
     <Grid container spacing={3}>
     <Grid item xs={12}>
-      <Typography variant="h4" style={{color: themeColors.textColor}}>Settings</Typography>
+      <Typography variant="h4" style={{color: themeColors.textColor}}><SettingsSuggestIcon color="primary" /> Settings</Typography>
     </Grid>
+    
+    <Divider />
 
     <Grid item xs={12}>
       <Box display="flex" justifyContent="space-between">
