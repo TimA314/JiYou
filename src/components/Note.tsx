@@ -261,32 +261,32 @@ export default function Note({
               {isFollowing ? "UnFollow" : "Follow"}
             </Button>
           </Box>
-          <Typography paragraph display="h6">MetaData:</Typography>
-          <Typography variant="caption" display="block">
+          <Typography paragraph display="h6" color={themeColors.textColor}>MetaData:</Typography>
+          <Typography variant="caption" display="block" color={themeColors.textColor}>
             Event Id: {eventData.eventId}
           </Typography>
-          <Typography variant='caption' display="block">
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
             Up Votes: {eventData.reaction?.upvotes}
           </Typography>
-          <Typography variant='caption' display="block">
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
             Down Votes: {eventData.reaction?.downvotes}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             PubKey: {nip19.npubEncode(eventData.pubkey)}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             PubKey hex: {eventData.pubkey}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Created: {moment.unix(eventData.created_at).format("LLLL")}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             UnixTime: {eventData.created_at}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Sig: {eventData.sig}
           </Typography>
-          <Typography variant="caption" display="block" gutterBottom>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
           </Typography>
         </CardContent>

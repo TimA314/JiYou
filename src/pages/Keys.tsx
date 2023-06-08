@@ -11,10 +11,6 @@ import CelebrationIcon from '@mui/icons-material/Celebration';
 import { ThemeContext } from '../theme/ThemeContext';
 
 
-const style = {
-  p: 1,
-};
-
 interface KeysProps {
     publicKeyOpen: boolean;
     pk: string;
@@ -162,8 +158,14 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
   }
 
   return (
-    <Box>
-        <Box sx={style}>
+    <Grid
+    container
+    direction="column"
+    justifyContent="center"
+    alignItems="center"
+    style={{ minHeight: '100vh' }}
+    >
+        <Box >
           {willUseNostrExtension ?
             <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
@@ -267,6 +269,6 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
             This is your public key. You can share this with others. Your public key will be stored within your browser's local storage. It will be used to get your profile and other settings.
             </Typography>
         </Box>
-    </Box>
+    </Grid>
   );
 }
