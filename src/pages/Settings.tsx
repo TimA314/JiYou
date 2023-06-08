@@ -84,9 +84,9 @@ const Settings: React.FC = () => {
                     <Slider
                       value={themeColors[key]}
                       onChange={handleTextSizeChange}
-                      min={12}
-                      max={24}
-                      step={2}
+                      min={4}
+                      max={32}
+                      step={1}
                     />
                     <Typography style={{fontSize: themeColors.textSize, color: themeColors.textColor}}>
                       Sample Text

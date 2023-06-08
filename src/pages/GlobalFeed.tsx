@@ -120,6 +120,7 @@ type GlobalFeedProps = {
                             position: 'absolute',
                             right: 8,
                             top: 8,
+                            color: themeColors.textColor
                         }}
                         >
                         <CloseIcon />

@@ -77,7 +77,8 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                         label="New Relay"
                         value={relayInput}
                         onChange={(e) => setRelayInput(e.target.value)}
-                        helperText="wss://example.com"
+                        helperText="wss://a.relay"
+                        FormHelperTextProps={{style: {color: themeColors.textColor}}}
                         inputProps={{style: {color: themeColors.textColor}}}
                         InputLabelProps={{style: {color: themeColors.textColor}}} 
                     />

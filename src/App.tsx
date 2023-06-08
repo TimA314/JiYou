@@ -7,7 +7,7 @@ import NavBar from './components/NavBar';
 import { useEffect, useState } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
-import { Container } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -74,7 +74,7 @@ function App() {
   }, [pool]);
 
   return (
-    <>
+    <Box>
       <CssBaseline />
       <Container>
         <Routes>
@@ -131,7 +131,7 @@ function App() {
           profile={profile} 
           />
       </Container>
-    </>
+    </Box>
   );
 }
 
