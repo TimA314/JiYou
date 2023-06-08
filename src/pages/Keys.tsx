@@ -246,7 +246,15 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
           <form onSubmit={handlePkSubmit}>
             <Grid container direction="column" spacing={2}>
               <Grid item>
-                <TextField id="publicKeyInput" label="npub..." InputLabelProps={{style: {color: themeColors.textColor}}} inputProps={{style: {color: themeColors.textColor}}} variant="outlined" value={localPk} onChange={handlePkChange} fullWidth />
+                <TextField 
+                  id="publicKeyInput" 
+                  label="npub..." 
+                  InputLabelProps={{style: {color: themeColors.textColor}}} 
+                  inputProps={{style: {color: themeColors.textColor}}} 
+                  variant="outlined" 
+                  value={localPk} 
+                  onChange={handlePkChange} 
+                  fullWidth />
               </Grid>
               {!willUseNostrExtension &&
                 <Grid item>
