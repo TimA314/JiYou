@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
-import { ChromePicker } from 'react-color';
+import { ChromePicker, SwatchesPicker } from 'react-color';
 import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
+import { MuiColorInput } from 'mui-color-input';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -24,11 +25,33 @@ const defaultThemeColors: ThemeColors = {
 
 const Settings: React.FC = () => {
   const { themeColors, setThemeColors } = useContext(ThemeContext);
+  const [isPickerOpen, setIsPickerOpen] = useState<Record<keyof ThemeColors, boolean>>({
+    primary: false,
+    secondary: false,
+    paper: false,
+    background: false,
+    textSize: false,
+    textColor: false,
+  });
 
-  const handleColorChange = (colorKey: keyof typeof themeColors) => (color: any) => {
+  const togglePicker = (colorKey: keyof typeof isPickerOpen) => {
+    setIsPickerOpen(prevState => ({
+      ...prevState,
+      [colorKey]: !prevState[colorKey],
+    }));
+  };
+  
+  const handleColorChange = (colorKey: keyof ThemeColors) => (color: string, colors: any) => {
     setThemeColors(prevColors => ({
       ...prevColors,
-      [colorKey]: color.hex,
+      [colorKey]: color,
+    }));
+  };
+  
+  const handleTextColorChange = (color: string, colors: any) => {
+    setThemeColors(prevColors => ({
+      ...prevColors,
+      textColor: color,
     }));
   };
 
@@ -44,13 +67,6 @@ const Settings: React.FC = () => {
     setThemeColors(prevColors => ({
       ...prevColors,
       textSize: value as number,
-    }));
-  };
-
-  const handleTextColorChange = (color: any) => {
-    setThemeColors(prevColors => ({
-      ...prevColors,
-      textColor: color.hex,
     }));
   };
 
@@ -78,7 +94,7 @@ const Settings: React.FC = () => {
               <CardContent>
                 <Typography variant="h6" style={{color: themeColors.textColor}}>{colorLabels[key]}</Typography>
                 {key === 'textColor' && (
-                  <ChromePicker color={themeColors[key]} onChange={handleTextColorChange} />
+                  <MuiColorInput value={themeColors.textColor}  onChange={handleTextColorChange} />
                 )}
 
                 {key === 'textSize' && (
@@ -91,13 +107,13 @@ const Settings: React.FC = () => {
                       step={1}
                     />
                     <Typography style={{fontSize: themeColors.textSize, color: themeColors.textColor}}>
-                      Sample Text
+                      This Size
                     </Typography>
                   </div>
                 )}
 
                 {key !== 'textSize' && key !== 'textColor' && (
-                  <ChromePicker color={themeColors[key]} onChange={handleColorChange(key)} />
+                  <MuiColorInput value={themeColors[key]} onChange={handleColorChange(key)} />
                 )}
               </CardContent>
             </Card>

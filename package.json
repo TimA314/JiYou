@@ -18,6 +18,7 @@
     "@types/react-router-dom": "^5.3.3",
     "bech32": "^2.0.0",
     "moment": "^2.29.4",
+    "mui-color-input": "^1.0.6",
     "noble-secp256k1": "^1.2.14",
     "node-fetch": "^2.6.9",
     "nostr-tools": "^1.7.5",
