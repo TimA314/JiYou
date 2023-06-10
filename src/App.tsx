@@ -40,10 +40,10 @@ function App() {
     const settings = localStorage.getItem("settings");
     if (settings) {
       const parsedSettings = JSON.parse(settings);
-      setHideExplicitContent(parsedSettings.hideExplicitContent);
-      setImagesOnlyMode(parsedSettings.imagesOnlyMode);
+      setHideExplicitContent(parsedSettings.hideExplicitContent ?? true);
+      setImagesOnlyMode(parsedSettings.imagesOnlyMode ?? false);
     }
-  }, [])
+}, [])
 
   useEffect(() => {
     const addpublicKeyToState = async () => {
