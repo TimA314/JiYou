@@ -173,25 +173,28 @@ export default function Note({
       <CardContent >
         <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
         {eventData.content}
-        {eventData.images.length > 0 && (
-          eventData.images.map((imageFromPost) => (
-          <CardMedia
-            component="img"
-            image={imageFromPost}
-            alt="picture"
-            sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
-          />
-          ))
-        )}
-      {youtubeFromPost && (
-        <iframe 
-        src={youtubeFromPost} 
-        title="YouTube video player" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        style={{ width: '100%', height: '315px' }}
-      />
-      )}
         </Typography>
+        <Box>
+          {eventData.images.length > 0 && (
+            eventData.images.map((img) => (
+            <CardMedia
+              component="img"
+              image={img}
+              alt="picture"
+              key={img.length + "image" + Math.random().toString()}
+              sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
+            />
+            ))
+          )}
+          {youtubeFromPost && (
+            <iframe 
+            src={youtubeFromPost} 
+            title="YouTube video player" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            style={{ width: '100%', height: '315px' }}
+          />
+          )}
+        </Box>
       </CardContent>
       <CardContent>
         {eventData.hashtags
