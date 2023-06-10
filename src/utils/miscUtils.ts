@@ -24,7 +24,7 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
   
     if (!urlMatches) return [];
     
-    const checkedUrls = [];
+    const checkedUrls: string[] = [];
 
     for (const url of urlMatches) {
       const parsedUrl = new URL(url);
@@ -39,7 +39,8 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
       if (!fileExtensions.includes(parsedUrl.pathname.split('.').pop() ?? '')) {
         continue;
       }
-  
+      
+      if (checkedUrls.includes(url)) continue;
       checkedUrls.push(url);
     }
 

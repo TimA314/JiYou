@@ -47,12 +47,12 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
     }));
   };
 
-  const handleImagesOnlyChange = () => {
-    setImagesOnlyMode(!imagesOnlyMode);
+  const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setImagesOnlyMode(event.target.checked);
   };
 
-  const handleHideExplicitContentChange = () => {
-    setHideExplicitContent(!hideExplicitContent);
+  const handleHideExplicitContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setHideExplicitContent(event.target.checked);
   };
   
   const handleColorChange = (colorKey: keyof ThemeColors) => (color: string, colors: any) => {
@@ -105,11 +105,11 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={4} lg={3}>
-            <Checkbox checked={imagesOnlyMode} onChange={handleImagesOnlyChange} />
+            <Checkbox checked={imagesOnlyMode} onChange={handleImagesOnlyChange} inputProps={{ 'aria-label': 'controlled' }} />
             <Typography variant="subtitle1" style={{color: themeColors.textColor}}>Images Only Mode</Typography>
           </Grid>
           <Grid item direction="row" xs={12} sm={6} md={4} lg={3}>
-            <Checkbox checked={hideExplicitContent} onChange={handleHideExplicitContentChange} />
+            <Checkbox checked={hideExplicitContent} onChange={handleHideExplicitContentChange} inputProps={{ 'aria-label': 'controlled' }}/>
             <Typography variant="subtitle1" style={{color: themeColors.textColor}}>Hide Sensitive Content</Typography>
           </Grid>
       </Grid>

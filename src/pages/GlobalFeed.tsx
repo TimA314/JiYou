@@ -109,13 +109,13 @@ type GlobalFeedProps = {
                 setHashtags={setHashtags} 
                 setEventsFetched={setEventsFetched}/>
 
-            {(events.length === 0 && !eventsFetched) ? <Box sx={{textAlign: "center"}}><Loading /></Box> : <Typography>No Events</Typography>}
+            {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
             {events.filter(
-                (e) => e.tags.filter((t) => t[0] === "e" || hideExplicitContent ? t[0] === "content-warning" : false).length === 0)
-                    .map((event) => {
-                        const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
-                        if (imagesOnlyMode && fullEventData.images.length === 0) return null;
+                (e) => e.tags.filter( (t) => t[0] === "e" || hideExplicitContent ? t[0] === "content-warning" : false).length === 0)
+                    .map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
+                    .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
+                    .map((fullEventData) => {
                         return (
                             <Note 
                                 pool={pool} 
@@ -124,7 +124,7 @@ type GlobalFeedProps = {
                                 setFollowing={setFollowers} 
                                 followers={followers} 
                                 setHashtags={setHashtags} 
-                                key={event.sig + Math.random()} 
+                                key={fullEventData.sig + Math.random()} 
                                 pk={pk}
                                 setSignEventOpen={setSignEventOpen}
                                 setEventToSign={setEventToSign}
@@ -186,6 +186,7 @@ type GlobalFeedProps = {
                 <Tabs 
                     value={tabIndex} 
                     onChange={handleTabChange}
+                    color="secondary"
                     centered>
                     <Tab 
                         label="Global"
