@@ -25,6 +25,7 @@ export interface FullEventData {
     created_at: number;
     tags: string[][];
     reaction: ReactionCounts;
+    images: string[];
 }
 
 declare global {

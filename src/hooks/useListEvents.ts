@@ -11,9 +11,11 @@ type useListEventsProps = {
   tabIndex: number;
   followers: string[];
   hashtags: string[];
+  hideExplicitContent: boolean;
+  imagesOnlyMode: boolean;
 };
 
-export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: useListEventsProps) => {
+export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags, hideExplicitContent, imagesOnlyMode }: useListEventsProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
@@ -38,17 +40,17 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
         console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, followers));
 
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
-        const sanitizedEvents = fetchedFeedEvents.map((event) => sanitizeEvent(event));
-        
+        let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
+
         const recommendedRelays: string[] = [...new Set([...relays, ...defaultRelays])];
         
-        let eventIds: string[] = sanitizedEvents.map(event => event.id);
-        let eventsPubkeys: string[] = sanitizedEvents.map(event => event.pubkey);
+        let eventIds: string[] = sanitizedEvents.map((event: Event) => event.id);
+        let eventsPubkeys: string[] = sanitizedEvents.map((event: Event) => event.pubkey);
 
         // Fetch reactions
         const reactionEvents = await pool.list(recommendedRelays, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-        reactionEvents.forEach((event) => {
+        reactionEvents.forEach((event: Event) => {
           const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
           eventTagThatWasLiked.forEach((tag) => {
             const isValidEventTagThatWasLiked = tag && tag[1];
@@ -75,7 +77,7 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags }: u
         const fetchedMetaDataEvents = await pool.list(recommendedRelays, [{kinds: [0], authors: eventsPubkeys}]);
         
         const metaDataMap: Record<string, MetaData> = {};
-        fetchedMetaDataEvents.forEach((event) => {
+        fetchedMetaDataEvents.forEach((event: Event) => {
           if(event.content){
             try {
               metaDataMap[event.pubkey] = JSON.parse(event.content);

@@ -18,9 +18,9 @@ const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
-    const savedColors = localStorage.getItem('themeColors');
-    if (savedColors) {
-      setThemeColors(JSON.parse(savedColors));
+    const settings = localStorage.getItem('settings');
+    if (settings) {
+      setThemeColors(JSON.parse(settings).theme);
     }
   }, []);
   

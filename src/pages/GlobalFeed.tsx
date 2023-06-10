@@ -1,4 +1,4 @@
-import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
 import { EventTemplate, SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -37,12 +37,39 @@ type GlobalFeedProps = {
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setFollowing: (pubkey: string) => void;
     followers: string[];
+    hideExplicitContent: boolean;
+    imagesOnlyMode: boolean;
   };
   
-  const GlobalFeed: React.FC<GlobalFeedProps> = ({ pool, relays, pk, followers, setEventToSign, setSignEventOpen, setFollowing }) => {
+  const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
+        pool, 
+        relays, 
+        pk, 
+        followers, 
+        setEventToSign, 
+        setSignEventOpen, 
+        setFollowing,
+        hideExplicitContent,
+        imagesOnlyMode
+    }) => {
     const [hashtags, setHashtags] = useState<string[]>([]);
     const [tabIndex, setTabIndex] = useState(0);
-    const { events, setEvents, reactions, metaData, eventsFetched, setEventsFetched } = useListEvents({ pool, relays, tabIndex, followers, hashtags});
+    const { 
+        events, 
+        setEvents, 
+        reactions, 
+        metaData, 
+        eventsFetched, 
+        setEventsFetched 
+    } = useListEvents({ 
+        pool, 
+        relays, 
+        tabIndex, 
+        followers, 
+        hashtags,
+        hideExplicitContent,
+        imagesOnlyMode
+    });
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
 
@@ -85,9 +112,10 @@ type GlobalFeedProps = {
             {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
             {events.filter(
-                (e) => e.tags && e.tags.filter((t) => t[0] === "e").length === 0)
-                    .map((event) => {
-                        const fullEventData = setEventData(event, metaData[event.pubkey], reactions[event.id]);
+                (e) => e.tags.filter( (t) => t[0] === "e" || hideExplicitContent ? t[0] === "content-warning" : false).length === 0)
+                    .map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
+                    .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
+                    .map((fullEventData) => {
                         return (
                             <Note 
                                 pool={pool} 
@@ -96,11 +124,12 @@ type GlobalFeedProps = {
                                 setFollowing={setFollowers} 
                                 followers={followers} 
                                 setHashtags={setHashtags} 
-                                key={event.sig + Math.random()} 
+                                key={fullEventData.sig + Math.random()} 
                                 pk={pk}
                                 setSignEventOpen={setSignEventOpen}
                                 setEventToSign={setEventToSign}
-                                hashTags={hashtags} />
+                                hashTags={hashtags} 
+                                imagesOnlyMode={imagesOnlyMode}/>
                         )
                     })
             }
@@ -157,6 +186,7 @@ type GlobalFeedProps = {
                 <Tabs 
                     value={tabIndex} 
                     onChange={handleTabChange}
+                    color="secondary"
                     centered>
                     <Tab 
                         label="Global"
