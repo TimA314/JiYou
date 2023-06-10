@@ -16,35 +16,34 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
     .join('');
 };
   
-  export const GetImageFromPost = (content: string): string | null => {
-    if (!content) return null;
+  export const GetImageFromPost = (content: string): string[] => {
+    if (!content) return [];
   
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const urlMatches = content.match(urlRegex)?.filter(url => /\.(jpg|png|gif)$/.test(url));
   
-    if (!urlMatches) return null;
-  
-    const url = urlMatches[0];
-  
-    // Check if the URL is valid
-    try {
+    if (!urlMatches) return [];
+    
+    const checkedUrls = [];
+
+    for (const url of urlMatches) {
       const parsedUrl = new URL(url);
-  
+
       // Check the protocol
       if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-        return null;
+        return [];
       }
   
       // Check the file extension
       const fileExtensions = ['jpg', 'png', 'gif', 'jpeg'];
       if (!fileExtensions.includes(parsedUrl.pathname.split('.').pop() ?? '')) {
-        return null;
+        continue;
       }
   
-      return url;
-    } catch (e) {
-      return null;
+      checkedUrls.push(url);
     }
+
+    return checkedUrls;
   };
 
   export const getYoutubeVideoFromPost = (content: string): string | null => {

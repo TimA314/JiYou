@@ -26,6 +26,8 @@ function App() {
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
   const {setFollowing, followers} = useFollowers({pool, relays, pk, setEventToSign, setSignEventOpen});
+  const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
+  const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
 
   useEffect(() => {
     //setup pool
@@ -34,6 +36,14 @@ function App() {
     }
   }, [pool])
 
+  useEffect(() => {
+    const settings = localStorage.getItem("settings");
+    if (settings) {
+      const parsedSettings = JSON.parse(settings);
+      setHideExplicitContent(parsedSettings.hideExplicitContent);
+      setImagesOnlyMode(parsedSettings.imagesOnlyMode);
+    }
+  }, [])
 
   useEffect(() => {
     const addpublicKeyToState = async () => {
@@ -105,6 +115,8 @@ function App() {
               setEventToSign={setEventToSign} 
               setSignEventOpen={setSignEventOpen} 
               setFollowing={setFollowing}
+              hideExplicitContent={hideExplicitContent}
+              imagesOnlyMode={imagesOnlyMode}
               />} />
           <Route path="/keys" element={
             <Keys 
@@ -115,7 +127,12 @@ function App() {
             setWillUseNostrExtension={setWillUseNostrExtension} 
             />} />
           <Route path="/settings" element={
-            <Settings />
+            <Settings 
+              imagesOnlyMode={imagesOnlyMode}
+              setImagesOnlyMode={setImagesOnlyMode}
+              hideExplicitContent={hideExplicitContent}
+              setHideExplicitContent={setHideExplicitContent}
+              />
             } />
         </Routes>
         <SignEventDialog 

@@ -1,6 +1,6 @@
 import { Event, nip19 } from "nostr-tools";
 import { FullEventData, MetaData, ReactionCounts } from "../nostr/Types";
-import { DiceBears } from "./miscUtils";
+import { DiceBears, GetImageFromPost } from "./miscUtils";
 
 //set Events
 export const setEventData = (event: Event, metaData: MetaData, reactions: ReactionCounts) => {
@@ -20,7 +20,9 @@ export const setEventData = (event: Event, metaData: MetaData, reactions: Reacti
       created_at: event.created_at,
       tags: event?.tags ?? [],
       reaction: reactions,
+      images: GetImageFromPost(event.content)
   }
+  
   return fullEventData;
 }
 

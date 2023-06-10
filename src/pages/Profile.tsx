@@ -11,6 +11,7 @@ import { FullEventData, ReactionCounts } from '../nostr/Types';
 import Note from '../components/Note';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
+import { GetImageFromPost } from '../utils/miscUtils';
 
 interface ProfileProps {
     relays: string[];
@@ -125,6 +126,7 @@ const setEventData = (event: Event) => {
         created_at: event.created_at,
         tags: event?.tags ?? [],
         reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
+        images: GetImageFromPost(event.content)
     }
     return fullEventData;
 }
