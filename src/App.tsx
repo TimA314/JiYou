@@ -37,11 +37,11 @@ function App() {
   }, [pool])
 
   useEffect(() => {
-    const settings = localStorage.getItem("settings");
+    const settings = localStorage.getItem("JiYouSettings");
     if (settings) {
       const parsedSettings = JSON.parse(settings);
-      setHideExplicitContent(parsedSettings.hideExplicitContent ?? true);
-      setImagesOnlyMode(parsedSettings.imagesOnlyMode ?? false);
+      setHideExplicitContent(parsedSettings?.feedSettings?.hideExplicitContent ?? true);
+      setImagesOnlyMode(parsedSettings?.feedSettings?.imagesOnlyMode ?? false);
     }
 }, [])
 

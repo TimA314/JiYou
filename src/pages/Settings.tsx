@@ -69,7 +69,7 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
   };
 
   const handleSaveSettings = () => {
-    localStorage.setItem('settings', JSON.stringify({theme: themeColors, settings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
+    localStorage.setItem('JiYouSettings', JSON.stringify({theme: themeColors, feedSettings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
     alert('Settings Saved');
   };
 
