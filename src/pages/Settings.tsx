@@ -70,6 +70,7 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
 
   const handleSaveSettings = () => {
     localStorage.setItem('settings', JSON.stringify({theme: themeColors, settings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
+    alert('Settings Saved');
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {

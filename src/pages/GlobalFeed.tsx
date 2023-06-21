@@ -172,6 +172,7 @@ type GlobalFeedProps = {
                     bottom: 50,
                     left: 0,
                     right: 0,
+                    color: themeColors.textColor,
                 }}
                 >
                     
@@ -186,7 +187,8 @@ type GlobalFeedProps = {
                 <Tabs 
                     value={tabIndex} 
                     onChange={handleTabChange}
-                    color="secondary"
+                    textColor='inherit'
+                    indicatorColor='secondary'
                     centered>
                     <Tab 
                         label="Global"
