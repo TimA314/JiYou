@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
-import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider, Checkbox } from '@mui/material';
+import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider, Checkbox, FormGroup, FormControlLabel } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import { MuiColorInput } from 'mui-color-input';
 
@@ -40,13 +40,6 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
     textColor: false,
   });
 
-  const togglePicker = (colorKey: keyof typeof isPickerOpen) => {
-    setIsPickerOpen(prevState => ({
-      ...prevState,
-      [colorKey]: !prevState[colorKey],
-    }));
-  };
-
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setImagesOnlyMode(event.target.checked);
   };
@@ -71,10 +64,13 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
 
   const handleSetDefault = () => {
     setThemeColors(defaultThemeColors);
+    setHideExplicitContent(true);
+    setImagesOnlyMode(false);
   };
 
-  const handleSaveColors = () => {
-    localStorage.setItem('settings', JSON.stringify({theme: themeColors, settings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
+  const handleSaveSettings = () => {
+    localStorage.setItem('JiYouSettings', JSON.stringify({theme: themeColors, feedSettings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
+    alert('Settings Saved');
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {
@@ -95,31 +91,38 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
       <Grid item xs={12}>
         <Box display="flex" justifyContent="space-between">
           <Button onClick={handleSetDefault} variant="contained" color="primary">Set Default</Button>
-          <Button onClick={handleSaveColors} variant="contained" color="secondary">Save</Button>
+          <Button onClick={handleSaveSettings} variant="contained" color="secondary">Save</Button>
         </Box>
       </Grid>
 
       <Grid item xs={12} margin="10px">
-        <Typography variant="h5" style={{color: themeColors.textColor}}>
-          Feed Settings
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={4} lg={3}>
-            <Checkbox checked={imagesOnlyMode} onChange={handleImagesOnlyChange} inputProps={{ 'aria-label': 'controlled' }} />
-            <Typography variant="subtitle1" style={{color: themeColors.textColor}}>Images Only Mode</Typography>
-          </Grid>
-          <Grid item direction="row" xs={12} sm={6} md={4} lg={3}>
-            <Checkbox checked={hideExplicitContent} onChange={handleHideExplicitContentChange} inputProps={{ 'aria-label': 'controlled' }}/>
-            <Typography variant="subtitle1" style={{color: themeColors.textColor}}>Hide Sensitive Content</Typography>
-          </Grid>
+        <Grid>
+          <Typography variant="h5" style={{color: themeColors.textColor}}>
+            Feed Settings
+          </Typography>
+        </Grid>
+        <Grid>
+          <FormGroup>
+            <FormControlLabel
+              control={<Checkbox checked={hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
+              label="Hide Sensetive Content"
+              style={{color: themeColors.textColor}}
+              color={themeColors.textColor} />
+            <FormControlLabel
+              control={<Checkbox checked={imagesOnlyMode ?? false} onChange={handleImagesOnlyChange} />} 
+              label="Images Only"
+              style={{color: themeColors.textColor}}
+              color={themeColors.textColor} />
+          </FormGroup>
+        </Grid>
       </Grid>
-
 
       <Grid item xs={12}>
         <Typography variant="h5" style={{color: themeColors.textColor}}>
           Apearance
         </Typography>
       </Grid>
+      <Grid container spacing={3}>
         {Object.keys(themeColors).map((colorKey) => {
           const key = colorKey as keyof ThemeColors;
 
@@ -130,7 +133,10 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
                 <CardContent>
                   <Typography variant="subtitle1" style={{color: themeColors.textColor}}>{colorLabels[key]}</Typography>
                   {key === 'textColor' && (
-                    <MuiColorInput value={themeColors.textColor}  onChange={handleTextColorChange} />
+                    <MuiColorInput 
+                      inputProps={{ style: {color: themeColors.textColor}}} 
+                      value={themeColors.textColor} 
+                      onChange={handleTextColorChange} />
                   )}
 
                   {key === 'textSize' && (
@@ -149,7 +155,10 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
                   )}
 
                   {key !== 'textSize' && key !== 'textColor' && (
-                    <MuiColorInput value={themeColors[key]} onChange={handleColorChange(key)} />
+                    <MuiColorInput 
+                      inputProps={{ style: {color: themeColors.textColor}}} 
+                      value={themeColors[key]} 
+                      onChange={handleColorChange(key)} />
                   )}
                 </CardContent>
               </Card>
