@@ -111,8 +111,7 @@ type GlobalFeedProps = {
 
             {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
             
-            {events.filter(
-                (e) => e.tags.filter( (t) => t[0] === "e" || hideExplicitContent ? t[0] === "content-warning" : false).length === 0)
+            {events.filter((e) => hideExplicitContent ? e.tags.filter((t) => t[0] === "content-warning").length === 0 : true)
                     .map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
                     .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
                     .map((fullEventData) => {
