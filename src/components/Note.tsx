@@ -240,7 +240,7 @@ export default function Note({
             aria-label="Upvote note" 
             onClick={likeNote} 
             disabled={liked} 
-            color={liked ? "primary" : "default"}
+            sx={{ color: liked ? themeColors.primary : themeColors.textColor }}
             className={liked ? 'animateLike' : ''}
           >
           <Typography variant='caption' sx={{color: themeColors.textColor}}>
