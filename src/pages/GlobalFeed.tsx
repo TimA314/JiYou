@@ -100,7 +100,6 @@ type GlobalFeedProps = {
 
 
     //render
-    console.log("Number of events: ", events.length)
     return (
         <Box sx={{marginTop: "52px"}}>
 

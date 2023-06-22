@@ -41,12 +41,12 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags, hid
         console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, followers));
 
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
+        console.log("number of events fetched: ", fetchedFeedEvents.length);
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
-
         if (hideExplicitContent) {
           sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
         }
-        
+
         const recommendedRelays: string[] = [...new Set([...relays, ...defaultRelays])];
         
         let eventIds: string[] = sanitizedEvents.map((event: Event) => event.id);
