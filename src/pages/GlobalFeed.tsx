@@ -1,4 +1,4 @@
-import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
 import { EventTemplate, SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -100,7 +100,7 @@ type GlobalFeedProps = {
 
 
     //render
-
+    console.log("Number of events: ", events.length)
     return (
         <Box sx={{marginTop: "52px"}}>
 
@@ -110,9 +110,9 @@ type GlobalFeedProps = {
                 setEventsFetched={setEventsFetched}/>
 
             {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
+            {events.length === 0 && eventsFetched && <Box sx={{textAlign: "center"}}>No Events</Box>}
             
-            {events.filter((e) => hideExplicitContent ? e.tags.filter((t) => t[0] === "content-warning").length === 0 : true)
-                    .map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
+            {events.map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
                     .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
                     .map((fullEventData) => {
                         return (

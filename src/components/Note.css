@@ -2,10 +2,6 @@
     animation: scaleAnimation 0.5s ease-in-out;
 }
 
-.like-color {
-    color: rgb(119, 0, 223);
-}
-
 @keyframes scaleAnimation {
     0% {
         transform: scale(1);

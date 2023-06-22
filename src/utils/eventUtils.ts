@@ -82,4 +82,16 @@ export function insertEventIntoDescendingList<T extends Event>(
     
     return [];
   }
+
+  const explicitTags: string[] = [
+    "nsfw",
+    "gore",
+    "nudity",
+    "nude",
+    "blood"
+  ]
+
+  export function eventContainsExplicitContent(event: Event): boolean {
+    return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1])).length > 0
+  }
   

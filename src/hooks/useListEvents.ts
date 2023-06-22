@@ -4,6 +4,7 @@ import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { MetaData, ReactionCounts } from '../nostr/Types';
 import { getEventOptions } from '../nostr/FeedEvents';
 import { defaultRelays } from '../nostr/DefaultRelays';
+import { eventContainsExplicitContent } from '../utils/eventUtils';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -42,6 +43,10 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags, hid
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
 
+        if (hideExplicitContent) {
+          sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
+        }
+        
         const recommendedRelays: string[] = [...new Set([...relays, ...defaultRelays])];
         
         let eventIds: string[] = sanitizedEvents.map((event: Event) => event.id);
