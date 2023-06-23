@@ -30,9 +30,9 @@ interface ReplyToNoteProps {
     pool: SimplePool | null;
     relays: string[];
     pk: string;
-    followers: string[];
+    following: string[];
     hashTags: string[];
-    setFollowing: (pubkey: string) => void;
+    updateFollowing: (pubkey: string) => void;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -45,9 +45,9 @@ export default function ReplyToNote({
   pool, 
   relays, 
   pk, 
-  followers,
+  following,
   hashTags,
-  setFollowing, 
+  updateFollowing, 
   setHashtags,
   setEventToSign,
   setSignEventOpen,
@@ -96,8 +96,8 @@ export default function ReplyToNote({
               pool={pool} 
               relays={relays} 
               pk={pk} 
-              followers={followers} 
-              setFollowing={setFollowing} 
+              following={following} 
+              updateFollowing={updateFollowing} 
               setHashtags={setHashtags} 
               disableReplyIcon={true}
               setSignEventOpen={setSignEventOpen}

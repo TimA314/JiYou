@@ -18,7 +18,7 @@ interface ProfileProps {
     pool: SimplePool | null;
     pk: string;
     profile: ProfileContent;
-    followers: string[];
+    following: string[];
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,7 +31,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, followers, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
@@ -156,7 +156,7 @@ const setEventData = (event: Event) => {
                                 textAlign: 'center',
                             }}>
                             <Chip 
-                                label={"Following: " + followers.length}
+                                label={"Following: " + following.length}
                                 sx={{ color: themeColors.textColor }}
                                  />
                         </Box>
@@ -246,8 +246,8 @@ const setEventData = (event: Event) => {
                                 pool={pool} 
                                 relays={relays} 
                                 eventData={fullEventData} 
-                                setFollowing={() => {}} 
-                                followers={[]} 
+                                updateFollowing={() => {}} 
+                                following={following} 
                                 key={event.sig + Math.random()} 
                                 setHashtags={() => {}} 
                                 pk={pk}

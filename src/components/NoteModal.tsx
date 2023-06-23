@@ -31,8 +31,8 @@ interface NoteModalProps {
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
   relays: string[];
-  followers: string[];
-  setFollowing: (pubkey: string) => void;
+  following: string[];
+  updateFollowing: (pubkey: string) => void;
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
@@ -46,8 +46,8 @@ export default function NoteModal({eventData,
                                     setNoteDetailsOpen,
                                     pool,
                                     relays,
-                                    followers,
-                                    setFollowing,
+                                    following,
+                                    updateFollowing,
                                     setReplyCount,
                                     setHashtags,
                                     pk,
@@ -168,8 +168,8 @@ export default function NoteModal({eventData,
                                                 eventData={fullRootEventData}
                                                 pool={pool}
                                                 relays={relays}
-                                                followers={followers}
-                                                setFollowing={setFollowing}
+                                                following={following}
+                                                updateFollowing={updateFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
                                                 disableReplyIcon={false}
@@ -190,8 +190,8 @@ export default function NoteModal({eventData,
                 <Box>
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
-                        followers={followers}
-                        setFollowing={setFollowing}
+                        following={following}
+                        updateFollowing={updateFollowing}
                         setHashtags={setHashtags}
                         pk={pk}
                         disableReplyIcon={false}
@@ -215,8 +215,8 @@ export default function NoteModal({eventData,
                                       eventData={fullEventData}
                                       pool={pool}
                                       relays={relays}
-                                      followers={followers}
-                                      setFollowing={setFollowing}
+                                      following={following}
+                                      updateFollowing={updateFollowing}
                                       setHashtags={setHashtags}
                                       pk={pk}
                                       key={replyEvent.sig + Math.random()}
