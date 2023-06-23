@@ -22,6 +22,7 @@ import NoteModal from './NoteModal';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import ReplyToNote from './ReplyToNote';
 import { ThemeContext } from '../theme/ThemeContext';
+import React from 'react';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -74,7 +75,7 @@ interface NoteProps {
   imagesOnlyMode?: boolean;
 }
 
-export default function Note({
+const Note: React.FC<NoteProps> = ({
     pk,
     pool, 
     relays, 
@@ -87,7 +88,7 @@ export default function Note({
     setSignEventOpen,
     hashTags,
     updateFollowing,
-  }: NoteProps) {
+  }: NoteProps) => {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -299,3 +300,5 @@ export default function Note({
     </Card>
   );
 }
+
+export default React.memo(Note);

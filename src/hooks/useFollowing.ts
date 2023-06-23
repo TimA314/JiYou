@@ -119,9 +119,9 @@ export const useFollowing = ({ pool, relays, pk, setEventToSign, setSignEventOpe
       }
 
       //sign manually
-      setSignEventOpen(true);
       setEventToSign(_baseEvent);          
       setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
+      setSignEventOpen(true);
 
     } catch (error) {
         console.log(error);
