@@ -32,7 +32,7 @@ interface ReplyToNoteProps {
     pk: string;
     following: string[];
     hashTags: string[];
-    setFollowing: (pubkey: string) => void;
+    updateFollowing: (pubkey: string) => void;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -47,7 +47,7 @@ export default function ReplyToNote({
   pk, 
   following,
   hashTags,
-  setFollowing, 
+  updateFollowing, 
   setHashtags,
   setEventToSign,
   setSignEventOpen,
@@ -97,7 +97,7 @@ export default function ReplyToNote({
               relays={relays} 
               pk={pk} 
               following={following} 
-              setFollowing={setFollowing} 
+              updateFollowing={updateFollowing} 
               setHashtags={setHashtags} 
               disableReplyIcon={true}
               setSignEventOpen={setSignEventOpen}

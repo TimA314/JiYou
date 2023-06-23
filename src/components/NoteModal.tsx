@@ -32,7 +32,7 @@ interface NoteModalProps {
   pool: SimplePool | null;
   relays: string[];
   following: string[];
-  setFollowing: (pubkey: string) => void;
+  updateFollowing: (pubkey: string) => void;
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
@@ -47,7 +47,7 @@ export default function NoteModal({eventData,
                                     pool,
                                     relays,
                                     following,
-                                    setFollowing,
+                                    updateFollowing,
                                     setReplyCount,
                                     setHashtags,
                                     pk,
@@ -169,7 +169,7 @@ export default function NoteModal({eventData,
                                                 pool={pool}
                                                 relays={relays}
                                                 following={following}
-                                                setFollowing={setFollowing}
+                                                updateFollowing={updateFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
                                                 disableReplyIcon={false}
@@ -191,7 +191,7 @@ export default function NoteModal({eventData,
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
                         following={following}
-                        setFollowing={setFollowing}
+                        updateFollowing={updateFollowing}
                         setHashtags={setHashtags}
                         pk={pk}
                         disableReplyIcon={false}
@@ -216,7 +216,7 @@ export default function NoteModal({eventData,
                                       pool={pool}
                                       relays={relays}
                                       following={following}
-                                      setFollowing={setFollowing}
+                                      updateFollowing={updateFollowing}
                                       setHashtags={setHashtags}
                                       pk={pk}
                                       key={replyEvent.sig + Math.random()}

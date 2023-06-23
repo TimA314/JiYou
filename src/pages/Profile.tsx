@@ -246,8 +246,8 @@ const setEventData = (event: Event) => {
                                 pool={pool} 
                                 relays={relays} 
                                 eventData={fullEventData} 
-                                setFollowing={() => {}} 
-                                followers={[]} 
+                                updateFollowing={() => {}} 
+                                following={following} 
                                 key={event.sig + Math.random()} 
                                 setHashtags={() => {}} 
                                 pk={pk}

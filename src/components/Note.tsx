@@ -64,7 +64,7 @@ interface NoteProps {
   pool: SimplePool | null;
   relays: string[];
   following: string[];
-  setFollowing: (pubkey: string) => void;
+  updateFollowing: (pubkey: string) => void;
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
@@ -86,7 +86,7 @@ export default function Note({
     setEventToSign,
     setSignEventOpen,
     hashTags,
-    setFollowing,
+    updateFollowing,
   }: NoteProps) {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -103,7 +103,7 @@ export default function Note({
   };
   
   const handleFollowButtonClicked = () => {
-    setFollowing(eventData.pubkey);
+    updateFollowing(eventData.pubkey);
     setIsFollowing(!isFollowing)
   }
   const likeNote = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -141,7 +141,7 @@ export default function Note({
         pool={pool}
         relays={relays}
         following={following}
-        setFollowing={setFollowing}
+        updateFollowing={updateFollowing}
         setHashtags={setHashtags}
         pk={pk}
         setSignEventOpen={setSignEventOpen}
@@ -165,7 +165,7 @@ export default function Note({
         relays={relays} 
         pk={pk} 
         following={following} 
-        setFollowing={setFollowing} 
+        updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
         setSignEventOpen={setSignEventOpen}
         setEventToSign={setEventToSign} 

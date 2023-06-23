@@ -1,4 +1,4 @@
-import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
 import { EventTemplate, SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
@@ -35,7 +35,7 @@ type GlobalFeedProps = {
     pk: string;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setFollowing: (pubkey: string) => void;
+    updateFollowing: (pubkey: string) => void;
     following: string[];
     hideExplicitContent: boolean;
     imagesOnlyMode: boolean;
@@ -48,7 +48,7 @@ type GlobalFeedProps = {
         following, 
         setEventToSign, 
         setSignEventOpen, 
-        setFollowing,
+        updateFollowing,
         hideExplicitContent,
         imagesOnlyMode
     }) => {
@@ -82,10 +82,6 @@ type GlobalFeedProps = {
         setEvents([]);
     };
 
-    const setFollowers = (pubkey: string) => {
-        setFollowing(pubkey);
-    }
-
     const handleCreateNoteOpen = () => {
         setCreateNoteOpen(true)
     }
@@ -109,7 +105,7 @@ type GlobalFeedProps = {
                 setEventsFetched={setEventsFetched}/>
 
             {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
-            {events.length === 0 && eventsFetched && <Box sx={{textAlign: "center"}}>No Events</Box>}
+            {events.length === 0 && eventsFetched && <Box sx={{textAlign: "center"}}><Typography color={themeColors.textColor}>No Notes Found</Typography></Box>}
             
             {events.map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
                     .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
@@ -119,7 +115,7 @@ type GlobalFeedProps = {
                                 pool={pool} 
                                 relays={relays} 
                                 eventData={fullEventData} 
-                                setFollowing={setFollowers} 
+                                updateFollowing={updateFollowing} 
                                 following={following} 
                                 setHashtags={setHashtags} 
                                 key={fullEventData.sig + Math.random()} 

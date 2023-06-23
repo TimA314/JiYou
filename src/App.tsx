@@ -114,7 +114,7 @@ function App() {
               following={following} 
               setEventToSign={setEventToSign} 
               setSignEventOpen={setSignEventOpen} 
-              setFollowing={updateFollowing}
+              updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
               />} />
