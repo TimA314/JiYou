@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
-import { useContext, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate } from 'nostr-tools';
 import { getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { likeEvent } from '../nostr/FeedEvents';
@@ -99,28 +99,35 @@ const Note: React.FC<NoteProps> = ({
 
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  };
+  const handleExpandClick = useCallback(() => {
+    setExpanded((expanded) => !expanded);
+  }, []);
   
-  const handleFollowButtonClicked = () => {
+  const handleFollowButtonClicked = useCallback(() => {
     updateFollowing(eventData.pubkey);
-    setIsFollowing(!isFollowing)
-  }
-  const likeNote = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if(!pool) return;
-
+    setIsFollowing((isFollowing) => !isFollowing);
+  }, [updateFollowing, eventData.pubkey]);
+  
+  const likeNote = useCallback(async () => {
+    if (!pool) return;
+  
     setLiked(true);
-    const likeCompleted = await likeEvent(pool, relays, eventData, pk, setEventToSign, setSignEventOpen)
-    if(likeCompleted === false) {
+    const likeCompleted = await likeEvent(
+      pool,
+      relays,
+      eventData,
+      pk,
+      setEventToSign,
+      setSignEventOpen
+    );
+    if (likeCompleted === false) {
       setLiked(false);
     }
-  }
+  }, [pool, relays, eventData, pk, setEventToSign, setSignEventOpen]);
 
-  const showReplyThread = () => {
-    console.log("show reply thread")
-    setNoteDetailsOpen(NoteDetailsOpen => !NoteDetailsOpen);
-  }
+  const showReplyThread = useCallback(() => {
+    setNoteDetailsOpen((NoteDetailsOpen) => !NoteDetailsOpen);
+  }, []);
 
   const addHashtag = (tag: string) => {
     console.log("add hashtag", tag)
