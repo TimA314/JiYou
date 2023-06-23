@@ -63,7 +63,7 @@ interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
   relays: string[];
-  followers: string[];
+  following: string[];
   setFollowing: (pubkey: string) => void;
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
@@ -79,7 +79,7 @@ export default function Note({
     pool, 
     relays, 
     eventData, 
-    followers, 
+    following, 
     setHashtags, 
     disableReplyIcon, 
     gettingThread,
@@ -91,7 +91,7 @@ export default function Note({
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(followers.includes(eventData.pubkey));
+  const [isFollowing, setIsFollowing] = useState(following.includes(eventData.pubkey));
   const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
@@ -140,7 +140,7 @@ export default function Note({
         setNoteDetailsOpen={setNoteDetailsOpen}
         pool={pool}
         relays={relays}
-        followers={followers}
+        following={following}
         setFollowing={setFollowing}
         setHashtags={setHashtags}
         pk={pk}
@@ -164,7 +164,7 @@ export default function Note({
         pool={pool} 
         relays={relays} 
         pk={pk} 
-        followers={followers} 
+        following={following} 
         setFollowing={setFollowing} 
         setHashtags={setHashtags}
         setSignEventOpen={setSignEventOpen}

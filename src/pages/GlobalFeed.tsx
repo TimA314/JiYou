@@ -36,7 +36,7 @@ type GlobalFeedProps = {
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setFollowing: (pubkey: string) => void;
-    followers: string[];
+    following: string[];
     hideExplicitContent: boolean;
     imagesOnlyMode: boolean;
   };
@@ -45,7 +45,7 @@ type GlobalFeedProps = {
         pool, 
         relays, 
         pk, 
-        followers, 
+        following, 
         setEventToSign, 
         setSignEventOpen, 
         setFollowing,
@@ -65,7 +65,7 @@ type GlobalFeedProps = {
         pool, 
         relays, 
         tabIndex, 
-        followers, 
+        following, 
         hashtags,
         hideExplicitContent,
         imagesOnlyMode
@@ -120,7 +120,7 @@ type GlobalFeedProps = {
                                 relays={relays} 
                                 eventData={fullEventData} 
                                 setFollowing={setFollowers} 
-                                followers={followers} 
+                                following={following} 
                                 setHashtags={setHashtags} 
                                 key={fullEventData.sig + Math.random()} 
                                 pk={pk}

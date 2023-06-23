@@ -31,7 +31,7 @@ interface NoteModalProps {
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
   relays: string[];
-  followers: string[];
+  following: string[];
   setFollowing: (pubkey: string) => void;
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -46,7 +46,7 @@ export default function NoteModal({eventData,
                                     setNoteDetailsOpen,
                                     pool,
                                     relays,
-                                    followers,
+                                    following,
                                     setFollowing,
                                     setReplyCount,
                                     setHashtags,
@@ -168,7 +168,7 @@ export default function NoteModal({eventData,
                                                 eventData={fullRootEventData}
                                                 pool={pool}
                                                 relays={relays}
-                                                followers={followers}
+                                                following={following}
                                                 setFollowing={setFollowing}
                                                 setHashtags={setHashtags}
                                                 pk={pk}
@@ -190,7 +190,7 @@ export default function NoteModal({eventData,
                 <Box>
                     <Note eventData={eventData}
                         pool={pool} relays={relays}
-                        followers={followers}
+                        following={following}
                         setFollowing={setFollowing}
                         setHashtags={setHashtags}
                         pk={pk}
@@ -215,7 +215,7 @@ export default function NoteModal({eventData,
                                       eventData={fullEventData}
                                       pool={pool}
                                       relays={relays}
-                                      followers={followers}
+                                      following={following}
                                       setFollowing={setFollowing}
                                       setHashtags={setHashtags}
                                       pk={pk}

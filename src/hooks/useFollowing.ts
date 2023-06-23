@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Event, EventTemplate, SimplePool, getEventHash, getPublicKey, nip19 } from 'nostr-tools';
-import { defaultRelays } from '../nostr/DefaultRelays';
 
-type UseFollowersProps = {
+type UseFollowingProps = {
   pool: SimplePool | null;
   relays: string[];
   pk: string;
@@ -10,32 +9,32 @@ type UseFollowersProps = {
   setSignEventOpen: (open: boolean) => void;
 };
 
-export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpen}: UseFollowersProps) => {
-  const [followers, setFollowers] = useState<string[]>([]);
+export const useFollowing = ({ pool, relays, pk, setEventToSign, setSignEventOpen}: UseFollowingProps) => {
+  const [following, setFollowing] = useState<string[]>([]);
   
   useEffect(() => {
     console.log("useFollowers pk: " + pk)
     if (!pool || pk === "") return;
     
 
-    const getFollowers = async () => {
+    const getFollowing = async () => {
       
-      let followerPks: string[] = [];
-      const userFollowerEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
+      let followingPks: string[] = [];
+      const userFollowingEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
       
-      if (!userFollowerEvent[0] || !userFollowerEvent[0].tags) return;
+      if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return;
   
-      const followerArray: string[][] = userFollowerEvent[0].tags.filter((tag) => tag[0] === 'p');
-      for (let i = 0; i < followerArray.length; i++) {
-        if (followerArray[i][1]) {
-          followerPks.push(followerArray[i][1]);
+      const followingArray: string[][] = userFollowingEvent[0].tags.filter((tag) => tag[0] === 'p');
+      for (let i = 0; i < followingArray.length; i++) {
+        if (followingArray[i][1]) {
+          followingPks.push(followingArray[i][1]);
         }
       }
-      console.log(followerPks.length + ' followers found');
-      setFollowers(followerPks);
+      console.log(followingPks.length + ' followers found');
+      setFollowing(followingPks);
     };
   
-    getFollowers();
+    getFollowing();
   }, [pool, relays]);
 
   const signNostrEventWithNostrExtension = async (_baseEvent: EventTemplate, pubkey: string) => {
@@ -69,7 +68,7 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
 
   }
   
-  const setFollowing = async (followerPubkey: string) => {
+  const updateFollowing = async (followerPubkey: string) => {
     console.log("here")
     if (!pool) return;
 
@@ -89,13 +88,13 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
         return;
       }
       
-      const isUnfollowing: boolean = !!followers.find((follower) => follower === followerPubkey);
+      const isUnfollowing: boolean = !!following.find((follower) => follower === followerPubkey);
     
       console.log("setIsFollowing " + followerPubkey + " " + isUnfollowing)
             
       const newTags: string[][] = isUnfollowing ? [] : [["p", followerPubkey]];
-      console.log(followers)
-      followers.forEach((follower) => {
+      console.log(following)
+      following.forEach((follower) => {
         if (follower === followerPubkey && isUnfollowing) {
           return
         } else {
@@ -114,7 +113,7 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
       if (window.nostr) {
         const signed = await signNostrEventWithNostrExtension(_baseEvent, pubkey);
         if (signed) {
-          setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
+          setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
           return
         }
       }
@@ -122,12 +121,12 @@ export const useFollowers = ({ pool, relays, pk, setEventToSign, setSignEventOpe
       //sign manually
       setSignEventOpen(true);
       setEventToSign(_baseEvent);          
-      setFollowers(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
+      setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
 
     } catch (error) {
         console.log(error);
     }
 }
 
-  return { followers, setFollowing };
+  return { following, updateFollowing };
 };

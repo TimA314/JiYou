@@ -12,7 +12,7 @@ import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
 import SignEventDialog from './components/SignEventDialog';
-import { useFollowers } from './hooks/useFollowers';
+import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 
 
@@ -25,7 +25,7 @@ function App() {
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
-  const {setFollowing, followers} = useFollowers({pool, relays, pk, setEventToSign, setSignEventOpen});
+  const {updateFollowing, following} = useFollowing({pool, relays, pk, setEventToSign, setSignEventOpen});
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
 
@@ -93,7 +93,7 @@ function App() {
               relays={relays} 
               pool={pool} 
               pk={pk} 
-              followers={followers} 
+              following={following} 
               profile={profile} 
               updateProfile={updateProfile} 
               setEventToSign={setEventToSign} 
@@ -111,10 +111,10 @@ function App() {
               pool={pool} 
               relays={relays} 
               pk={pk} 
-              followers={followers} 
+              following={following} 
               setEventToSign={setEventToSign} 
               setSignEventOpen={setSignEventOpen} 
-              setFollowing={setFollowing}
+              setFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
               />} />

@@ -10,13 +10,13 @@ type useListEventsProps = {
   pool: SimplePool | null;
   relays: string[];
   tabIndex: number;
-  followers: string[];
+  following: string[];
   hashtags: string[];
   hideExplicitContent: boolean;
   imagesOnlyMode: boolean;
 };
 
-export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags, hideExplicitContent, imagesOnlyMode }: useListEventsProps) => {
+export const useListEvents = ({ pool, relays, tabIndex, following, hashtags, hideExplicitContent, imagesOnlyMode }: useListEventsProps) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
@@ -33,14 +33,14 @@ export const useListEvents = ({ pool, relays, tabIndex, followers, hashtags, hid
         // Fetch events
         
         //If no followers and on the followers tab, don't fetch events
-        if (tabIndex === 1 && followers.length === 0) {
+        if (tabIndex === 1 && following.length === 0) {
           setEventsFetched(true);
           return;
         }
         
-        console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, followers));
+        console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, following));
 
-        const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, followers)]);
+        const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, following)]);
         console.log("number of events fetched: ", fetchedFeedEvents.length);
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
         if (hideExplicitContent) {
