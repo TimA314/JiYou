@@ -35,7 +35,7 @@ export const useFollowing = ({ pool, relays, pk, setEventToSign, setSignEventOpe
     };
   
     getFollowing();
-  }, [pool, relays]);
+  }, [pool]);
 
   const signNostrEventWithNostrExtension = async (_baseEvent: EventTemplate, pubkey: string) => {
     try {
