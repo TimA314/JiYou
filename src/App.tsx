@@ -19,7 +19,7 @@ import { useListEvents } from './hooks/useListEvents';
 function App() {
   const [eventToSign, setEventToSign] = useState<EventTemplate | null>(null);
   const [signEventOpen, setSignEventOpen] = useState<boolean>(false);
-  const [pool] = useState<SimplePool>(() => new SimplePool());
+  const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
   const [pk, setPk] = useState<string>("");
   const { relays, updateRelays, setRelays } = useRelays({ pool, pk, setEventToSign, setSignEventOpen });
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
@@ -32,7 +32,8 @@ function App() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { events } = useListEvents({ 
-      pool, 
+      pool,
+      setPool, 
       relays, 
       tabIndex, 
       following, 
@@ -83,7 +84,7 @@ function App() {
   useEffect(() => {
     fetchEvents.current = true;
   }, []);
-  
+
   useEffect(() => {
     addPublicKeyToState();
   }, [addPublicKeyToState]);

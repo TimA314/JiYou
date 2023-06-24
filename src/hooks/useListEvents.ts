@@ -8,6 +8,7 @@ import { eventContainsExplicitContent, setEventData } from '../utils/eventUtils'
 
 type useListEventsProps = {
   pool: SimplePool | null;
+  setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
   relays: string[];
   tabIndex: number;
   following: string[];
@@ -18,7 +19,8 @@ type useListEventsProps = {
 };
 
 export const useListEvents = ({ 
-  pool, 
+  pool,
+  setPool,
   relays, 
   tabIndex, 
   following, 
@@ -32,7 +34,10 @@ export const useListEvents = ({
 
 
   useEffect(() => {
-    if (!pool || !fetchEvents.current) return;
+    if (!pool){
+      setPool(new SimplePool());
+    } 
+    if (!pool) return;
     
     
     const fetchEventsFromRelays = async () => {
@@ -115,7 +120,8 @@ export const useListEvents = ({
     };
 
     fetchEventsFromRelays();
-  }, [fetchEvents]);
+
+  }, [fetchEvents.current]);
 
   return { events };
 };
