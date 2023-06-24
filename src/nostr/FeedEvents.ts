@@ -6,7 +6,7 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     
     let options: Filter = {
         kinds: [1],
-        limit: 300
+        limit: 100
     }
     
     if(hashtags.length > 0) {
