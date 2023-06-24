@@ -29,6 +29,7 @@ function App() {
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
   const fetchEvents = useRef(false);
+  const fetchingEventsInProgress = useRef(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { events } = useListEvents({ 
@@ -40,7 +41,8 @@ function App() {
       hashtags,
       hideExplicitContent,
       imagesOnlyMode,
-      fetchEvents    
+      fetchEvents,
+      fetchingEventsInProgress  
     });
 
   const addPublicKeyToState = useCallback(async () => {
@@ -107,6 +109,7 @@ function App() {
           <Route path="/profile" element={
             <Profile
               relays={relays}
+              fetchEvents={fetchEvents}
               pool={pool}
               pk={pk}
               following={following}
@@ -135,6 +138,7 @@ function App() {
               imagesOnlyMode={imagesOnlyMode}
               events={events}
               fetchEvents={fetchEvents}
+              fetchingEventsInProgress={fetchingEventsInProgress}
               setTabIndex={setTabIndex}
               hashtags={hashtags}
               setHashtags={setHashtags}

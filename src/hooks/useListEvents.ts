@@ -16,6 +16,7 @@ type useListEventsProps = {
   hideExplicitContent: boolean;
   imagesOnlyMode: boolean;
   fetchEvents: MutableRefObject<boolean>;
+  fetchingEventsInProgress: MutableRefObject<boolean>;
 };
 
 export const useListEvents = ({ 
@@ -27,7 +28,8 @@ export const useListEvents = ({
   hashtags, 
   hideExplicitContent, 
   imagesOnlyMode, 
-  fetchEvents  
+  fetchEvents,
+  fetchingEventsInProgress
 }: useListEventsProps) => {
 
   const [events, setEvents] = useState<FullEventData[]>([]);
@@ -37,15 +39,17 @@ export const useListEvents = ({
     if (!pool){
       setPool(new SimplePool());
     } 
-    if (!pool) return;
-    
-    
+
     const fetchEventsFromRelays = async () => {
+      if (!pool) return;
       try {
+        fetchingEventsInProgress.current = true;
         setEvents([]);
 
         //If no followers and on the followers tab, don't fetch events
         if (tabIndex === 1 && following.length === 0) {
+          fetchEvents.current = false;
+          fetchingEventsInProgress.current = false;
           return;
         }
         
@@ -113,13 +117,17 @@ export const useListEvents = ({
         else {
           setEvents(eventDataSet);
         }
-
+        fetchEvents.current = false;
+        fetchingEventsInProgress.current = false;
       } catch (error) {
         console.error('Error fetching events:', error);
       }
     };
 
-    fetchEventsFromRelays();
+    if (fetchEvents.current && !fetchingEventsInProgress.current)
+    {
+      fetchEventsFromRelays();
+    }
 
   }, [fetchEvents.current]);
 
