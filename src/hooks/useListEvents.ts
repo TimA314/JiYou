@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, MutableRefObject } from 'react';
 import { Event, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import { getEventOptions } from '../nostr/FeedEvents';
 import { defaultRelays } from '../nostr/DefaultRelays';
-import { eventContainsExplicitContent } from '../utils/eventUtils';
+import { eventContainsExplicitContent, setEventData } from '../utils/eventUtils';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -14,27 +14,33 @@ type useListEventsProps = {
   hashtags: string[];
   hideExplicitContent: boolean;
   imagesOnlyMode: boolean;
+  fetchEvents: MutableRefObject<boolean>;
 };
 
-export const useListEvents = ({ pool, relays, tabIndex, following, hashtags, hideExplicitContent, imagesOnlyMode }: useListEventsProps) => {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-  const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
-  const [eventsFetched, setEventsFetched] = useState<boolean>(false);
+export const useListEvents = ({ 
+  pool, 
+  relays, 
+  tabIndex, 
+  following, 
+  hashtags, 
+  hideExplicitContent, 
+  imagesOnlyMode, 
+  fetchEvents  
+}: useListEventsProps) => {
+
+  const [events, setEvents] = useState<FullEventData[]>([]);
+
 
   useEffect(() => {
-    if (!pool) {
-      console.log('pool is null');
-      return;
-    }
-
-    const fetchEvents = async () => {
+    if (!pool || !fetchEvents.current) return;
+    
+    
+    const fetchEventsFromRelays = async () => {
       try {
-        // Fetch events
-        
+        setEvents([]);
+
         //If no followers and on the followers tab, don't fetch events
         if (tabIndex === 1 && following.length === 0) {
-          setEventsFetched(true);
           return;
         }
         
@@ -42,7 +48,9 @@ export const useListEvents = ({ pool, relays, tabIndex, following, hashtags, hid
 
         const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, following)]);
         console.log("number of events fetched: ", fetchedFeedEvents.length);
+
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
+
         if (hideExplicitContent) {
           sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
         }
@@ -92,18 +100,22 @@ export const useListEvents = ({ pool, relays, tabIndex, following, hashtags, hid
           }
         });
         
-        setEvents(sanitizedEvents);
-        setReactions(retrievedReactionObjects);
-        setMetaData(metaDataMap);
-        setEventsFetched(true);
+        const eventDataSet = sanitizedEvents.map((e) => setEventData(e, metaDataMap[e.pubkey], retrievedReactionObjects[e.id]))
+        
+        if (imagesOnlyMode) {
+          setEvents(eventDataSet.filter((e) => e.images.length > 0));
+        }
+        else {
+          setEvents(eventDataSet);
+        }
+
       } catch (error) {
         console.error('Error fetching events:', error);
       }
     };
-    
 
-    fetchEvents();
-  }, [pool, tabIndex, hashtags]);
+    fetchEventsFromRelays();
+  }, [fetchEvents]);
 
-  return { events, setEvents, reactions, metaData: metaData, eventsFetched, setEventsFetched };
+  return { events };
 };

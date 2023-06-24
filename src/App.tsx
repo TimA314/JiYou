@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
 import { Box, Container } from '@mui/material';
@@ -14,6 +14,7 @@ import { useRelays } from './hooks/useRelays';
 import SignEventDialog from './components/SignEventDialog';
 import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
+import { useListEvents } from './hooks/useListEvents';
 
 function App() {
   const [eventToSign, setEventToSign] = useState<EventTemplate | null>(null);
@@ -27,6 +28,19 @@ function App() {
   const { updateFollowing, following } = useFollowing({ pool, relays, pk, setEventToSign, setSignEventOpen });
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
+  const fetchEvents = useRef(false);
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [tabIndex, setTabIndex] = useState(0);
+  const { events } = useListEvents({ 
+      pool, 
+      relays, 
+      tabIndex, 
+      following, 
+      hashtags,
+      hideExplicitContent,
+      imagesOnlyMode,
+      fetchEvents    
+    });
 
   const addPublicKeyToState = useCallback(async () => {
     let publicKey: string = pk;
@@ -66,6 +80,10 @@ function App() {
     }
   }, [pk]);
 
+  useEffect(() => {
+    fetchEvents.current = true;
+  }, []);
+  
   useEffect(() => {
     addPublicKeyToState();
   }, [addPublicKeyToState]);
@@ -114,6 +132,12 @@ function App() {
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
+              events={events}
+              fetchEvents={fetchEvents}
+              setTabIndex={setTabIndex}
+              hashtags={hashtags}
+              setHashtags={setHashtags}
+              tabIndex={tabIndex}
             />} />
           <Route path="/keys" element={
             <Keys

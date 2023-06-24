@@ -1,17 +1,15 @@
-import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
 import { EventTemplate, SimplePool } from 'nostr-tools'
 import { useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
-import Loading from '../components/Loading';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
-import { useListEvents } from '../hooks/useListEvents';
-import { setEventData } from '../utils/eventUtils';
 import EditIcon from '@mui/icons-material/Edit';
 import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
+import { FullEventData } from '../nostr/Types';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -36,50 +34,40 @@ type GlobalFeedProps = {
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
     updateFollowing: (pubkey: string) => void;
+    setTabIndex: React.Dispatch<React.SetStateAction<number>>;
+    setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     following: string[];
+    fetchEvents: React.MutableRefObject<boolean>;
     hideExplicitContent: boolean;
     imagesOnlyMode: boolean;
+    events: FullEventData[];
+    hashtags: string[];
+    tabIndex: number;
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
-        pool, 
-        relays, 
-        pk, 
-        following, 
-        setEventToSign, 
-        setSignEventOpen, 
-        updateFollowing,
-        hideExplicitContent,
-        imagesOnlyMode
-    }) => {
-    const [hashtags, setHashtags] = useState<string[]>([]);
-    const [tabIndex, setTabIndex] = useState(0);
-    const { 
-        events, 
-        setEvents, 
-        reactions, 
-        metaData, 
-        eventsFetched, 
-        setEventsFetched 
-    } = useListEvents({ 
-        pool, 
-        relays, 
-        tabIndex, 
-        following, 
-        hashtags,
-        hideExplicitContent,
-        imagesOnlyMode
-    });
+    pool, 
+    relays, 
+    pk, 
+    following,
+    fetchEvents,
+    events,
+    hashtags,
+    tabIndex,
+    setEventToSign, 
+    setSignEventOpen, 
+    updateFollowing,
+    setTabIndex,
+    setHashtags,
+  }) => {
+
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
 
-
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setEventsFetched(false);
+        fetchEvents.current = true;
         setTabIndex(newValue);
-        setHashtags([]);
-        setEvents([]);
     };
 
     const handleCreateNoteOpen = () => {
@@ -95,6 +83,8 @@ type GlobalFeedProps = {
     }
 
 
+
+
     //render
     return (
         <Box sx={{marginTop: "52px"}}>
@@ -102,14 +92,9 @@ type GlobalFeedProps = {
             <HashtagsFilter 
                 hashtags={hashtags} 
                 setHashtags={setHashtags} 
-                setEventsFetched={setEventsFetched}/>
-
-            {events.length === 0 && !eventsFetched && <Box sx={{textAlign: "center"}}><Loading /></Box>}
-            {events.length === 0 && eventsFetched && <Box sx={{textAlign: "center"}}><Typography color={themeColors.textColor}>No Notes Found</Typography></Box>}
+                fetchEvents={fetchEvents}/>
             
-            {events.map((event) => setEventData(event, metaData[event.pubkey], reactions[event.id]))
-                    .filter(e => imagesOnlyMode ? e.images.length > 0 : true)
-                    .map((fullEventData) => {
+            {events.map((fullEventData) => {
                         return (
                             <Note 
                                 pool={pool} 
@@ -122,8 +107,7 @@ type GlobalFeedProps = {
                                 pk={pk}
                                 setSignEventOpen={setSignEventOpen}
                                 setEventToSign={setEventToSign}
-                                hashTags={hashtags} 
-                                imagesOnlyMode={imagesOnlyMode}/>
+                                hashTags={hashtags}/>
                         )
                     })
             }

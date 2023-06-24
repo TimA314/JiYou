@@ -11,10 +11,10 @@ import { Close } from "@mui/icons-material";
 interface Props {
   hashtags: string[];
   setHashtags: (hashtags: string[]) => void;
-  setEventsFetched: (eventsFetched: boolean) => void;
+  fetchEvents: React.MutableRefObject<boolean>;
 }
 
-export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched }: Props) {
+export default function HashtagsFilter({ hashtags, setHashtags, fetchEvents }: Props) {
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
 
@@ -23,7 +23,7 @@ export default function HashtagsFilter({ hashtags, setHashtags, setEventsFetched
     if (hashtag.trim() === "" || hashtags.includes(hashtag)) return;
     setInput("");
     setHashtags([...hashtags, hashtag.trim()]);
-    setEventsFetched(false);
+    fetchEvents.current = !fetchEvents.current;
   };
 
   const removeHashtag = (hashtag: string) => {

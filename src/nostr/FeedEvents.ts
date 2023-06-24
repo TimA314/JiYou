@@ -6,7 +6,7 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     
     let options: Filter = {
         kinds: [1],
-        limit: 500
+        limit: 300
     }
     
     if(hashtags.length > 0) {
@@ -32,7 +32,6 @@ export const likeEvent = async (
     pool: SimplePool, 
     relays: string[], 
     event: FullEventData, 
-    pk: string, 
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>, 
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>
     ) => {
@@ -47,36 +46,39 @@ export const likeEvent = async (
                 ["p", event.pubkey],
             ],
         } as EventTemplate
-        
+
+
+        if (!window.nostr){
+            setSignEventOpen(true);
+            setEventToSign(_baseEvent);
+            return true;
+        }
+
         try {        
             //sign with Nostr Extension
             const pubkey = await window.nostr.getPublicKey();
             const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-
+            
             const newEvent: Event = {
-            ..._baseEvent,
-            id: getEventHash({..._baseEvent, pubkey}),
-            sig,
-            pubkey,
+                ..._baseEvent,
+                id: getEventHash({..._baseEvent, pubkey}),
+                sig,
+                pubkey,
             }
             
             console.log(validateEvent(newEvent))
-    
+            
             //Post the event to the relays
             const pubs = pool.publish(relays, newEvent)
             
             pubs.on("ok", (r: any) => {
-            console.log(`Posted to ${r}`)
+                console.log(`Posted to ${r}`)
             })
-    
+            
             pubs.on("failed", (error: string) => {
                 console.log("Failed to post to ", error)
             })
             
             return true;
         } catch {}
-
-        setSignEventOpen(true);
-        setEventToSign(_baseEvent);
-        return true;
 }

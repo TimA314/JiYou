@@ -112,17 +112,17 @@ const Note: React.FC<NoteProps> = ({
     if (!pool) return;
   
     setLiked(true);
+
     const likeCompleted = await likeEvent(
-      pool,
-      relays,
-      eventData,
-      pk,
-      setEventToSign,
-      setSignEventOpen
-    );
-    if (likeCompleted === false) {
-      setLiked(false);
-    }
+        pool,
+        relays,
+        eventData,
+        setEventToSign,
+        setSignEventOpen
+      );
+
+      setLiked(likeCompleted ?? false);
+
   }, [pool, relays, eventData, pk, setEventToSign, setSignEventOpen]);
 
   const showReplyThread = useCallback(() => {
