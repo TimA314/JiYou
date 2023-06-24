@@ -19,16 +19,16 @@ export default function HashtagsFilter({ hashtags, setHashtags, fetchEvents }: P
   const { themeColors } = useContext(ThemeContext);
 
   const onAddHashTag = () => {
-    const hashtag = sanitizeString(input).toLowerCase().trim();
+    const hashtag = sanitizeString(input).trim();
     if (hashtag === "" || hashtags.includes(hashtag)) return;
     setInput("");
     setHashtags([...hashtags, hashtag]);
-    fetchEvents.current = !fetchEvents.current;
+    fetchEvents.current = true;
   };
 
   const removeHashtag = (hashtag: string) => {
     setHashtags(hashtags.filter((h) => h !== hashtag));
-    fetchEvents.current = !fetchEvents.current;
+    fetchEvents.current = true;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

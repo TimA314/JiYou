@@ -19,6 +19,7 @@ interface ProfileProps {
     pk: string;
     profile: ProfileContent;
     following: string[];
+    fetchEvents: React.MutableRefObject<boolean>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
     setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,7 +32,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, fetchEvents, updateProfile, setEventToSign, setSignEventOpen}: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
@@ -245,7 +246,8 @@ const setEventData = (event: Event) => {
                             <Note 
                                 pool={pool} 
                                 relays={relays} 
-                                eventData={fullEventData} 
+                                eventData={fullEventData}
+                                fetchEvents={fetchEvents}
                                 updateFollowing={() => {}} 
                                 following={following} 
                                 key={event.sig + Math.random()} 

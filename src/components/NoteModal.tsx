@@ -26,6 +26,7 @@ const style = {
 };
 
 interface NoteModalProps {
+  fetchEvents: React.MutableRefObject<boolean>;
   eventData: FullEventData;
   open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
@@ -41,20 +42,23 @@ interface NoteModalProps {
   hashTags: string[];
 }
 
-export default function NoteModal({eventData,
-                                    open, 
-                                    setNoteDetailsOpen,
-                                    pool,
-                                    relays,
-                                    following,
-                                    updateFollowing,
-                                    setReplyCount,
-                                    setHashtags,
-                                    pk,
-                                    setEventToSign,
-                                    setSignEventOpen,
-                                    hashTags,
-                                  }: NoteModalProps) {
+export default function NoteModal({
+  eventData,
+  fetchEvents,
+  open, 
+  setNoteDetailsOpen,
+  pool,
+  relays,
+  following,
+  updateFollowing,
+  setReplyCount,
+  setHashtags,
+  pk,
+  setEventToSign,
+  setSignEventOpen,
+  hashTags,
+}: NoteModalProps) {
+
   const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
   const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
   const [rootEvents, setRootEvents] = useState<Event[]>([]);
@@ -168,6 +172,7 @@ export default function NoteModal({eventData,
                                                 eventData={fullRootEventData}
                                                 pool={pool}
                                                 relays={relays}
+                                                fetchEvents={fetchEvents}
                                                 following={following}
                                                 updateFollowing={updateFollowing}
                                                 setHashtags={setHashtags}
@@ -189,6 +194,7 @@ export default function NoteModal({eventData,
 
                 <Box>
                     <Note eventData={eventData}
+                        fetchEvents={fetchEvents}
                         pool={pool} relays={relays}
                         following={following}
                         updateFollowing={updateFollowing}
@@ -215,6 +221,7 @@ export default function NoteModal({eventData,
                                       eventData={fullEventData}
                                       pool={pool}
                                       relays={relays}
+                                      fetchEvents={fetchEvents}
                                       following={following}
                                       updateFollowing={updateFollowing}
                                       setHashtags={setHashtags}

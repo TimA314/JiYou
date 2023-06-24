@@ -1,6 +1,6 @@
-import { Box, Fab, IconButton, Modal, Tab, Tabs } from '@mui/material';
+import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
 import { EventTemplate, SimplePool } from 'nostr-tools'
-import { useState } from 'react'
+import { MutableRefObject, useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
@@ -10,6 +10,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { FullEventData } from '../nostr/Types';
+import Loading from '../components/Loading';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -38,6 +39,7 @@ type GlobalFeedProps = {
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     following: string[];
     fetchEvents: React.MutableRefObject<boolean>;
+    fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: boolean;
     imagesOnlyMode: boolean;
     events: FullEventData[];
@@ -51,6 +53,7 @@ type GlobalFeedProps = {
     pk, 
     following,
     fetchEvents,
+    fetchingEventsInProgress,
     events,
     hashtags,
     tabIndex,
@@ -66,8 +69,8 @@ type GlobalFeedProps = {
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        fetchEvents.current = !fetchEvents.current;
         setTabIndex(newValue);
+        fetchEvents.current = true;
     };
 
     const handleCreateNoteOpen = () => {
@@ -82,6 +85,43 @@ type GlobalFeedProps = {
         setCreateNoteOpen(false);
     }
 
+    const getFeed = () => {
+        if (fetchingEventsInProgress.current) {
+            return (
+                <Loading />
+            )
+        } else if (events.length === 0) {
+            return (
+                <Typography 
+                    variant="h6" 
+                    color={themeColors.textColor} 
+                    sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+                        No Notes Found
+                </Typography>
+            )
+        } else {
+            return (
+                events.map((fullEventData) => {
+                    return (
+                        <Note 
+                        pool={pool} 
+                        relays={relays}
+                        fetchEvents={fetchEvents}
+                        eventData={fullEventData} 
+                        updateFollowing={updateFollowing} 
+                        following={following} 
+                        setHashtags={setHashtags} 
+                        key={fullEventData.sig + Math.random()} 
+                        pk={pk}
+                        setSignEventOpen={setSignEventOpen}
+                        setEventToSign={setEventToSign}
+                        hashTags={hashtags}/>
+                        )
+                })
+            )
+        }
+    }
+
 
 
 
@@ -94,23 +134,7 @@ type GlobalFeedProps = {
                 setHashtags={setHashtags} 
                 fetchEvents={fetchEvents}/>
             
-            {events.map((fullEventData) => {
-                        return (
-                            <Note 
-                                pool={pool} 
-                                relays={relays} 
-                                eventData={fullEventData} 
-                                updateFollowing={updateFollowing} 
-                                following={following} 
-                                setHashtags={setHashtags} 
-                                key={fullEventData.sig + Math.random()} 
-                                pk={pk}
-                                setSignEventOpen={setSignEventOpen}
-                                setEventToSign={setEventToSign}
-                                hashTags={hashtags}/>
-                        )
-                    })
-            }
+            {getFeed()}
 
             <Modal
                 open={createNoteOpen}

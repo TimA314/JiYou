@@ -24,21 +24,23 @@ const style = {
 };
 
 interface ReplyToNoteProps {
-    eventData: FullEventData;
-    open: boolean;
-    setReplyToNoteOpen: (open: boolean) => void;
-    pool: SimplePool | null;
-    relays: string[];
-    pk: string;
-    following: string[];
-    hashTags: string[];
-    updateFollowing: (pubkey: string) => void;
-    setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  fetchEvents: React.MutableRefObject<boolean>;
+  eventData: FullEventData;
+  open: boolean;
+  setReplyToNoteOpen: (open: boolean) => void;
+  pool: SimplePool | null;
+  relays: string[];
+  pk: string;
+  following: string[];
+  hashTags: string[];
+  updateFollowing: (pubkey: string) => void;
+  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
+  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
+  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function ReplyToNote({
+  fetchEvents,
   eventData, 
   open, 
   setReplyToNoteOpen, 
@@ -94,7 +96,8 @@ export default function ReplyToNote({
             <Note 
               eventData={eventData} 
               pool={pool} 
-              relays={relays} 
+              relays={relays}
+              fetchEvents={fetchEvents}
               pk={pk} 
               following={following} 
               updateFollowing={updateFollowing} 
