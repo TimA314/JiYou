@@ -1,6 +1,6 @@
 import { Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/material'
 import { ThemeContext } from '../theme/ThemeContext';
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 type Props = {}
@@ -20,27 +20,26 @@ const handleCopy = () => {
     <Container sx={{color: themeColors.textColor}}>
     <Box>
         <Typography variant="h2" align="center" gutterBottom color={themeColors.secondary}>
-        About Jiyou
+            About Jiyou
         </Typography>
 
         <Typography variant="body1" paragraph>
-        Inspired by 自由【じゆう】which is the Japanese word for freedom. JiYou is a Nostr client built for
-        complete user customization.  
-        It serves as a portal to a simple, open protocol that enables global, decentralized, 
-        and censorship-resistant social media.
+            Inspired by 自由【じゆう】which is the Japanese word for freedom. JiYou is a Nostr client built for
+            complete user customization.  
+            It serves as a portal to a simple, open protocol that enables global, decentralized, 
+            and censorship-resistant social media.
         </Typography>
 
         <Typography variant="body1" paragraph>
-        JiYou's search functionality is designed to enable users to customize their feed to topics 
-        they're interested in without any closed source algorithmic interference. 
+            Use JiYou's search bar to fine tune your feed with topics you are interested in. 
         </Typography>
 
         <Typography variant="body1" paragraph>
-        (Note: It is highly recommended you install a Nostr Extension to secure your account.)
+            (Note: It is highly recommended you install a Nostr Extension to secure your account.)
         </Typography>
 
         <Typography variant="body1" paragraph>
-        Learn more about Nostr <Link href="https://nostr.how/">here</Link>.
+            Learn more about Nostr <Link href="https://nostr.how/">here</Link>.
         </Typography>
 
         <Box my={4} display="flex" justifyContent="center">
@@ -64,8 +63,7 @@ const handleCopy = () => {
                 </Grid>
             </Grid>
             <Typography variant="body1" align="center" paragraph color={themeColors.textColor}>
-                Any generous donations will keep JiYou free and open to everyone. 
-                Your contribution, no matter how small, makes a big difference!
+                JiYou is meant to be free for everyone but there are some costs to operate. Any donation is welcome!
             </Typography>
         </Box>
     </Box>
