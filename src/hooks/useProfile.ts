@@ -7,10 +7,10 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 type UseProfileProps = {
   pool: SimplePool | null;
   relays: string[];
-  pk: string;
+  pk_decoded: string;
 };
 
-export const useProfile = ({ pool, relays, pk }: UseProfileProps) => {
+export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
   const [profile, setProfile] = useState<ProfileContent>({
     name: "",
     picture: "",
@@ -19,10 +19,10 @@ export const useProfile = ({ pool, relays, pk }: UseProfileProps) => {
   });
   
   const getProfile = async () => {
-    if (!pool || pk === "") return;
+    if (!pool || pk_decoded === "") return;
 
     // Fetch user profile
-    const profileEvent: Event[] = await pool.list(relays, [{kinds: [0], authors: [pk], limit: 1 }])
+    const profileEvent: Event[] = await pool.list(relays, [{kinds: [0], authors: [pk_decoded], limit: 1 }])
 
     if (!profileEvent || profileEvent.length < 1) return;
     
@@ -40,7 +40,7 @@ export const useProfile = ({ pool, relays, pk }: UseProfileProps) => {
   };
 
   useEffect(() => {
-    if (!pool || pk === "") return;
+    if (!pool || pk_decoded === "") return;
     getProfile();
   }, []);
 
