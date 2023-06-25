@@ -31,14 +31,6 @@ interface SettingsProps {
 
 export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplicitContent, setHideExplicitContent}: SettingsProps) {
   const { themeColors, setThemeColors } = useContext(ThemeContext);
-  const [isPickerOpen, setIsPickerOpen] = useState<Record<keyof ThemeColors, boolean>>({
-    primary: false,
-    secondary: false,
-    paper: false,
-    background: false,
-    textSize: false,
-    textColor: false,
-  });
 
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setImagesOnlyMode(event.target.checked);

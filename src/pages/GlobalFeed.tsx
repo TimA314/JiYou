@@ -84,7 +84,7 @@ type GlobalFeedProps = {
     const getFeed = () => {
         if (fetchingEventsInProgress.current) {
             return (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }} >
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }} >
                     <Loading />
                 </Box>
             )

@@ -18,30 +18,31 @@ export const useProfile = ({ pool, relays, pk }: UseProfileProps) => {
     banner: ""
   });
   
-  useEffect(() => {
+  const getProfile = async () => {
     if (!pool || pk === "") return;
 
-    const getProfile = async () => {
-                  // Fetch user profile
-                  const profileEvent: Event[] = await pool.list(relays, [{kinds: [0], authors: [pk], limit: 1 }])
-            
-                  if (!profileEvent || profileEvent.length < 1) return;
-                  
-                  const sanitizedEvent = sanitizeEvent(profileEvent[0]);
-                  const content = JSON.parse(sanitizedEvent.content);
+    // Fetch user profile
+    const profileEvent: Event[] = await pool.list(relays, [{kinds: [0], authors: [pk], limit: 1 }])
 
-                  const profileContent: ProfileContent = {
-                    name: content.name ? content.name : "",
-                    picture: content.picture ? content.picture : "",
-                    about: content.about ? content.about : "",
-                    banner: content.banner ? content.banner : ""
-                }
-                
-                setProfile(profileContent);
-    };
-  
+    if (!profileEvent || profileEvent.length < 1) return;
+    
+    const sanitizedEvent = sanitizeEvent(profileEvent[0]);
+    const content = JSON.parse(sanitizedEvent.content);
+
+    const profileContent: ProfileContent = {
+      name: content.name ? content.name : "",
+      picture: content.picture ? content.picture : "",
+      about: content.about ? content.about : "",
+      banner: content.banner ? content.banner : ""
+    }
+    
+    setProfile(profileContent);
+  };
+
+  useEffect(() => {
+    if (!pool || pk === "") return;
     getProfile();
-  }, [pool, pk]);
+  }, []);
 
   
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
@@ -81,5 +82,5 @@ export const useProfile = ({ pool, relays, pk }: UseProfileProps) => {
     }       
 }
 
-  return { profile, updateProfile, setProfile };
+  return { profile, updateProfile, getProfile };
 };

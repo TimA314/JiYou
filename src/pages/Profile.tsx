@@ -1,5 +1,5 @@
 import { AppBar, Avatar, Box, Button, Chip, CircularProgress, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar} from '@mui/material'
-import { SimplePool, Event, EventTemplate} from 'nostr-tools';
+import { SimplePool, Event } from 'nostr-tools';
 import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -21,6 +21,7 @@ interface ProfileProps {
     following: string[];
     fetchEvents: React.MutableRefObject<boolean>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
+    getProfile: () => Promise<void>;
 }
 
 interface ProfileContent {
@@ -30,7 +31,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, fetchEvents, updateProfile }: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, fetchEvents, updateProfile, getProfile }: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<Event[]>([]);
 const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
@@ -40,6 +41,7 @@ const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
 const { themeColors } = useContext(ThemeContext);
+
 
 
 
@@ -86,8 +88,13 @@ useEffect(() => {
         }
     }
 
+
     loadProfile();
-}, [pool, relays, profile])
+}, [profile])
+
+useEffect(() => {
+    getProfile();
+}, [pk])
 
 
 const handleFormSubmit = (e: { preventDefault: () => void; }) => {
