@@ -1,11 +1,16 @@
 # Jiyou
+##  https://jiyou.social/
 
-JiYou is a Nostr Client built using typescript, react, MaterialUI, and Nostr Tools. It serves as a portal to a simple, open protocol that enables global, decentralized, and censorship-resistant social media.
+JiYou is a Nostr Client built using typescript, react, MaterialUI, and Nostr Tools.
 
-With JiYou, you have the power of discovery in your hands. JiYou's search functionality is designed to empower users to find topics they're interested in without any algorithmic interference. The search results you get are purely based on your query and tags contained in notes, ensuring an unbiased, direct, and effective search experience.
+Inspired by 自由【じゆう】which is the Japanese word for freedom. JiYou is a Nostr client built for
+complete user customization.  
+It serves as a portal to a simple, open protocol that enables global, decentralized, 
+and censorship-resistant social media.
 
-####  Try JiYou here: https://jiyou-client.netlify.app/
-<br/> (Note to experience full features you must install a Nostr Extension)
+🔍 Use JiYou's search bar to fine tune your feed with topics you are interested in.
+
+Customize the look and feel of JiYou in the settings page.
 
 Learn more about Nostr here https://nostr.how/
 
