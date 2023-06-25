@@ -1,5 +1,4 @@
-import { Event, EventTemplate, Filter, Kind, SimplePool, getEventHash, validateEvent } from "nostr-tools";
-import { FullEventData } from "./Types";
+import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, nip19, validateEvent } from "nostr-tools";
 
 
 export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
@@ -28,57 +27,76 @@ export const getEventOptions = (hashtags: string[], tabIndex: number, followers:
     return options;
 }
 
-export const likeEvent = async (
-    pool: SimplePool, 
-    relays: string[], 
-    event: FullEventData, 
-    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>, 
-    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>
-    ) => {
+export const signEventWithNostr = async (
+pool: SimplePool,
+relays: string[], 
+event: EventTemplate,
+) => {
 
-        //Construct the event
-        const _baseEvent = {
-            kind: Kind.Reaction,
-            content: "+",
-            created_at: Math.floor(Date.now() / 1000),
-            tags: [
-                ["e", event.eventId],
-                ["p", event.pubkey],
-            ],
-        } as EventTemplate
+    if (!window.nostr){
+        return false;
+    }
 
-
-        if (!window.nostr){
-            setSignEventOpen(true);
-            setEventToSign(_baseEvent);
-            return true;
+    try {        
+        const pubkey = await window.nostr.getPublicKey();
+        const sig = (await window.nostr.signEvent(event)).sig;
+        
+        const newEvent: Event = {
+            ...event,
+            id: getEventHash({...event, pubkey}),
+            sig,
+            pubkey,
         }
+        
+        console.log(validateEvent(newEvent))
+        
+        //Post the event to the relays
+        const pubs = pool.publish(relays, newEvent)
+        
+        pubs.on("ok", (r: any) => {
+            console.log(`Posted to ${r}`)
+        })
+        
+        pubs.on("failed", (error: string) => {
+            console.log("Failed to post to ", error)
+        })
+        
+        return true;
+    } catch {
+        return false;
+    }
+}
 
-        try {        
-            //sign with Nostr Extension
-            const pubkey = await window.nostr.getPublicKey();
-            const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-            
-            const newEvent: Event = {
-                ..._baseEvent,
-                id: getEventHash({..._baseEvent, pubkey}),
-                sig,
-                pubkey,
-            }
-            
-            console.log(validateEvent(newEvent))
-            
-            //Post the event to the relays
-            const pubs = pool.publish(relays, newEvent)
-            
-            pubs.on("ok", (r: any) => {
-                console.log(`Posted to ${r}`)
-            })
-            
-            pubs.on("failed", (error: string) => {
-                console.log("Failed to post to ", error)
-            })
-            
-            return true;
-        } catch {}
+export const signEventWithStoredSk = async (
+pool: SimplePool,
+relays: string[],
+event: EventTemplate,
+) => {
+    const secretKey = localStorage.getItem('sk');
+    const decodedSk = nip19.decode(secretKey ?? '');
+
+    if (!decodedSk || decodedSk.data.toString().trim() === '') {
+        alert('Invalid secret key, check settings or use a Nostr extension');
+        return false;
+    }
+    
+    const signedEvent = finishEvent(event, decodedSk.data.toString());
+    const validated = validateEvent(signedEvent);
+
+    if (!validated) {
+        alert('Invalid event');
+        return false;
+    }
+  
+    const pubs = pool.publish(relays, signedEvent);
+
+    pubs.on('ok', (pub: string) => {
+    console.log('Posted to relay ' + pub);
+    });
+
+    pubs.on('failed', (error: string) => {
+    console.log('Failed to post to relay ' + error);
+    });
+
+    return true;
 }

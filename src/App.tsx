@@ -6,26 +6,23 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { EventTemplate, SimplePool, getPublicKey, nip19 } from 'nostr-tools';
+import { SimplePool, getPublicKey, nip19 } from 'nostr-tools';
 import { Box, Container } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
-import SignEventDialog from './components/SignEventDialog';
 import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
 
 function App() {
-  const [eventToSign, setEventToSign] = useState<EventTemplate | null>(null);
-  const [signEventOpen, setSignEventOpen] = useState<boolean>(false);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
   const [pk, setPk] = useState<string>("");
-  const { relays, updateRelays, setRelays } = useRelays({ pool, pk, setEventToSign, setSignEventOpen });
+  const { relays, updateRelays } = useRelays({ pool, pk});
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
-  const { profile, updateProfile, setProfile } = useProfile({ pool, relays, pk, setEventToSign, setSignEventOpen });
-  const { updateFollowing, following } = useFollowing({ pool, relays, pk, setEventToSign, setSignEventOpen });
+  const { profile, updateProfile } = useProfile({ pool, relays, pk });
+  const { updateFollowing, following } = useFollowing({ pool, relays, pk });
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
   const fetchEvents = useRef(false);
@@ -115,8 +112,6 @@ function App() {
               following={following}
               profile={profile}
               updateProfile={updateProfile}
-              setEventToSign={setEventToSign}
-              setSignEventOpen={setSignEventOpen}
             />} />
           <Route path="/relays" element={
             <Relays
@@ -131,8 +126,6 @@ function App() {
               relays={relays}
               pk={pk}
               following={following}
-              setEventToSign={setEventToSign}
-              setSignEventOpen={setSignEventOpen}
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
@@ -161,16 +154,6 @@ function App() {
             />
           } />
         </Routes>
-        <SignEventDialog
-          signEventOpen={signEventOpen}
-          setSignEventOpen={setSignEventOpen}
-          setEventToSign={setEventToSign}
-          event={eventToSign}
-          pool={pool}
-          relays={relays}
-          setProfile={setProfile}
-          setRelays={setRelays}
-        />
         <NavBar
           profile={profile}
         />

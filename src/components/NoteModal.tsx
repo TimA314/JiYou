@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { Event, EventTemplate, SimplePool } from 'nostr-tools';
+import { Event, SimplePool } from 'nostr-tools';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
@@ -37,8 +37,6 @@ interface NoteModalProps {
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
-  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
   hashTags: string[];
 }
 
@@ -54,8 +52,6 @@ export default function NoteModal({
   setReplyCount,
   setHashtags,
   pk,
-  setEventToSign,
-  setSignEventOpen,
   hashTags,
 }: NoteModalProps) {
 
@@ -179,8 +175,6 @@ export default function NoteModal({
                                                 pk={pk}
                                                 disableReplyIcon={false}
                                                 gettingThread={gettingThread}
-                                                setSignEventOpen={setSignEventOpen}
-                                                setEventToSign={setEventToSign}
                                                 hashTags={hashTags}
                                             />
                                             <Box sx={{ display: 'flex', justifyContent: 'center'}}>
@@ -201,8 +195,6 @@ export default function NoteModal({
                         setHashtags={setHashtags}
                         pk={pk}
                         disableReplyIcon={false}
-                        setSignEventOpen={setSignEventOpen}
-                        setEventToSign={setEventToSign}
                         hashTags={hashTags}
                         key={eventData.sig + Math.random()}
                         />
@@ -228,8 +220,6 @@ export default function NoteModal({
                                       pk={pk}
                                       key={replyEvent.sig + Math.random()}
                                       disableReplyIcon={false}
-                                      setSignEventOpen={setSignEventOpen}
-                                      setEventToSign={setEventToSign}
                                       hashTags={hashTags}
                                   />
                               );

@@ -2,11 +2,12 @@ import React, { useContext, useState } from 'react';
 import { Box, FormControlLabel, FormGroup, Switch, TextField, Typography } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
-import { Event, EventTemplate, getEventHash, Kind, SimplePool } from 'nostr-tools';
+import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { FullEventData } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
+import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 
 interface RelaySwitches {
   [relayUrl: string]: boolean;
@@ -18,8 +19,6 @@ interface Props {
   pk: string;
   replyEventData: FullEventData | null;
   setPostedNote: () => void;
-  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 
@@ -29,8 +28,6 @@ function CreateNote({
   pk, 
   replyEventData, 
   setPostedNote, 
-  setEventToSign, 
-  setSignEventOpen
 }: Props) {
   const [input, setInput] = useState("");
   const relaylist = relays.reduce((obj, relay) => {
@@ -88,43 +85,16 @@ function CreateNote({
 
     if (window.nostr){
       try {
-
-        //Use Nostr Extension to sign the event
-
-          const pubkey = await window.nostr.getPublicKey();
-          const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-          
-          const newEvent: Event = {
-            ..._baseEvent,
-            id: getEventHash({..._baseEvent, pubkey}),
-            sig,
-            pubkey,
-          }
-          
-          //post the event to the relays
-          const pubs = pool.publish(relaysToPostTo, newEvent)
-          
-          let clearedInput = false;
-          
-          pubs.on("ok", (pub: any) => {
-            console.log(`Posted to ${pub}`)
-            if (clearedInput) return;
-            clearedInput = true;
-            setInput("");
-          })
-          
-          pubs.on("failed", (error: string) => {
-            alert("Failed to post to relays" + error)
-          })
-          
+        const signedWithNostr = await signEventWithNostr(pool, relaysToPostTo, _baseEvent);
+        if (signedWithNostr) {
           setPostedNote();
           return;
+        }
       } catch {}
     }
 
     //Manually sign the event
-    setEventToSign(_baseEvent);
-    setSignEventOpen(true);
+    signEventWithStoredSk(pool, relaysToPostTo, _baseEvent)
     setPostedNote();
   }
 

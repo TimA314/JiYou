@@ -2,15 +2,14 @@ import { useEffect, useState } from 'react';
 import { Event, EventTemplate, Kind, SimplePool, getEventHash, validateEvent, verifySignature } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
+import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 
 type UseRelaysProps = {
   pool: SimplePool | null;
   pk: string;
-  setEventToSign: (event: EventTemplate) => void;
-  setSignEventOpen: (open: boolean) => void;
 };
 
-export const useRelays = ({ pool, pk, setEventToSign, setSignEventOpen}: UseRelaysProps) => {
+export const useRelays = ({ pool, pk }: UseRelaysProps) => {
   const [relays, setRelays] = useState<string[]>(defaultRelays);
   
   useEffect(() => {
@@ -65,40 +64,19 @@ const updateRelays = async (relays: string[]) => {
 
 
         if (window.nostr) {
-            try{
-
-                const sig = (await window.nostr.signEvent(_baseEvent)).sig;
-                
-                const newEvent: Event = {
-                    ..._baseEvent,
-                    id: getEventHash({
-                        ..._baseEvent,
-                        pubkey: pk
-                    }),
-                    sig: sig,
-                    pubkey: pk,
-                }
-                
-                if(!validateEvent(newEvent) || !verifySignature(newEvent)) {
-                    console.log("Event is Invalid")
-                    return;
-                }
-                
-                const pubs = pool.publish(defaultRelays, newEvent)
-                pubs.on("ok", (pub: any) => {
-                    console.log(`Posted to ${pub}`)
-                })
-
+           const signedWithNostr = await signEventWithNostr(pool, relays, _baseEvent);
+           if (signedWithNostr) {
                 setRelays(relays);
                 return;
-            } catch{}
+           }
         }
 
-        setSignEventOpen(true);
-        setEventToSign(_baseEvent);
+        setRelays(relays);
+        await signEventWithStoredSk(pool, relays, _baseEvent);
+        
 
     } catch (error) {
-        console.log("Error adding relay" + error);
+        console.error("Error adding relay" + error);
     }
 }
 

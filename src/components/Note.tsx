@@ -14,9 +14,9 @@ import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
-import { SimplePool, nip19, EventTemplate } from 'nostr-tools';
+import { SimplePool, nip19, EventTemplate, Kind } from 'nostr-tools';
 import { getYoutubeVideoFromPost } from '../utils/miscUtils';
-import { likeEvent } from '../nostr/FeedEvents';
+import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import NoteModal from './NoteModal';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -70,8 +70,6 @@ interface NoteProps {
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
-  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
   hashTags: string[];
   imagesOnlyMode?: boolean;
 }
@@ -86,8 +84,6 @@ const Note: React.FC<NoteProps> = ({
     setHashtags, 
     disableReplyIcon, 
     gettingThread,
-    setEventToSign,
-    setSignEventOpen,
     hashTags,
     updateFollowing,
   }: NoteProps) => {
@@ -112,20 +108,33 @@ const Note: React.FC<NoteProps> = ({
   
   const likeNote = useCallback(async () => {
     if (!pool) return;
-  
-    setLiked(true);
+    
+    //Construct the event
+    const _baseEvent = {
+      kind: Kind.Reaction,
+      content: "+",
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+          ["e", eventData.eventId],
+          ["p", eventData.pubkey],
+      ],
+    } as EventTemplate
+    
 
-    const likeCompleted = await likeEvent(
-        pool,
-        relays,
-        eventData,
-        setEventToSign,
-        setSignEventOpen
-      );
+    setLiked(true)
 
-      setLiked(likeCompleted ?? false);
+    if (window.nostr){
+      const signedWithNostr = await signEventWithNostr(pool, relays, _baseEvent);
+      if (signedWithNostr) {
+        setLiked(signedWithNostr)
+        return;
+      }
+    }
 
-  }, [pool, relays, eventData, pk, setEventToSign, setSignEventOpen]);
+    const signedManually = await signEventWithStoredSk(pool, relays, _baseEvent);
+    setLiked(signedManually);
+
+  }, [pool, relays, eventData, pk]);
 
   const showReplyThread = useCallback(() => {
     setNoteDetailsOpen((NoteDetailsOpen) => !NoteDetailsOpen);
@@ -156,8 +165,6 @@ const Note: React.FC<NoteProps> = ({
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}
         pk={pk}
-        setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign}
         hashTags={hashTags} />
       <CardHeader
         avatar={
@@ -180,8 +187,6 @@ const Note: React.FC<NoteProps> = ({
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
-        setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign} 
         hashTags={hashTags}/>
       <CardContent >
         <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
