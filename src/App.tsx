@@ -21,7 +21,6 @@ function App() {
   const [sk_decoded, setSk_decoded] = useState<string>("");
   const [pk_decoded, setPk_decoded] = useState<string>("");
   const { relays, updateRelays } = useRelays({ pool, pk_decoded});
-  const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
   const { updateFollowing, following } = useFollowing({ pool, relays, pk_decoded });
@@ -166,7 +165,6 @@ function App() {
             />} />
           <Route path="/keys" element={
             <Keys
-              publicKeyOpen={publicKeyClicked}
               pk={pk_decoded}
               setPk={setPk_decoded}
               willUseNostrExtension={willUseNostrExtension}
