@@ -137,7 +137,7 @@ const Note: React.FC<NoteProps> = ({
   }, [pool, relays, eventData, pk]);
 
   const showReplyThread = useCallback(() => {
-    setNoteDetailsOpen((NoteDetailsOpen) => !NoteDetailsOpen);
+    setNoteDetailsOpen(true);
   }, []);
 
   const addHashtag = (tag: string) => {

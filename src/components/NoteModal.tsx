@@ -5,13 +5,14 @@ import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
-import { useTheme } from '@mui/material/styles';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
+import Loading from './Loading';
+import { get } from 'http';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -55,84 +56,185 @@ export default function NoteModal({
   hashTags,
 }: NoteModalProps) {
 
-  const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
-  const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
-  const [rootEvents, setRootEvents] = useState<Event[]>([]);
-  const [replyEvents, setReplyEvents] = useState<Event[]>([]);
+  const [rootEvents, setRootEvents] = useState<FullEventData[]>([]);
+  const [replyEvents, setReplyEvents] = useState<FullEventData[]>([]);
   const [gettingThread, setGettingThread] = useState(true);
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
 
-  
-  // Use a media query to check if the device is a mobile or desktop
-  const theme = useTheme();
+  const getReplies = async () => {
+    if (!pool) {
+      console.log("No pool")
+      return;
+    }
+    console.log("Getting thread")
+    setGettingThread(true);
+    
+    // Fetch replies
+    const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
+    const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
+    console.log(sanitizedReplyThreadEvents.length + " replies fetched")
 
-  useEffect(() => {
-    if (!pool) return;
-    const getReplies = async () => {
+    //Fetch root events
+    const eventTags= eventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== eventData.eventId);
+    let sanitizedRootEvents: Event[] = [];
+    if (eventTags && eventTags.length > 0) {
+      const recommendedRelays = [...new Set([...relays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
+      const rootEvents = await pool.list(recommendedRelays, [{ "kinds": [1], ids: eventTags.map((t) => t[1])}]);
+      sanitizedRootEvents = rootEvents.map((event) => sanitizeEvent(event));
+    }
+    console.log(sanitizedRootEvents.length + " root events fetched")
 
-      // Fetch replies
-      const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
-      const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
-      
-      //Fetch root events
-      const eventTags= eventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== eventData.eventId);
-      let sanitizedRootEvents: Event[] = [];
-      if (eventTags && eventTags.length > 0) {
-        const recommendedRelays = [...new Set([...relays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
-        const rootEvents = await pool.list(recommendedRelays, [{ "kinds": [1], ids: eventTags.map((t) => t[1])}]);
-        sanitizedRootEvents = rootEvents.map((event) => sanitizeEvent(event));
-      }
+    const mappedReplyKeys = sanitizedReplyThreadEvents.map(reply => reply.pubkey);
+    const mappedRootKeys = sanitizedRootEvents.map(root => root.pubkey);
+    const authorPubkeys: string[] = [...new Set([...mappedReplyKeys, ...mappedRootKeys, eventData.pubkey])];
 
-      // Fetch metadata
-      const mappedReplyKeys = sanitizedReplyThreadEvents.map(reply => reply.pubkey);
-      const mappedRootKeys = sanitizedRootEvents.map(root => root.pubkey);
-      const authorPubkeys: string[] = [...mappedReplyKeys, ...mappedRootKeys, eventData.pubkey];
-      const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
+    // Fetch metadata
+    const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
 
-      const metaDataMap: Record<string, MetaData> = {};
-      fetchedMetaDataEvents.forEach((event) => {
-        metaDataMap[event.pubkey] = JSON.parse(event.content);
-      });
-      
-      // Fetch reactions
-      const reactionPubkeys = [...sanitizedReplyThreadEvents.map(event => event.pubkey), ...sanitizedRootEvents.map(event => event.pubkey)];
-      const replyEventsIds = [...sanitizedReplyThreadEvents.map(event => event.id), ...sanitizedRootEvents.map(event => event.id)];
+    const metaDataMap: Record<string, MetaData> = {};
+    fetchedMetaDataEvents.forEach((event) => {
+      metaDataMap[event.pubkey] = JSON.parse(event.content);
+    });
+    
+    // Fetch reactions
+    const replyEventsIds = [...new Set([...sanitizedReplyThreadEvents.map(event => event.id), ...sanitizedRootEvents.map(event => event.id)])];
 
-      const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], 
-        [{ "kinds": [7], "#e": replyEventsIds, "#p": reactionPubkeys}]);
-      
-      const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-      reactionEvents.forEach((event) => {
-        const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
-        eventTagThatWasLiked.forEach((tag) => {
-          const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
-          if (isValidEventTagThatWasLiked) {
-            if (!retrievedReactionObjects[tag[1]]) {
-              retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
-            }
-            if (event.content === "+") {
-              retrievedReactionObjects[tag[1]].upvotes++;
-            } else if(event.content === "-") {
-              retrievedReactionObjects[tag[1]].downvotes++;
-            }
+    const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], 
+      [{ "kinds": [7], "#e": replyEventsIds, "#p": authorPubkeys}]);
+    
+    const retrievedReactionObjects: Record<string, ReactionCounts> = {};
+    reactionEvents.forEach((event) => {
+      const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
+      eventTagThatWasLiked.forEach((tag) => {
+        const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
+        if (isValidEventTagThatWasLiked) {
+          if (!retrievedReactionObjects[tag[1]]) {
+            retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
           }
-        });
+          if (event.content === "+") {
+            retrievedReactionObjects[tag[1]].upvotes++;
+          } else if(event.content === "-") {
+            retrievedReactionObjects[tag[1]].downvotes++;
+          }
+        }
       });
+    });
 
-      setRootEvents(sanitizedRootEvents);
-      setReplyEvents(sanitizedReplyThreadEvents);
-      setReplyCount(sanitizedReplyThreadEvents.length);
-      setMetaData(metaDataMap);
-      setReactions(retrievedReactionObjects);
-      setGettingThread(false);
+    const rootEventDataSet = sanitizedRootEvents.map((e) => setEventData(e, metaDataMap[e.pubkey], retrievedReactionObjects[e.id]));
+    const replyEventDataSet = sanitizedReplyThreadEvents.map((e) => setEventData(e, metaDataMap[e.pubkey], retrievedReactionObjects[e.id]));
+    
+    setRootEvents(rootEventDataSet);
+    setReplyEvents(replyEventDataSet);
+    setReplyCount(sanitizedReplyThreadEvents.length);
+    setGettingThread(false);
+  }
+  useEffect(() => {
+    if (!pool || !open || !gettingThread) return;
+    console.log("open " + open)
+    getReplies();
+
+  }, [open]);
+
+  const getThread = () => {
+    if (gettingThread) {
+      return (
+        <Box>
+        <Note eventData={eventData}
+            fetchEvents={fetchEvents}
+            pool={pool} relays={relays}
+            following={following}
+            updateFollowing={updateFollowing}
+            setHashtags={setHashtags}
+            pk={pk}
+            disableReplyIcon={false}
+            hashTags={hashTags}
+            key={eventData.sig + Math.random()}
+            />
+        <Loading />
+      </Box>
+      )
+    } else {
+      return (
+        <Box>
+          <Box>
+            {rootEvents && rootEvents.length > 0 && 
+              rootEvents.map((rootEvent: FullEventData) => {
+                return (
+                  <Box 
+                    key={rootEvent.sig + Math.random()}                                        
+                    sx={{ 
+                      marginBottom: "10px", 
+                      justifyContent: "center", 
+                      flexDirection: "row", 
+                      alignItems: "center" 
+                    }}
+                  >
+                    <Note
+                        eventData={rootEvent}
+                        pool={pool}
+                        relays={relays}
+                        fetchEvents={fetchEvents}
+                        following={following}
+                        updateFollowing={updateFollowing}
+                        setHashtags={setHashtags}
+                        pk={pk}
+                        disableReplyIcon={false}
+                        gettingThread={gettingThread}
+                        hashTags={hashTags}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+                      <SouthIcon sx={{color: themeColors.textColor}}/>
+                    </Box>
+                  </Box>
+                )
+            })}
+          </Box>
+
+          <Box>
+              <Note eventData={eventData}
+                  fetchEvents={fetchEvents}
+                  pool={pool} relays={relays}
+                  following={following}
+                  updateFollowing={updateFollowing}
+                  setHashtags={setHashtags}
+                  pk={pk}
+                  disableReplyIcon={false}
+                  hashTags={hashTags}
+                  key={eventData.sig + Math.random()}
+                  />
+          </Box>
+
+          <Box>
+            {replyEvents.length > 0 && (
+              <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <SouthIcon />
+                  </Box>
+                  {replyEvents.map((replyEvent) => {
+                    return (
+                      <Note 
+                      eventData={replyEvent}
+                      pool={pool}
+                      relays={relays}
+                      fetchEvents={fetchEvents}
+                      following={following}
+                      updateFollowing={updateFollowing}
+                      setHashtags={setHashtags}
+                      pk={pk}
+                      key={replyEvent.sig + Math.random()}
+                      disableReplyIcon={false}
+                      hashTags={hashTags}
+                      />
+                      );
+                    })}
+              </Box>
+            )}
+          </Box>
+        </Box>
+      )
     }
-
-    if(gettingThread){
-      getReplies();
-    }
-
-  }, [pool]);
+  }
 
   return (
     <Modal
@@ -147,86 +249,11 @@ export default function NoteModal({
               sx={{color: themeColors.textColor, cursor: 'pointer'}}
               onClick={handleClose} />
         </Box>
+
         <Box sx={{overflowY: 'auto', width: '98%', maxHeight: "80vh"}}>
             <Stack direction="row" spacing={0} flexDirection="column">
 
-                <Box>
-                    {rootEvents.length > 0 && (
-                        <>
-                                {rootEvents.map((rootEvent) => {
-                                    const fullRootEventData = setEventData(rootEvent, metaData[rootEvent.pubkey], reactions[rootEvent.id]);
-                                    return (
-                                        <Box 
-                                          key={rootEvent.sig + Math.random()}                                        
-                                          sx={{ 
-                                            marginBottom: "10px", 
-                                            justifyContent: "center", 
-                                            flexDirection: "row", 
-                                            alignItems: "center" 
-                                            }}>
-                                            <Note
-                                                eventData={fullRootEventData}
-                                                pool={pool}
-                                                relays={relays}
-                                                fetchEvents={fetchEvents}
-                                                following={following}
-                                                updateFollowing={updateFollowing}
-                                                setHashtags={setHashtags}
-                                                pk={pk}
-                                                disableReplyIcon={false}
-                                                gettingThread={gettingThread}
-                                                hashTags={hashTags}
-                                            />
-                                            <Box sx={{ display: 'flex', justifyContent: 'center'}}>
-                                              <SouthIcon sx={{color: themeColors.textColor}}/>
-                                            </Box>
-                                        </Box>
-                                    )})}
-                        </>
-                    )}
-                </Box>
-
-                <Box>
-                    <Note eventData={eventData}
-                        fetchEvents={fetchEvents}
-                        pool={pool} relays={relays}
-                        following={following}
-                        updateFollowing={updateFollowing}
-                        setHashtags={setHashtags}
-                        pk={pk}
-                        disableReplyIcon={false}
-                        hashTags={hashTags}
-                        key={eventData.sig + Math.random()}
-                        />
-                </Box>
-
-                <Box>
-                    {replyEvents.length > 0 && (
-                        <>
-                          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                            <SouthIcon />
-                          </Box>
-                          {replyEvents.map((replyEvent) => {
-                              const fullEventData = setEventData(replyEvent, metaData[replyEvent.pubkey], reactions[replyEvent.id]);
-                              return (
-                                  <Note 
-                                      eventData={fullEventData}
-                                      pool={pool}
-                                      relays={relays}
-                                      fetchEvents={fetchEvents}
-                                      following={following}
-                                      updateFollowing={updateFollowing}
-                                      setHashtags={setHashtags}
-                                      pk={pk}
-                                      key={replyEvent.sig + Math.random()}
-                                      disableReplyIcon={false}
-                                      hashTags={hashTags}
-                                  />
-                              );
-                          })}
-                        </>
-                      )}
-                  </Box>
+                {getThread()}
 
               </Stack>
           </Box>      
