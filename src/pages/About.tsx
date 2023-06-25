@@ -1,7 +1,8 @@
-import { Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/material'
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/material'
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext, useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 type Props = {}
 
@@ -23,26 +24,69 @@ const handleCopy = () => {
             About Jiyou
         </Typography>
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body2" paragraph>
             Inspired by 自由【じゆう】which is the Japanese word for freedom. JiYou is a Nostr client built for
             complete user customization.  
             It serves as a portal to a simple, open protocol that enables global, decentralized, 
             and censorship-resistant social media.
         </Typography>
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body2" paragraph>
             🔍 Use JiYou's search bar to fine tune your feed with topics you are interested in. 
         </Typography>
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body2" paragraph>
             Customize the look and feel of JiYou in the settings page. 
         </Typography>
 
-        <Typography variant="body1" paragraph>
-            (Note: It is highly recommended you install a Nostr Extension to secure your account.)
+        <Typography variant="body2" paragraph>
+            🌐 JiYou is a web app that can be installed on your phone.
+        </Typography>
+        <Box my={2} sx={{color: themeColors.textColor}}>
+          <Accordion sx={{color: themeColors.textColor}}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{color: themeColors.textColor}} />}
+              aria-controls="panel1a-content"
+              id="panel1a-header"
+            >
+              <Typography variant="body1">Android</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                1. Open JiYou in Chrome on your Android device.<br />
+                2. Tap the menu button (three vertical dots in the top-right corner).<br />
+                3. Tap "Add to Home screen".<br />
+                4. Tap "Add" in the confirmation dialog.<br />
+                5. The app will now be installed and can be accessed from your home screen.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          <Accordion sx={{color: themeColors.textColor}}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon sx={{color: themeColors.textColor}} />}
+              aria-controls="panel2a-content"
+              id="panel2a-header"
+            >
+              <Typography variant="body1">iOS</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                1. Open JiYou in Safari on your iOS device.<br />
+                2. Tap the share button (a box with an arrow pointing upward).<br />
+                3. Scroll down and tap "Add to Home Screen".<br />
+                4. Tap "Add" in the top-right corner.<br />
+                5. The app will now be installed and can be accessed from your home screen.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+        </Box>
+
+        <Typography variant="body2" paragraph>
+            (Note: It is highly recommended you install a Nostr Extension to secure your account.
+            This may not be possible on mobile at the moment.)
         </Typography>
 
-        <Typography variant="body1" paragraph>
+        <Typography variant="body2" paragraph>
             Learn more about Nostr <Link href="https://nostr.how/">here</Link>.
         </Typography>
 
