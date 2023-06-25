@@ -21,7 +21,7 @@ function App() {
   const { relays, updateRelays } = useRelays({ pool, pk});
   const [publicKeyClicked, setPublicKeyClicked] = useState<boolean>(false);
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
-  const { profile, updateProfile } = useProfile({ pool, relays, pk });
+  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk });
   const { updateFollowing, following } = useFollowing({ pool, relays, pk });
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
@@ -112,6 +112,7 @@ function App() {
               following={following}
               profile={profile}
               updateProfile={updateProfile}
+              getProfile={getProfile}
             />} />
           <Route path="/relays" element={
             <Relays
