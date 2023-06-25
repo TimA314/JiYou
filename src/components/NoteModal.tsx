@@ -3,7 +3,7 @@ import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
 import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
 import Note from './Note';
-import { Stack } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
@@ -11,8 +11,7 @@ import { setEventData } from '../utils/eventUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
-import Loading from './Loading';
-import { get } from 'http';
+import CircularProgress from '@mui/material/CircularProgress';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -139,7 +138,7 @@ export default function NoteModal({
   const getThread = () => {
     if (gettingThread) {
       return (
-        <Box>
+        <Box sx={{height: 'auto', padding: 'auto'}}>
         <Note eventData={eventData}
             fetchEvents={fetchEvents}
             pool={pool} relays={relays}
@@ -151,7 +150,9 @@ export default function NoteModal({
             hashTags={hashTags}
             key={eventData.sig + Math.random()}
             />
-        <Loading />
+        <Box sx={{ display: 'flex', justifyContent: "center", alignItems: 'center', margin: '10px' }}>
+          <CircularProgress sx={{color: themeColors.primary}}/>
+        </Box>
       </Box>
       )
     } else {
