@@ -32,8 +32,6 @@ type GlobalFeedProps = {
     pool: SimplePool | null;
     relays: string[];
     pk: string;
-    setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-    setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -57,8 +55,6 @@ type GlobalFeedProps = {
     events,
     hashtags,
     tabIndex,
-    setEventToSign, 
-    setSignEventOpen, 
     updateFollowing,
     setTabIndex,
     setHashtags,
@@ -104,19 +100,18 @@ type GlobalFeedProps = {
                 events.map((fullEventData) => {
                     return (
                         <Note 
-                        pool={pool} 
-                        relays={relays}
-                        fetchEvents={fetchEvents}
-                        eventData={fullEventData} 
-                        updateFollowing={updateFollowing} 
-                        following={following} 
-                        setHashtags={setHashtags} 
-                        key={fullEventData.sig + Math.random()} 
-                        pk={pk}
-                        setSignEventOpen={setSignEventOpen}
-                        setEventToSign={setEventToSign}
-                        hashTags={hashtags}/>
-                        )
+                            pool={pool} 
+                            relays={relays}
+                            fetchEvents={fetchEvents}
+                            eventData={fullEventData} 
+                            updateFollowing={updateFollowing} 
+                            following={following} 
+                            setHashtags={setHashtags} 
+                            key={fullEventData.sig + Math.random()} 
+                            pk={pk}
+                            hashTags={hashtags}
+                        />
+                    )
                 })
             )
         }
@@ -162,8 +157,6 @@ type GlobalFeedProps = {
                         relays={relays} 
                         pk={pk}
                         setPostedNote={setPostedNote} 
-                        setEventToSign={setEventToSign}
-                        setSignEventOpen={setSignEventOpen}
                         />
                 </Box>
             </Modal>

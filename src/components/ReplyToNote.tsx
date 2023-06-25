@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { EventTemplate, SimplePool } from 'nostr-tools';
+import { SimplePool } from 'nostr-tools';
 import { FullEventData, RelaySwitches } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
@@ -35,8 +35,6 @@ interface ReplyToNoteProps {
   hashTags: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function ReplyToNote({
@@ -51,8 +49,6 @@ export default function ReplyToNote({
   hashTags,
   updateFollowing, 
   setHashtags,
-  setEventToSign,
-  setSignEventOpen,
 }: ReplyToNoteProps) {
   const handleClose = () => setReplyToNoteOpen(false);
   
@@ -103,8 +99,6 @@ export default function ReplyToNote({
               updateFollowing={updateFollowing} 
               setHashtags={setHashtags} 
               disableReplyIcon={true}
-              setSignEventOpen={setSignEventOpen}
-              setEventToSign={setEventToSign}
               hashTags={hashTags}
               />
             <CreateNote 
@@ -113,8 +107,6 @@ export default function ReplyToNote({
               pk={pk}  
               replyEventData={eventData} 
               setPostedNote={setPostedNote} 
-              setEventToSign={setEventToSign}
-              setSignEventOpen={setSignEventOpen}
               />
         </Box>
       </Modal>

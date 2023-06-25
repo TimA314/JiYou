@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
-import { useCallback, useContext, useRef, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate, Kind } from 'nostr-tools';
 import { getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
@@ -70,8 +70,6 @@ interface NoteProps {
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
-  setEventToSign: React.Dispatch<React.SetStateAction<EventTemplate | null>>;
-  setSignEventOpen: React.Dispatch<React.SetStateAction<boolean>>;
   hashTags: string[];
   imagesOnlyMode?: boolean;
 }
@@ -86,8 +84,6 @@ const Note: React.FC<NoteProps> = ({
     setHashtags, 
     disableReplyIcon, 
     gettingThread,
-    setEventToSign,
-    setSignEventOpen,
     hashTags,
     updateFollowing,
   }: NoteProps) => {
@@ -138,7 +134,7 @@ const Note: React.FC<NoteProps> = ({
     const signedManually = await signEventWithStoredSk(pool, relays, _baseEvent);
     setLiked(signedManually);
 
-  }, [pool, relays, eventData, pk, setEventToSign, setSignEventOpen]);
+  }, [pool, relays, eventData, pk]);
 
   const showReplyThread = useCallback(() => {
     setNoteDetailsOpen((NoteDetailsOpen) => !NoteDetailsOpen);
@@ -169,8 +165,6 @@ const Note: React.FC<NoteProps> = ({
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}
         pk={pk}
-        setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign}
         hashTags={hashTags} />
       <CardHeader
         avatar={
@@ -193,8 +187,6 @@ const Note: React.FC<NoteProps> = ({
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
-        setSignEventOpen={setSignEventOpen}
-        setEventToSign={setEventToSign} 
         hashTags={hashTags}/>
       <CardContent >
         <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
