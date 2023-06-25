@@ -11,42 +11,42 @@ type UseFollowingProps = {
 export const useFollowing = ({ pool, relays, pk }: UseFollowingProps) => {
   const [following, setFollowing] = useState<string[]>([]);
   
-  useEffect(() => {
+  const getFollowing = async () => {
+    if (!pool || pk === "") return [];
     console.log("useFollowers pk: " + pk)
-    if (!pool || pk === "") return;
+    let followingPks: string[] = [];
+    const userFollowingEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
     
+    if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return [];
 
-    const getFollowing = async () => {
-      
-      let followingPks: string[] = [];
-      const userFollowingEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
-      
-      if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return;
-  
-      const followingArray: string[][] = userFollowingEvent[0].tags.filter((tag) => tag[0] === 'p');
-      for (let i = 0; i < followingArray.length; i++) {
-        if (followingArray[i][1]) {
-          followingPks.push(followingArray[i][1]);
-        }
+    const followingArray: string[][] = userFollowingEvent[0].tags.filter((tag) => tag[0] === 'p');
+    for (let i = 0; i < followingArray.length; i++) {
+      if (followingArray[i][1]) {
+        followingPks.push(followingArray[i][1]);
       }
-      console.log(followingPks.length + ' followers found');
-      setFollowing(followingPks);
-    };
+    }
+    console.log(followingPks.length + ' following');
+    setFollowing(followingPks);
+    return followingPks;
+  };
   
+  
+  useEffect(() => {
     getFollowing();
-  }, [pool]);
+  }, [relays, pk]);
 
   
   const updateFollowing = async (followPubkey: string) => {
     if (!pool) return;
 
     try {
-      const isUnfollowing: boolean = !!following.find((follower) => follower === followPubkey);
+      const currentFollowing = await getFollowing();
+      const isUnfollowing: boolean = !!currentFollowing.find((follower) => follower === followPubkey);
     
       console.log("setIsFollowing " + followPubkey + " to following = " + isUnfollowing)
             
       const newTags: string[][] = isUnfollowing ? [] : [["p", followPubkey]];
-      following.forEach((follow) => {
+      currentFollowing.forEach((follow) => {
         if (follow === followPubkey && isUnfollowing) {
           return
         } else {
