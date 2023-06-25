@@ -57,7 +57,11 @@ export default function NavMenu() {
                 'aria-labelledby': 'basic-button',
             }}
             >
-            <MenuItem onClick={handleClose}><InfoIcon color='info' /></MenuItem>
+                <MenuItem onClick={handleClose}>
+                    <Link to="/about" >
+                        <InfoIcon color='info' />
+                    </Link>
+                </MenuItem>
                 <MenuItem onClick={handleClose}>
                     <Link to="/settings" >
                         <TuneIcon />

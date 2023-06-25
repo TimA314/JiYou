@@ -14,6 +14,7 @@ import { useRelays } from './hooks/useRelays';
 import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
+import About from './pages/About';
 
 function App() {
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
@@ -178,6 +179,9 @@ function App() {
               hideExplicitContent={hideExplicitContent}
               setHideExplicitContent={setHideExplicitContent}
             />
+          } />
+          <Route path="/about" element={
+            <About />
           } />
         </Routes>
         <NavBar
