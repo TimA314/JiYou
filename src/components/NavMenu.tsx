@@ -17,14 +17,6 @@ export default function NavMenu() {
     setAnchorEl(event.currentTarget);
     };
 
-    const handleCustomizeClicked = () => {
-        handleClose();
-    };
-
-    const handleAboutClicked = () => {
-        handleClose();
-    };
-
     const handleClose = () => {
     setAnchorEl(null);
     };
@@ -41,21 +33,21 @@ export default function NavMenu() {
             <MenuIcon />
             </Button>
             <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            anchorOrigin={{
-                vertical: 'top',
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                    }}
+                transformOrigin={{
+                vertical: 'bottom',
                 horizontal: 'left',
                 }}
-            transformOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-            }}
-            MenuListProps={{
-                'aria-labelledby': 'basic-button',
-            }}
+                MenuListProps={{
+                    'aria-labelledby': 'basic-button',
+                }}
             >
                 <MenuItem onClick={handleClose}>
                     <Link to="/about" >

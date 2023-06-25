@@ -50,21 +50,30 @@ function CreateNote({
     if (!pool) {
       return;
     }
+    const tags = [];
+    //push reply event id and pk
+    if (replyEventData) {
+      tags.push(["e", replyEventData.eventId, "", ""]);
+      tags.push(["p", pk]);
+    }
     
-    const tags = replyEventData ? [
-      [
-        "e",
-        replyEventData.eventId,
-        "",
-        ""
-      ],
-      [
-        "p",
-        pk
-      ]
-    ]
-    : [];
+    //push other replies in chain
+    const replyEventTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "e") : [];
+    const replyPubKeyTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "p") : [];
 
+    if (replyEventTags.length > 0) {
+      replyEventTags.forEach((tag) => {
+        tags.push(tag);
+      })
+    }
+
+    if (replyPubKeyTags.length > 0) {
+      replyPubKeyTags.forEach((tag) => {
+        tags.push(tag);
+      })
+    }
+    
+    //push hashtags
     const hashTags: string[] = extractHashtags(input);
     if (hashTags.length > 0) {
       hashTags.forEach(tag => {
@@ -83,6 +92,7 @@ function CreateNote({
       tags: tags,
     } as EventTemplate
 
+    //Sign the event with nostr if possible
     if (window.nostr){
       try {
         const signedWithNostr = await signEventWithNostr(pool, relaysToPostTo, _baseEvent);

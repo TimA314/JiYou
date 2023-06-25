@@ -12,7 +12,6 @@ import { ThemeContext } from '../theme/ThemeContext';
 
 
 interface KeysProps {
-    publicKeyOpen: boolean;
     pk: string;
     setPk: (pk: string) => void;
     willUseNostrExtension: boolean;

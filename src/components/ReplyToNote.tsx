@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { SimplePool } from 'nostr-tools';
-import { FullEventData, RelaySwitches } from '../nostr/Types';
+import { FullEventData } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -51,19 +51,6 @@ export default function ReplyToNote({
   setHashtags,
 }: ReplyToNoteProps) {
   const handleClose = () => setReplyToNoteOpen(false);
-  
-  const relaylist = relays.reduce((obj, relay) => {
-    obj[relay] = true;
-    return obj;
-  }, {} as RelaySwitches);
-  const [relaySwitches, setRelaysSwitches] = React.useState(relaylist);
-
-  const handleRelaySwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRelaysSwitches(prevState => ({
-      ...prevState,
-      [event.target.id]: !prevState[event.target.id]
-    }));
-  };
 
   const setPostedNote = () => {
     handleClose();
