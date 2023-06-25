@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Event, EventTemplate, Kind, SimplePool, getEventHash, validateEvent, verifySignature } from 'nostr-tools';
+import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 
 type UseRelaysProps = {
   pool: SimplePool | null;
-  pk: string;
+  pk_decoded: string;
 };
 
-export const useRelays = ({ pool, pk }: UseRelaysProps) => {
+export const useRelays = ({ pool, pk_decoded }: UseRelaysProps) => {
   const [relays, setRelays] = useState<string[]>(defaultRelays);
   
   useEffect(() => {
-    if (!pool || pk === "") return;
+    if (!pool || pk_decoded === "") return;
 
     const getEvents = async () => {
         try {
 
-            let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk], limit: 1 }])
+            let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
             
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
                 let relayStrings: string[] = [];
@@ -40,7 +40,7 @@ export const useRelays = ({ pool, pk }: UseRelaysProps) => {
     }
 
     getEvents();
-}, [pool, pk])
+}, [pool, pk_decoded])
   
   
 const updateRelays = async (relays: string[]) => {

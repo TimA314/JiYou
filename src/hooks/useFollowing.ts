@@ -5,17 +5,17 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 type UseFollowingProps = {
   pool: SimplePool | null;
   relays: string[];
-  pk: string;
+  pk_decoded: string;
 };
 
-export const useFollowing = ({ pool, relays, pk }: UseFollowingProps) => {
+export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) => {
   const [following, setFollowing] = useState<string[]>([]);
   
   const getFollowing = async () => {
-    if (!pool || pk === "") return [];
-    console.log("useFollowers pk: " + pk)
+    if (!pool || pk_decoded === "") return [];
+    console.log("useFollowers pk: " + pk_decoded)
     let followingPks: string[] = [];
-    const userFollowingEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk], limit: 1 }])
+    const userFollowingEvent: Event[] = await pool.list(relays, [{kinds: [3], authors: [pk_decoded], limit: 1 }])
     
     if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return [];
 
@@ -33,7 +33,7 @@ export const useFollowing = ({ pool, relays, pk }: UseFollowingProps) => {
   
   useEffect(() => {
     getFollowing();
-  }, [relays, pk]);
+  }, [relays, pk_decoded]);
 
   
   const updateFollowing = async (followPubkey: string) => {
