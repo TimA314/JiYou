@@ -31,7 +31,11 @@ const handleCopy = () => {
         </Typography>
 
         <Typography variant="body1" paragraph>
-            Use JiYou's search bar to fine tune your feed with topics you are interested in. 
+            🔍 Use JiYou's search bar to fine tune your feed with topics you are interested in. 
+        </Typography>
+
+        <Typography variant="body1" paragraph>
+            Customize the look and feel of JiYou in the settings page. 
         </Typography>
 
         <Typography variant="body1" paragraph>
