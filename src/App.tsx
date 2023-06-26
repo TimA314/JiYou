@@ -17,17 +17,17 @@ import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
 
 function App() {
+  const fetchEvents = useRef(false);
+  const fetchingEventsInProgress = useRef(false);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
   const [sk_decoded, setSk_decoded] = useState<string>("");
   const [pk_decoded, setPk_decoded] = useState<string>("");
-  const { relays, updateRelays } = useRelays({ pool, pk_decoded});
+  const { relays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents});
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
   const { updateFollowing, following } = useFollowing({ pool, relays, pk_decoded });
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
-  const fetchEvents = useRef(false);
-  const fetchingEventsInProgress = useRef(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { events } = useListEvents({ 

@@ -34,6 +34,11 @@ declare global {
   }
 }
 
+export type RelaySetting = {
+  relayUrl: string;
+  read: boolean;
+  write: boolean;
+}
 
 type Nostr = {
   getPublicKey(): Promise<string>;

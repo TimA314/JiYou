@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, RelaySetting } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate, Kind } from 'nostr-tools';
@@ -63,7 +63,7 @@ interface NoteProps {
   pk: string;
   eventData: FullEventData;
   pool: SimplePool | null;
-  relays: string[];
+  relays: RelaySetting[];
   fetchEvents: React.MutableRefObject<boolean>;
   following: string[];
   updateFollowing: (pubkey: string) => void;
@@ -95,6 +95,8 @@ const Note: React.FC<NoteProps> = ({
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
 
+  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
 
   const handleExpandClick = useCallback(() => {
@@ -124,14 +126,14 @@ const Note: React.FC<NoteProps> = ({
     setLiked(true)
 
     if (window.nostr){
-      const signedWithNostr = await signEventWithNostr(pool, relays, _baseEvent);
+      const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
         return;
       }
     }
 
-    const signedManually = await signEventWithStoredSk(pool, relays, _baseEvent);
+    const signedManually = await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
     setLiked(signedManually);
 
   }, [pool, relays, eventData, pk]);

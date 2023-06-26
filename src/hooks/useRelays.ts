@@ -3,35 +3,41 @@ import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
+import { RelaySetting } from '../nostr/Types';
+import { RelayReadWriteOrBoth } from '../utils/miscUtils';
 
 type UseRelaysProps = {
   pool: SimplePool | null;
   pk_decoded: string;
+  fetchEvents: React.MutableRefObject<boolean>
 };
 
-export const useRelays = ({ pool, pk_decoded }: UseRelaysProps) => {
-  const [relays, setRelays] = useState<string[]>(defaultRelays);
+export const useRelays = ({ pool, pk_decoded, fetchEvents }: UseRelaysProps) => {
+  const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
   
   useEffect(() => {
     if (!pool || pk_decoded === "") return;
 
-    const getEvents = async () => {
+    const getUserRelays = async () => {
         try {
-
-            let currentRelaysEvent = await pool.list(relays, [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
+            const relayUrls = relays.map((r) => r.relayUrl);
+            let currentRelaysEvent = await pool.list(relayUrls, [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
             
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
-                let relayStrings: string[] = [];
+                let updatedRelays: RelaySetting[] = [];
                 currentRelaysEvent[0].tags.forEach((tag) => {
                     if(tag[0] === "r") {
                         const sanitizedRelay = sanitizeString(tag[1]);
+                        const readWriteable = tag[2].trim() === "";
+                        const readable = tag[2] === "read" || readWriteable;
+                        const writeable = tag[2] === "write" || readWriteable;
                         if (sanitizedRelay.startsWith("wss://")){
-                            relayStrings.push(sanitizedRelay);
+                            updatedRelays.push({relayUrl: sanitizedRelay, read: readable, write: writeable});
                         }
                     }
                 })
-                console.log(relayStrings)
-                setRelays(relayStrings);
+                console.log(updatedRelays)
+                setRelays(updatedRelays);
             }
             
         } catch (error) {
@@ -39,19 +45,20 @@ export const useRelays = ({ pool, pk_decoded }: UseRelaysProps) => {
         }
     }
 
-    getEvents();
+    getUserRelays();
 }, [pool, pk_decoded])
   
   
-const updateRelays = async (relays: string[]) => {
+const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
     if (!pool) return;
+    const writableRelayUrls = relaysToUpdate.filter((r) => r.write).map((r) => r.relayUrl);
 
     try{
         
         //construct the tags
         const relayTags: string[][] = [];
-        relays.forEach((r) => {
-            relayTags.push(["r", r])
+        relaysToUpdate.forEach((r) => {
+            relayTags.push(["r", r.relayUrl, RelayReadWriteOrBoth(r)])
         })
         
         //cunstruct the event
@@ -64,16 +71,16 @@ const updateRelays = async (relays: string[]) => {
 
 
         if (window.nostr) {
-           const signedWithNostr = await signEventWithNostr(pool, relays, _baseEvent);
+           const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
            if (signedWithNostr) {
                 setRelays(relays);
                 return;
            }
         }
 
-        setRelays(relays);
-        await signEventWithStoredSk(pool, relays, _baseEvent);
-        
+        setRelays(relaysToUpdate);
+        fetchEvents.current = true;
+        await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
 
     } catch (error) {
         console.error("Error adding relay" + error);

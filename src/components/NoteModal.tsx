@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
-import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
@@ -31,7 +31,7 @@ interface NoteModalProps {
   open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
-  relays: string[];
+  relays: RelaySetting[];
   following: string[];
   updateFollowing: (pubkey: string) => void;
   setReplyCount: (count: number) => void;
@@ -61,6 +61,9 @@ export default function NoteModal({
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
 
+  const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
+  const allRelayUrls = relays.map((r) => r.relayUrl);
+
   const getReplies = async () => {
     if (!pool) {
       console.log("No pool")
@@ -70,15 +73,16 @@ export default function NoteModal({
     setGettingThread(true);
     
     // Fetch replies
-    const replyEvents = await pool.list(relays, [{ "kinds": [1], "#e": [eventData.eventId]}])
+    const replyEvents = await pool.list(allRelayUrls, [{ "kinds": [1], "#e": [eventData.eventId]}])
     const sanitizedReplyThreadEvents = replyEvents.map((event) => sanitizeEvent(event));
     console.log(sanitizedReplyThreadEvents.length + " replies fetched")
 
     //Fetch root events
     const eventTags= eventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== eventData.eventId);
     let sanitizedRootEvents: Event[] = [];
+    let recommendedRelays = allRelayUrls;
     if (eventTags && eventTags.length > 0) {
-      const recommendedRelays = [...new Set([...relays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
+      recommendedRelays = [...new Set([...recommendedRelays, ...eventTags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2])])];
       const rootEvents = await pool.list(recommendedRelays, [{ "kinds": [1], ids: eventTags.map((t) => t[1])}]);
       sanitizedRootEvents = rootEvents.map((event) => sanitizeEvent(event));
     }
@@ -89,7 +93,7 @@ export default function NoteModal({
     const authorPubkeys: string[] = [...new Set([...mappedReplyKeys, ...mappedRootKeys, eventData.pubkey])];
 
     // Fetch metadata
-    const fetchedMetaDataEvents = await pool.list(relays, [{kinds: [0], authors: authorPubkeys}]);
+    const fetchedMetaDataEvents = await pool.list(recommendedRelays, [{kinds: [0], authors: authorPubkeys}]);
 
     const metaDataMap: Record<string, MetaData> = {};
     fetchedMetaDataEvents.forEach((event) => {
@@ -99,8 +103,7 @@ export default function NoteModal({
     // Fetch reactions
     const replyEventsIds = [...new Set([...sanitizedReplyThreadEvents.map(event => event.id), ...sanitizedRootEvents.map(event => event.id)])];
 
-    const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], 
-      [{ "kinds": [7], "#e": replyEventsIds, "#p": authorPubkeys}]);
+    const reactionEvents = await pool.list(recommendedRelays, [{ "kinds": [7], "#e": replyEventsIds, "#p": authorPubkeys}]);
     
     const retrievedReactionObjects: Record<string, ReactionCounts> = {};
     reactionEvents.forEach((event) => {

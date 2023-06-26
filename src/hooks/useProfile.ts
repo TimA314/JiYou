@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { ProfileContent } from '../nostr/Types';
+import { ProfileContent, RelaySetting } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 
 type UseProfileProps = {
   pool: SimplePool | null;
-  relays: string[];
+  relays: RelaySetting[];
   pk_decoded: string;
 };
 
@@ -17,12 +17,16 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
     about: "",
     banner: ""
   });
+
+  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const allRelayUrls = relays.map((r) => r.relayUrl);
+
   
   const getProfile = async () => {
     if (!pool || pk_decoded === "") return;
 
     // Fetch user profile
-    const profileEvent: Event[] = await pool.list(relays, [{kinds: [0], authors: [pk_decoded], limit: 1 }])
+    const profileEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [0], authors: [pk_decoded], limit: 1 }])
 
     if (!profileEvent || profileEvent.length < 1) return;
     
@@ -68,13 +72,13 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
 
          
       if (window.nostr) {
-        const signed = await signEventWithNostr(pool, relays, _baseEvent);
+        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signed) {
           return;
         }
       }
 
-      await signEventWithStoredSk(pool, relays, _baseEvent);
+      await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
 
     } catch (error) {
         alert(error);

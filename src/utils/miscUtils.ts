@@ -1,4 +1,5 @@
 import { bech32 } from "bech32";
+import { RelaySetting } from "../nostr/Types";
 
 export const bech32ToHex = (str: string) => {
   try {
@@ -126,5 +127,23 @@ const uint8ArrayToHex = (buffer: Uint8Array) => {
     ]
   
     return dicebearArray[Math.floor(Math.random() * dicebearArray.length)]
+  }
+
+  export const RelayReadWriteOrBoth = (relaySetting: RelaySetting): string => {
+    // empty can be read and write
+    if ((relaySetting.read && relaySetting.write) || (!relaySetting.read && !relaySetting.write)){
+      return "";
+    }
+    // is read only
+    if (relaySetting.read){
+      return "read";
+    }
+    // is write only
+    if (relaySetting.write){
+      return "write";
+    }
+
+    //never reach here
+    return "";
   }
   
