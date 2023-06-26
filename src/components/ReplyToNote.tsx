@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { SimplePool } from 'nostr-tools';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,7 +29,7 @@ interface ReplyToNoteProps {
   open: boolean;
   setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
-  relays: string[];
+  relays: RelaySetting[];
   pk: string;
   following: string[];
   hashTags: string[];

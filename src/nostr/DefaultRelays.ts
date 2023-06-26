@@ -1,11 +1,14 @@
-export const defaultRelays: string[]  = [
-    "wss://relay.snort.social",
-    "wss://nostr.bitcoiner.social",
-    "wss://nostr.wine",
-    "wss://relay.nostrgraph.net",
-    'wss://relay.damus.io/',
-    'wss://relay.nostr.bg/',
-    'wss://nostr.fmt.wiz.biz/',
-    'wss://relay.nostr.band/',
-    'wss://nos.lol/'
+import { RelaySetting } from "./Types";
+
+export const defaultRelays: RelaySetting[]  = [
+    {relayUrl: "wss://relay.snort.social", read: false, write: true},
+    {relayUrl: "wss://nostr.bitcoiner.social", read: false, write: true},
+    {relayUrl: "wss://nostr.wine", read: true, write: true},
+    {relayUrl: "wss://relay.nostrgraph.net", read: false, write: true},
+    {relayUrl: "wss://relay.damus.io/", read: false, write: true},
+    {relayUrl: "wss://relay.nostr.bg/", read: false, write: true},
+    {relayUrl: "wss://nostr.fmt.wiz.biz/", read: false, write: true},
+    {relayUrl: "wss://nos.lol/", read: false, write: true},
+    {relayUrl: "wss://relay.nostr.band/", read: false, write: true},
+    {relayUrl: "wss://eden.nostr.land", read: true, write: false}
   ]

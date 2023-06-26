@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { EventTemplate, SimplePool } from 'nostr-tools'
+import { SimplePool } from 'nostr-tools'
 import { MutableRefObject, useState } from 'react'
 import HashtagsFilter from '../components/HashtagsFilter';
 import Note from '../components/Note';
@@ -9,7 +9,7 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, RelaySetting } from '../nostr/Types';
 import Loading from '../components/Loading';
 
 const createNoteStyle = {
@@ -30,7 +30,7 @@ const createNoteStyle = {
 
 type GlobalFeedProps = {
     pool: SimplePool | null;
-    relays: string[];
+    relays: RelaySetting[];
     pk: string;
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;

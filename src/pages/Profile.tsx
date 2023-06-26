@@ -7,14 +7,14 @@ import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { FullEventData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, ReactionCounts, RelaySetting } from '../nostr/Types';
 import Note from '../components/Note';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { GetImageFromPost } from '../utils/miscUtils';
 
 interface ProfileProps {
-    relays: string[];
+    relays: RelaySetting[];
     pool: SimplePool | null;
     pk: string;
     profile: ProfileContent;
@@ -41,7 +41,8 @@ const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
 const { themeColors } = useContext(ThemeContext);
-
+const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
+const allRelayUrls = relays.map((r) => r.relayUrl);
 
 
 
@@ -56,13 +57,13 @@ useEffect(() => {
             setBannerUrlInput(profile.banner);
             setUserEventsFetched(false);
             // Fetch user notes
-            const userNotes = await pool.list(defaultRelays, [{kinds: [1], authors: [pk] }])
+            const userNotes = await pool.list(allRelayUrls, [{kinds: [1], authors: [pk] }])
             const sanitizedEvents = userNotes.map((event) => sanitizeEvent(event));
             
             // Fetch reactions
             const eventIds = sanitizedEvents.map((event) => event.id);
             
-            const reactionEvents = await pool.list([...new Set([...relays, ...defaultRelays])], [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
+            const reactionEvents = await pool.list(allRelayUrls, [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
             const retrievedReactionObjects: Record<string, ReactionCounts> = {};
             reactionEvents.forEach((event) => {
                 const eventTagThatWasLiked = event.tags.filter((tag: string[]) => tag[0] === "e");

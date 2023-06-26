@@ -1,15 +1,16 @@
 import "./Relays.css";
 import { useState } from 'react'
-import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper } from '@mui/material';
+import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper, FormControl, Switch, FormControlLabel } from '@mui/material';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { SimplePool } from 'nostr-tools';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
+import { RelaySetting } from "../nostr/Types";
 
 interface RelayProps {
-    relays: string[];
-    updateRelays: (relays: string[]) => void;
+    relays: RelaySetting[];
+    updateRelays: (relays: RelaySetting[]) => void;
     pool: SimplePool | null;
     pk: string;
 }
@@ -17,6 +18,7 @@ interface RelayProps {
 export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
     const [relayInput, setRelayInput] = useState("");
     const { themeColors } = useContext(ThemeContext);
+    const [relaysAndSetting, setRelaysAndSetting] = useState(relays);
     
     const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -25,13 +27,13 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
         try{
             const relayFormatted = relayInput.startsWith("wss://") ? relayInput : "wss://" + relayInput;
 
-            if (relays.includes(relayFormatted)){
+            if (relaysAndSetting.find((relayToMatch) => relayToMatch.relayUrl === relayFormatted)){
                 setRelayInput("");
                 alert("Relay already exists.");
                 return;
             }
             
-            updateRelays([...relays, relayFormatted]);
+            updateRelays(relaysAndSetting);
             setRelayInput("");
 
         } catch (error) {
@@ -39,24 +41,25 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
         }
     }
 
-    const DeleteRelay = async (relay: string) => {
+    const DeleteRelay = async (updatingRelay: RelaySetting) => {
         if (!window.nostr) {
             alert("You need to install a Nostr extension to manage relays")
             return;
         }
 
-        console.log("Deleting Relay: " + relay);
+        console.log("Deleting Relay: " + updatingRelay.relayUrl);
 
         try{
             
             const relayTags: string[][] = [];
 
             relays.forEach((r) => {
-                if (r === relay) return;
-                relayTags.push(["r", r])
+                if (relays.find((relayToMatch) => relayToMatch.relayUrl === r.relayUrl)) return;
+                const readAndWrite = r.read && r.write ? "" : r.read && !r.write ? "read" : !r.read && r.write ? "write" : "";
+                relayTags.push(["r", r.relayUrl, readAndWrite])
             })
 
-            const relaysWithRemovedRelay = relays.filter((r) => r !== relay);
+            const relaysWithRemovedRelay = relays.filter((r) => r.relayUrl !== updatingRelay.relayUrl);
             updateRelays(relaysWithRemovedRelay);
         } catch (error) {
             console.log("Error adding relay" + error);
@@ -87,9 +90,9 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
             </Box>
 
             <List>
-                {relays.map(relay => {
+                {relaysAndSetting.map(r => {
                     return (
-                        <Paper key={relay} className="relayItem">
+                        <Paper key={r.relayUrl} className="relayItem">
                             <ListItem >
                                 <Grid container >
                                     <Grid item={true} xs={1}>
@@ -102,11 +105,35 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                                             variant="body1" 
                                             sx={{marginLeft: "7px"}} 
                                             color={themeColors.textColor}>
-                                            {relay}
+                                            {r.relayUrl}
                                         </Typography>
+                                        <FormControl>
+                                            <FormControlLabel
+                                                value={r.read}
+                                                control={<Switch sx={{color: themeColors.primary}} />}
+                                                label="Read"
+                                                labelPlacement="top"
+                                                />
+                                        </FormControl>
+                                        <FormControl>
+                                            <FormControlLabel
+                                                value={r.write}
+                                                control={<Switch sx={{color: themeColors.primary}} />}
+                                                label="Write"
+                                                labelPlacement="top"
+                                                />
+                                        </FormControl>
+                                        <FormControl>
+                                            <FormControlLabel
+                                                value={(r.write && r.read) || (!r.write && !r.read)}
+                                                control={<Switch sx={{color: themeColors.primary}} />}
+                                                label="Read And Write"
+                                                labelPlacement="top"
+                                                />
+                                        </FormControl>
                                     </Grid>
                                     <Grid item={true} xs={1} >
-                                        <Button onClick={() => DeleteRelay(relay)}>
+                                        <Button onClick={() => DeleteRelay(r)}>
                                             <DeleteForeverIcon color="error"/> 
                                         </Button>
                                     </Grid>

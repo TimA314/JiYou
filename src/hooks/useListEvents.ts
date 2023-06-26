@@ -1,15 +1,14 @@
 import { useState, useEffect, useRef, MutableRefObject } from 'react';
 import { Event, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { FullEventData, MetaData, ReactionCounts } from '../nostr/Types';
+import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/Types';
 import { getEventOptions } from '../nostr/FeedEvents';
-import { defaultRelays } from '../nostr/DefaultRelays';
 import { eventContainsExplicitContent, setEventData } from '../utils/eventUtils';
 
 type useListEventsProps = {
   pool: SimplePool | null;
   setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
-  relays: string[];
+  relays: RelaySetting[];
   tabIndex: number;
   following: string[];
   hashtags: string[];
@@ -33,7 +32,8 @@ export const useListEvents = ({
 }: useListEventsProps) => {
 
   const [events, setEvents] = useState<FullEventData[]>([]);
-
+  const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
+  const allRelayUrls = relays.map((r) => r.relayUrl);
 
   useEffect(() => {
     if (!pool){
@@ -55,7 +55,7 @@ export const useListEvents = ({
         
         console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, following));
 
-        const fetchedFeedEvents = await pool.list(relays, [getEventOptions(hashtags, tabIndex, following)]);
+        const fetchedFeedEvents = await pool.list(readableRelayUrls, [getEventOptions(hashtags, tabIndex, following)]);
         console.log("number of events fetched: ", fetchedFeedEvents.length);
 
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
@@ -64,13 +64,12 @@ export const useListEvents = ({
           sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
         }
 
-        const recommendedRelays: string[] = [...new Set([...relays, ...defaultRelays])];
         
         let eventIds: string[] = sanitizedEvents.map((event: Event) => event.id);
         let eventsPubkeys: string[] = sanitizedEvents.map((event: Event) => event.pubkey);
 
         // Fetch reactions
-        const reactionEvents = await pool.list(recommendedRelays, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
+        const reactionEvents = await pool.list(allRelayUrls, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
         const retrievedReactionObjects: Record<string, ReactionCounts> = {};
         reactionEvents.forEach((event: Event) => {
           const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
@@ -96,7 +95,7 @@ export const useListEvents = ({
           });
         });
         
-        const fetchedMetaDataEvents = await pool.list(recommendedRelays, [{kinds: [0], authors: eventsPubkeys}]);
+        const fetchedMetaDataEvents = await pool.list(allRelayUrls, [{kinds: [0], authors: eventsPubkeys}]);
         
         const metaDataMap: Record<string, MetaData> = {};
         fetchedMetaDataEvents.forEach((event: Event) => {

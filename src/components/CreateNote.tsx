@@ -4,23 +4,18 @@ import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
-import { FullEventData } from '../nostr/Types';
+import { FullEventData, RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 
-interface RelaySwitches {
-  [relayUrl: string]: boolean;
-}
-
 interface Props {
   pool: SimplePool | null;
-  relays: string[];
+  relays: RelaySetting[];
   pk: string;
   replyEventData: FullEventData | null;
   setPostedNote: () => void;
 }
-
 
 function CreateNote({
   pool, 
@@ -30,26 +25,14 @@ function CreateNote({
   setPostedNote, 
 }: Props) {
   const [input, setInput] = useState("");
-  const relaylist = relays.reduce((obj, relay) => {
-    obj[relay] = true;
-    return obj;
-  }, {} as RelaySwitches);
-  const [relaySwitches, setRelaysSwitches] = useState(relaylist);
   const { themeColors } = useContext(ThemeContext);
-
-
-  const handleRelaySwitchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRelaysSwitches(prevState => ({
-      ...prevState,
-      [event.target.id]: !prevState[event.target.id]
-    }));
-  };
+  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
 
   const handlePostToRelaysClick = async () => {
-
     if (!pool) {
       return;
     }
+
     const tags = [];
     //push reply event id and pk
     if (replyEventData) {
@@ -81,9 +64,6 @@ function CreateNote({
       })
     }
 
-    const relaysToPostTo = relays.filter(relay => relaySwitches[relay]);
-    console.log("relays to post: " + relaysToPostTo);
-
     //cunstruct the event
     const _baseEvent = {
       kind: Kind.Text,
@@ -95,7 +75,7 @@ function CreateNote({
     //Sign the event with nostr if possible
     if (window.nostr){
       try {
-        const signedWithNostr = await signEventWithNostr(pool, relaysToPostTo, _baseEvent);
+        const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {
           setPostedNote();
           return;
@@ -104,7 +84,7 @@ function CreateNote({
     }
 
     //Manually sign the event
-    signEventWithStoredSk(pool, relaysToPostTo, _baseEvent)
+    signEventWithStoredSk(pool, writableRelayUrls, _baseEvent)
     setPostedNote();
   }
 
@@ -131,27 +111,6 @@ function CreateNote({
           >
             Post {replyEventData ? "Reply" : "Note"} To Relays
         </Button>
-        <div className='relayListContainer'>
-          {relays.map((relay) => (
-            <div className='relaySwitch' key={relay}>
-              <FormControlLabel 
-                control={
-                  <Switch 
-                    id={relay} 
-                    checked={relaySwitches[relay]} 
-                    size='small' 
-                    onChange={handleRelaySwitchChange}
-                  />
-                } 
-                label={
-                  <Typography sx={{ color: themeColors.textColor }}>
-                    {relay}
-                  </Typography>
-                }
-              />
-            </div>
-          ))}
-        </div>
       </FormGroup>
     </Box>
   )
