@@ -20,6 +20,20 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
     const { themeColors } = useContext(ThemeContext);
     const [relaysAndSetting, setRelaysAndSetting] = useState(relays);
     
+    const handleToggleRead = (relay: RelaySetting) => {
+        const updatedRelays = relaysAndSetting.map(r =>
+            r.relayUrl === relay.relayUrl ? { ...r, read: !r.read, write: !r.read ? r.write : !r.read } : r
+        );
+        setRelaysAndSetting(updatedRelays);
+    };
+    
+    const handleToggleWrite = (relay: RelaySetting) => {
+        const updatedRelays = relaysAndSetting.map(r =>
+            r.relayUrl === relay.relayUrl ? { ...r, read: !r.write ? r.read : !r.write, write: !r.write } : r
+        );
+        setRelaysAndSetting(updatedRelays);
+    };
+
     const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (relayInput.trim() === "") return;
@@ -88,7 +102,16 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                     <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                 </form>
             </Box>
-
+            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+                <Button 
+                    variant='outlined' 
+                    color='primary'
+                    sx={{float: "right", margin: "10px"}}
+                    onClick={() => updateRelays(relaysAndSetting)}
+                    >
+                    Save Settings
+                </Button>
+            </Box>
             <List>
                 {relaysAndSetting.map(r => {
                     return (
@@ -108,25 +131,25 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                                             {r.relayUrl}
                                         </Typography>
                                         <FormControl>
-                                            <FormControlLabel
-                                                value={r.read}
-                                                control={<Switch sx={{color: themeColors.primary}} />}
-                                                label="Read"
-                                                labelPlacement="top"
-                                                />
+                                        <FormControlLabel
+                                            value={r.read}
+                                            control={<Switch checked={r.read} onChange={() => handleToggleRead(r)} sx={{color: themeColors.primary}} />}
+                                            label="Read"
+                                            labelPlacement="top"
+                                            />
                                         </FormControl>
                                         <FormControl>
                                             <FormControlLabel
                                                 value={r.write}
-                                                control={<Switch sx={{color: themeColors.primary}} />}
+                                                control={<Switch checked={r.write} onChange={() => handleToggleWrite(r)} sx={{color: themeColors.primary}} />}
                                                 label="Write"
                                                 labelPlacement="top"
                                                 />
                                         </FormControl>
                                         <FormControl>
                                             <FormControlLabel
-                                                value={(r.write && r.read) || (!r.write && !r.read)}
-                                                control={<Switch sx={{color: themeColors.primary}} />}
+                                                value={r.read && r.write}
+                                                control={<Switch checked={r.read && r.write} onChange={() => {handleToggleRead(r); handleToggleWrite(r);}} sx={{color: themeColors.primary}} />}
                                                 label="Read And Write"
                                                 labelPlacement="top"
                                                 />
