@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, MutableRefObject } from 'react';
+import { useState, useEffect, MutableRefObject } from 'react';
 import { Event, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/Types';

@@ -20,16 +20,23 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
     const { themeColors } = useContext(ThemeContext);
     const [relaysAndSetting, setRelaysAndSetting] = useState(relays);
     
-    const handleToggleRead = (relay: RelaySetting) => {
+    const handleToggleRead = (toggledRelay: RelaySetting) => {
+        const readValue = toggledRelay.read === true && toggledRelay.write === false ? true : !toggledRelay.read;
+        const writeValue = readValue === false && toggledRelay.write === false ? true : toggledRelay.write;
+  
+
         const updatedRelays = relaysAndSetting.map(r =>
-            r.relayUrl === relay.relayUrl ? { ...r, read: !r.read, write: !r.read ? r.write : !r.read } : r
+            r.relayUrl === toggledRelay.relayUrl ? { ...r, read: readValue, write: writeValue } : r
         );
         setRelaysAndSetting(updatedRelays);
     };
     
-    const handleToggleWrite = (relay: RelaySetting) => {
+    const handleToggleWrite = (toggledRelay: RelaySetting) => {
+        const writeValue = toggledRelay.write === true  && toggledRelay.read === false ? true : !toggledRelay.write;
+        const readValue = writeValue === false && toggledRelay.read === false ? true : toggledRelay.read;
+
         const updatedRelays = relaysAndSetting.map(r =>
-            r.relayUrl === relay.relayUrl ? { ...r, read: !r.write ? r.read : !r.write, write: !r.write } : r
+            r.relayUrl === toggledRelay.relayUrl ? { ...r, read: readValue, write: writeValue } : r
         );
         setRelaysAndSetting(updatedRelays);
     };
@@ -46,8 +53,9 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                 alert("Relay already exists.");
                 return;
             }
-            
-            updateRelays(relaysAndSetting);
+            const newRelaysToUpdate = [...relaysAndSetting, {relayUrl: relayFormatted, read: true, write: true}];
+            setRelaysAndSetting(newRelaysToUpdate);
+            updateRelays(newRelaysToUpdate);
             setRelayInput("");
 
         } catch (error) {
@@ -74,6 +82,7 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
             })
 
             const relaysWithRemovedRelay = relays.filter((r) => r.relayUrl !== updatingRelay.relayUrl);
+            setRelaysAndSetting(relaysWithRemovedRelay);
             updateRelays(relaysWithRemovedRelay);
         } catch (error) {
             console.log("Error adding relay" + error);
@@ -130,30 +139,23 @@ export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
                                             color={themeColors.textColor}>
                                             {r.relayUrl}
                                         </Typography>
-                                        <FormControl>
-                                        <FormControlLabel
-                                            value={r.read}
-                                            control={<Switch checked={r.read} onChange={() => handleToggleRead(r)} sx={{color: themeColors.primary}} />}
-                                            label="Read"
-                                            labelPlacement="top"
-                                            />
-                                        </FormControl>
-                                        <FormControl>
-                                            <FormControlLabel
-                                                value={r.write}
-                                                control={<Switch checked={r.write} onChange={() => handleToggleWrite(r)} sx={{color: themeColors.primary}} />}
-                                                label="Write"
-                                                labelPlacement="top"
+                                        
+                                        <Box sx={{ display: 'flex', flexDirection: 'row'}}>
+                                            <FormControl>
+                                                <FormControlLabel
+                                                    value={r.read}
+                                                    control={<Switch size="small" checked={r.read} onChange={() => handleToggleRead(r)} sx={{color: themeColors.primary}} />}
+                                                    label={<Typography color={themeColors.textColor} variant="caption">Read</Typography>}
                                                 />
-                                        </FormControl>
-                                        <FormControl>
-                                            <FormControlLabel
-                                                value={r.read && r.write}
-                                                control={<Switch checked={r.read && r.write} onChange={() => {handleToggleRead(r); handleToggleWrite(r);}} sx={{color: themeColors.primary}} />}
-                                                label="Read And Write"
-                                                labelPlacement="top"
+                                            </FormControl>
+                                            <FormControl>
+                                                <FormControlLabel
+                                                    value={r.write}
+                                                    control={<Switch size="small" checked={r.write} onChange={() => handleToggleWrite(r)} sx={{color: themeColors.primary}} />}
+                                                    label={<Typography color={themeColors.textColor} variant="caption">Write</Typography>}
                                                 />
-                                        </FormControl>
+                                            </FormControl>
+                                        </Box>
                                     </Grid>
                                     <Grid item={true} xs={1} >
                                         <Button onClick={() => DeleteRelay(r)}>

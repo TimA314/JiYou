@@ -9,9 +9,10 @@ import { RelayReadWriteOrBoth } from '../utils/miscUtils';
 type UseRelaysProps = {
   pool: SimplePool | null;
   pk_decoded: string;
+  fetchEvents: React.MutableRefObject<boolean>
 };
 
-export const useRelays = ({ pool, pk_decoded }: UseRelaysProps) => {
+export const useRelays = ({ pool, pk_decoded, fetchEvents }: UseRelaysProps) => {
   const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
   
   useEffect(() => {
@@ -77,9 +78,9 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
            }
         }
 
-        setRelays(relays);
+        setRelays(relaysToUpdate);
+        fetchEvents.current = true;
         await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
-        
 
     } catch (error) {
         console.error("Error adding relay" + error);
