@@ -95,7 +95,8 @@ export const useListEvents = ({
           });
         });
         
-        const fetchedMetaDataEvents = await pool.list(allRelayUrls, [{kinds: [0], authors: eventsPubkeys}]);
+        const metaDataHelpingRelay = "wss://purplepag.es" //More info at https://purplepag.es/what
+        const fetchedMetaDataEvents = await pool.list([...new Set([...allRelayUrls, metaDataHelpingRelay])], [{kinds: [0], authors: eventsPubkeys}]);
         
         const metaDataMap: Record<string, MetaData> = {};
         fetchedMetaDataEvents.forEach((event: Event) => {

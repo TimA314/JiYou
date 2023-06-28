@@ -26,7 +26,8 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
     if (!pool || pk_decoded === "") return;
 
     // Fetch user profile
-    const profileEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [0], authors: [pk_decoded], limit: 1 }])
+    const metaDataHelpingRelay = "wss://purplepag.es" //More info at https://purplepag.es/what
+    const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataHelpingRelay])], [{kinds: [0], authors: [pk_decoded], limit: 1 }])
 
     if (!profileEvent || profileEvent.length < 1) return;
     
