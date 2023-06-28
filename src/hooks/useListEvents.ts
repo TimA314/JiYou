@@ -4,6 +4,7 @@ import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/Types';
 import { getEventOptions } from '../nostr/FeedEvents';
 import { eventContainsExplicitContent, setEventData } from '../utils/eventUtils';
+import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -95,7 +96,7 @@ export const useListEvents = ({
           });
         });
         
-        const fetchedMetaDataEvents = await pool.list(allRelayUrls, [{kinds: [0], authors: eventsPubkeys}]);
+        const fetchedMetaDataEvents = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: eventsPubkeys}]);
         
         const metaDataMap: Record<string, MetaData> = {};
         fetchedMetaDataEvents.forEach((event: Event) => {
