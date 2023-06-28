@@ -5,7 +5,6 @@ import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { defaultRelays } from '../nostr/DefaultRelays';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { FullEventData, ReactionCounts, RelaySetting } from '../nostr/Types';
 import Note from '../components/Note';
@@ -19,6 +18,7 @@ interface ProfileProps {
     pk: string;
     profile: ProfileContent;
     following: string[];
+    followers: string[];
     fetchEvents: React.MutableRefObject<boolean>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
@@ -31,19 +31,38 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, fetchEvents, updateProfile, getProfile }: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, updateProfile, getProfile }: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
-const [userNotes, setUserNotes] = useState<Event[]>([]);
-const [reactions, setReactions] = useState<Record<string,ReactionCounts>>({});
+const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
 const { themeColors } = useContext(ThemeContext);
-const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
 const allRelayUrls = relays.map((r) => r.relayUrl);
 
+
+const setEventDataForUserEvents = (event: Event, reactions: Record<string, ReactionCounts>) => {
+    const fullEventData: FullEventData = {
+        content: event.content,
+        user: {
+            name: profileRef.current?.name ?? "",
+            picture: profileRef.current?.picture ?? "",
+            about: profileRef.current?.about ?? "",
+            nip05: "",
+        },
+        pubkey: event.pubkey,
+        hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
+        eventId: event.id,
+        sig: event.sig,
+        created_at: event.created_at,
+        tags: event?.tags ?? [],
+        reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
+        images: GetImageFromPost(event.content)
+    }
+    return fullEventData;
+}
 
 
 useEffect(() => {
@@ -82,8 +101,8 @@ useEffect(() => {
         });});
 
         setUserEventsFetched(true);
-        setReactions(retrievedReactionObjects);
-        setUserNotes(sanitizedEvents);
+        setUserNotes(sanitizedEvents.map((event) => setEventDataForUserEvents(event, retrievedReactionObjects)));
+
         } catch (error) {
             console.log(error);
         }
@@ -116,27 +135,7 @@ const styles = {
         padding: 24,
     }
 };
-    
-const setEventData = (event: Event) => {
-    const fullEventData: FullEventData = {
-        content: event.content,
-        user: {
-            name: profileRef.current?.name ?? "",
-            picture: profileRef.current?.picture ?? "",
-            about: profileRef.current?.about ?? "",
-            nip05: "",
-        },
-        pubkey: event.pubkey,
-        hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
-        eventId: event.id,
-        sig: event.sig,
-        created_at: event.created_at,
-        tags: event?.tags ?? [],
-        reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
-        images: GetImageFromPost(event.content)
-    }
-    return fullEventData;
-}
+
 
     return (
         <Box justifyContent="center" >
@@ -164,7 +163,11 @@ const setEventData = (event: Event) => {
                             }}>
                             <Chip 
                                 label={"Following: " + following.length}
-                                sx={{ color: themeColors.textColor }}
+                                sx={{ margin: "1px", color: themeColors.textColor }}
+                                 />
+                            <Chip 
+                                label={"Followers: " + followers.length}
+                                sx={{ margin: "1px", color: themeColors.textColor }}
                                  />
                         </Box>
                         </AppBar>
@@ -245,14 +248,11 @@ const setEventData = (event: Event) => {
                     </div>
                     <div style={{marginBottom: "15px"}}>
                         {userNotes.length > 0 ? userNotes.map((event) => {
-
-                            const fullEventData = setEventData(event);
-
                             return (
                             <Note 
                                 pool={pool} 
                                 relays={relays} 
-                                eventData={fullEventData}
+                                eventData={event}
                                 fetchEvents={fetchEvents}
                                 updateFollowing={() => {}} 
                                 following={following} 

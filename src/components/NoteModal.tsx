@@ -8,7 +8,6 @@ import SouthIcon from '@mui/icons-material/South';
 import { useContext, useEffect, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
-import { defaultRelays } from '../nostr/DefaultRelays';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
 import CircularProgress from '@mui/material/CircularProgress';
