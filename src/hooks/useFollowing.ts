@@ -11,7 +11,7 @@ type UseFollowingProps = {
 
 export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) => {
   const [following, setFollowing] = useState<string[]>([]);
-
+  const [followers, setFollowers] = useState<string[]>([]);
   const allRelayUrls = relays.map((r) => r.relayUrl);
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
 
@@ -34,10 +34,21 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
     setFollowing(followingPks);
     return followingPks;
   };
-  
+
+  const getFollowers = async () => {
+    if (!pool || pk_decoded === "") return;
+
+    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pk_decoded] }])
+    console.log(JSON.stringify(followerEvents))
+    if (!followerEvents || followerEvents.length === 0) return;
+
+    const followerPks: string[] = followerEvents.map((event) => event.pubkey);
+    setFollowers(followerPks);
+  }
   
   useEffect(() => {
     getFollowing();
+    getFollowers();
   }, [relays, pk_decoded]);
 
   
@@ -87,5 +98,5 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
     }
 }
 
-  return { following, updateFollowing };
+  return { following, updateFollowing, followers };
 };

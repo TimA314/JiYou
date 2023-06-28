@@ -25,7 +25,7 @@ function App() {
   const { relays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents});
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
-  const { updateFollowing, following } = useFollowing({ pool, relays, pk_decoded });
+  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded });
   const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
   const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -135,6 +135,7 @@ function App() {
               pool={pool}
               pk={pk_decoded}
               following={following}
+              followers={followers}
               profile={profile}
               updateProfile={updateProfile}
               getProfile={getProfile}
