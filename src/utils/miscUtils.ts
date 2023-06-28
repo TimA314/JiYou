@@ -11,7 +11,9 @@ export const bech32ToHex = (str: string) => {
   }
 };
 
-const uint8ArrayToHex = (buffer: Uint8Array) => {
+export const metaDataAndRelayHelpingRelay = "wss://purplepag.es" // Helps find kinds 0 and 10002 Events. More info at https://purplepag.es/what
+
+export const uint8ArrayToHex = (buffer: Uint8Array) => {
   return Array.from(buffer)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');

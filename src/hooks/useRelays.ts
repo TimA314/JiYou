@@ -4,7 +4,7 @@ import { sanitizeString } from '../utils/sanitizeUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RelaySetting } from '../nostr/Types';
-import { RelayReadWriteOrBoth } from '../utils/miscUtils';
+import { RelayReadWriteOrBoth, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 
 type UseRelaysProps = {
   pool: SimplePool | null;
@@ -21,7 +21,7 @@ export const useRelays = ({ pool, pk_decoded, fetchEvents }: UseRelaysProps) => 
     const getUserRelays = async () => {
         try {
             const relayUrls = relays.map((r) => r.relayUrl);
-            let currentRelaysEvent = await pool.list(relayUrls, [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
+            let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
             
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
                 let updatedRelays: RelaySetting[] = [];
@@ -36,7 +36,7 @@ export const useRelays = ({ pool, pk_decoded, fetchEvents }: UseRelaysProps) => 
                         }
                     }
                 })
-                console.log(updatedRelays)
+
                 setRelays(updatedRelays);
             }
             

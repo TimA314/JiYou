@@ -3,6 +3,7 @@ import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { ProfileContent, RelaySetting } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
+import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 
 type UseProfileProps = {
   pool: SimplePool | null;
@@ -26,8 +27,7 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
     if (!pool || pk_decoded === "") return;
 
     // Fetch user profile
-    const metaDataHelpingRelay = "wss://purplepag.es" //More info at https://purplepag.es/what
-    const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataHelpingRelay])], [{kinds: [0], authors: [pk_decoded], limit: 1 }])
+    const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [pk_decoded], limit: 1 }])
 
     if (!profileEvent || profileEvent.length < 1) return;
     
@@ -47,7 +47,7 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
   useEffect(() => {
     if (!pool || pk_decoded === "") return;
     getProfile();
-  }, []);
+  }, [pk_decoded]);
 
   
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
