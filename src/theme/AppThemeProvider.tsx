@@ -18,7 +18,7 @@ const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
   });
 
   useEffect(() => {
-    const settings = localStorage.getItem('settings');
+    const settings = localStorage.getItem('JiYouSettings');
     if (settings) {
       setThemeColors(JSON.parse(settings).theme);
     }
