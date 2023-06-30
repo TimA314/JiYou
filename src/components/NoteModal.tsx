@@ -38,6 +38,7 @@ interface NoteModalProps {
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
   hashTags: string[];
+  imagesOnlyMode: React.MutableRefObject<boolean>;
 }
 
 export default function NoteModal({
@@ -54,6 +55,7 @@ export default function NoteModal({
   setHashtags,
   pk,
   hashTags,
+  imagesOnlyMode
 }: NoteModalProps) {
 
   const [rootEvents, setRootEvents] = useState<FullEventData[]>([]);
@@ -62,7 +64,6 @@ export default function NoteModal({
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
 
-  const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
   const allRelayUrls = relays.map((r) => r.relayUrl);
 
   const getReplies = async () => {
@@ -154,6 +155,7 @@ export default function NoteModal({
             disableReplyIcon={false}
             hashTags={hashTags}
             key={eventData.sig + Math.random()}
+            imagesOnlyMode={imagesOnlyMode}
             />
         <Box sx={{ display: 'flex', justifyContent: "center", alignItems: 'center', margin: '10px' }}>
           <CircularProgress sx={{color: themeColors.primary}}/>
@@ -189,6 +191,7 @@ export default function NoteModal({
                         disableReplyIcon={false}
                         gettingThread={gettingThread}
                         hashTags={hashTags}
+                        imagesOnlyMode={imagesOnlyMode}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'center'}}>
                       <SouthIcon sx={{color: themeColors.textColor}}/>
@@ -210,6 +213,7 @@ export default function NoteModal({
                   disableReplyIcon={false}
                   hashTags={hashTags}
                   key={eventData.sig + Math.random()}
+                  imagesOnlyMode={imagesOnlyMode}
                   />
           </Box>
 
@@ -234,6 +238,7 @@ export default function NoteModal({
                       key={replyEvent.sig + Math.random()}
                       disableReplyIcon={false}
                       hashTags={hashTags}
+                      imagesOnlyMode={imagesOnlyMode}
                       />
                       );
                     })}

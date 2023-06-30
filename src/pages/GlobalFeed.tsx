@@ -60,6 +60,7 @@ type GlobalFeedProps = {
     updateFollowing,
     setTabIndex,
     setHashtags,
+    imagesOnlyMode,
   }) => {
 
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
@@ -124,6 +125,7 @@ type GlobalFeedProps = {
                             key={fullEventData.sig + Math.random()} 
                             pk={pk}
                             hashTags={hashtags}
+                            imagesOnlyMode={imagesOnlyMode}
                         />
                     )
                 })

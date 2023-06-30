@@ -72,7 +72,7 @@ interface NoteProps {
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
   hashTags: string[];
-  imagesOnlyMode?: boolean;
+  imagesOnlyMode: React.MutableRefObject<boolean>;
 }
 
 const Note: React.FC<NoteProps> = ({
@@ -88,6 +88,7 @@ const Note: React.FC<NoteProps> = ({
     gettingThread,
     hashTags,
     updateFollowing,
+    imagesOnlyMode
   }: NoteProps) => {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -155,6 +156,34 @@ const Note: React.FC<NoteProps> = ({
     setReplyToNoteOpen(true);
   }
 
+  if (imagesOnlyMode.current && !noteDetailsOpen ) {
+    return (
+      <Card onClick={() => setNoteDetailsOpen(true)} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+        <Box >
+          {eventData.images.length > 0 && (
+            eventData.images.map((img) => (
+            <CardMedia
+              component="img"
+              image={img}
+              alt="picture"
+              key={img.length + "image" + Math.random().toString()}
+              sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
+            />
+            ))
+          )}
+          {youtubeFromPost && (
+            <iframe 
+            src={youtubeFromPost} 
+            title="YouTube video player" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            style={{ width: '100%', height: '315px' }}
+          />
+          )}
+        </Box>
+      </Card>
+    )
+  }
+
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <NoteModal
@@ -170,7 +199,9 @@ const Note: React.FC<NoteProps> = ({
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}
         pk={pk}
-        hashTags={hashTags} />
+        hashTags={hashTags}
+        imagesOnlyMode={imagesOnlyMode}
+         />
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={eventData.user.picture}>
@@ -193,7 +224,9 @@ const Note: React.FC<NoteProps> = ({
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
-        hashTags={hashTags}/>
+        hashTags={hashTags}
+        imagesOnlyMode={imagesOnlyMode}
+        />
       <CardContent >
         <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
         {eventData.content}
