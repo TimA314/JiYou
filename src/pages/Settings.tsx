@@ -25,11 +25,10 @@ const defaultThemeColors: ThemeColors = {
 interface SettingsProps {
   imagesOnlyMode: MutableRefObject<boolean>;
   hideExplicitContent: MutableRefObject<boolean>;
-  fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function Settings ({imagesOnlyMode, hideExplicitContent, fetchEvents, setFetchEvents}: SettingsProps) {
+export default function Settings ({imagesOnlyMode, hideExplicitContent, setFetchEvents}: SettingsProps) {
   const { themeColors, setThemeColors } = useContext(ThemeContext);
   const [imagesOnly, setImagesOnly] = useState<boolean>(imagesOnlyMode.current);
   const [hideExplicit, setHideExplicit] = useState<boolean>(hideExplicitContent.current);

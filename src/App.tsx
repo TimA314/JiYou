@@ -41,7 +41,7 @@ function App() {
       imagesOnlyMode,
       fetchEvents,
       setFetchEvents,
-      fetchingEventsInProgress  
+      fetchingEventsInProgress
     });
 
   const addKeysToState = useCallback(async () => {
@@ -141,6 +141,7 @@ function App() {
               profile={profile}
               updateProfile={updateProfile}
               getProfile={getProfile}
+              imagesOnlyMode={imagesOnlyMode}
             />} />
           <Route path="/relays" element={
             <Relays
@@ -178,7 +179,6 @@ function App() {
             <Settings
               imagesOnlyMode={imagesOnlyMode}
               hideExplicitContent={hideExplicitContent}
-              fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
             />
           } />

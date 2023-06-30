@@ -36,6 +36,7 @@ interface ReplyToNoteProps {
   hashTags: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
+  imagesOnlyMode: React.MutableRefObject<boolean>;
 }
 
 export default function ReplyToNote({
@@ -51,6 +52,7 @@ export default function ReplyToNote({
   hashTags,
   updateFollowing, 
   setHashtags,
+  imagesOnlyMode
 }: ReplyToNoteProps) {
   const handleClose = () => setReplyToNoteOpen(false);
 
@@ -90,6 +92,7 @@ export default function ReplyToNote({
               setHashtags={setHashtags} 
               disableReplyIcon={true}
               hashTags={hashTags}
+              imagesOnlyMode={imagesOnlyMode}
               />
             <CreateNote 
               pool={pool} 

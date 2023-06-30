@@ -23,6 +23,7 @@ interface ProfileProps {
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
+    imagesOnlyMode: React.MutableRefObject<boolean>;
 }
 
 interface ProfileContent {
@@ -32,7 +33,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, setFetchEvents, updateProfile, getProfile }: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, setFetchEvents, updateProfile, getProfile, imagesOnlyMode }: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
 const [profileNameInput, setProfileNameInput] = useState("");
@@ -283,7 +284,9 @@ const styles = {
                                         following={following} 
                                         setHashtags={() => {}} 
                                         pk={pk}
-                                        hashTags={[]}/>
+                                        hashTags={[]}
+                                        imagesOnlyMode={imagesOnlyMode}
+                                        />
                                 </Box>
                             )
                         }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
