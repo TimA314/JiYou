@@ -21,7 +21,7 @@ const NavBar = ({profile}: NavBarProps) => {
     if (ref.current) {
       ref.current.ownerDocument.body.scrollTop = 0;
     }
-  }, []);
+  }, [profile]);
 
   return (
 <Box sx={{ pb: 7 }} ref={ref}>

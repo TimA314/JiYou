@@ -13,9 +13,10 @@ type useListEventsProps = {
   tabIndex: number;
   following: string[];
   hashtags: string[];
-  hideExplicitContent: boolean;
-  imagesOnlyMode: boolean;
-  fetchEvents: MutableRefObject<boolean>;
+  hideExplicitContent: MutableRefObject<boolean>;
+  imagesOnlyMode: MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   fetchingEventsInProgress: MutableRefObject<boolean>;
 };
 
@@ -29,6 +30,7 @@ export const useListEvents = ({
   hideExplicitContent, 
   imagesOnlyMode, 
   fetchEvents,
+  setFetchEvents,
   fetchingEventsInProgress
 }: useListEventsProps) => {
 
@@ -42,14 +44,13 @@ export const useListEvents = ({
     } 
 
     const fetchEventsFromRelays = async () => {
-      if (!pool) return;
       try {
+        if (!pool) return;
         fetchingEventsInProgress.current = true;
-        setEvents([]);
 
         //If no followers and on the followers tab, don't fetch events
         if (tabIndex === 1 && following.length === 0) {
-          fetchEvents.current = false;
+          setFetchEvents(false);
           fetchingEventsInProgress.current = false;
           return;
         }
@@ -61,7 +62,7 @@ export const useListEvents = ({
 
         let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
 
-        if (hideExplicitContent) {
+        if (hideExplicitContent.current) {
           sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
         }
 
@@ -110,26 +111,27 @@ export const useListEvents = ({
         });
         
         const eventDataSet = sanitizedEvents.map((e) => setEventData(e, metaDataMap[e.pubkey], retrievedReactionObjects[e.id]))
-        
-        if (imagesOnlyMode) {
+
+        setEvents([]);
+        if (imagesOnlyMode.current) {
           setEvents(eventDataSet.filter((e) => e.images.length > 0));
         }
         else {
           setEvents(eventDataSet);
         }
-        fetchEvents.current = false;
+        setFetchEvents(false);
         fetchingEventsInProgress.current = false;
       } catch (error) {
         console.error('Error fetching events:', error);
       }
     };
 
-    if (fetchEvents.current && !fetchingEventsInProgress.current)
+    if (fetchEvents && !fetchingEventsInProgress.current)
     {
       fetchEventsFromRelays();
     }
 
-  }, [fetchEvents.current]);
+  }, [fetchEvents]);
 
   return { events };
 };

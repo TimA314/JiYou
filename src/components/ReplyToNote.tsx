@@ -24,7 +24,8 @@ const style = {
 };
 
 interface ReplyToNoteProps {
-  fetchEvents: React.MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   eventData: FullEventData;
   open: boolean;
   setReplyToNoteOpen: (open: boolean) => void;
@@ -39,6 +40,7 @@ interface ReplyToNoteProps {
 
 export default function ReplyToNote({
   fetchEvents,
+  setFetchEvents,
   eventData, 
   open, 
   setReplyToNoteOpen, 
@@ -81,6 +83,7 @@ export default function ReplyToNote({
               pool={pool} 
               relays={relays}
               fetchEvents={fetchEvents}
+              setFetchEvents={setFetchEvents}
               pk={pk} 
               following={following} 
               updateFollowing={updateFollowing} 

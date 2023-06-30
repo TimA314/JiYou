@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { MutableRefObject, useContext, useState } from 'react';
 import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
 import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider, Checkbox, FormGroup, FormControlLabel } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
@@ -23,21 +23,25 @@ const defaultThemeColors: ThemeColors = {
 };
 
 interface SettingsProps {
-  imagesOnlyMode: boolean;
-  setImagesOnlyMode: (imagesOnlyMode: boolean) => void;
-  hideExplicitContent: boolean;
-  setHideExplicitContent: (hideExplicitContent: boolean) => void;
+  imagesOnlyMode: MutableRefObject<boolean>;
+  hideExplicitContent: MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplicitContent, setHideExplicitContent}: SettingsProps) {
+export default function Settings ({imagesOnlyMode, hideExplicitContent, fetchEvents, setFetchEvents}: SettingsProps) {
   const { themeColors, setThemeColors } = useContext(ThemeContext);
+  const [imagesOnly, setImagesOnly] = useState<boolean>(imagesOnlyMode.current);
+  const [hideExplicit, setHideExplicit] = useState<boolean>(hideExplicitContent.current);
 
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setImagesOnlyMode(event.target.checked);
+    imagesOnlyMode.current = event.target.checked;
+    setImagesOnly(event.target.checked);
   };
 
   const handleHideExplicitContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setHideExplicitContent(event.target.checked);
+    hideExplicitContent.current = event.target.checked;
+    setHideExplicit(event.target.checked);
   };
   
   const handleColorChange = (colorKey: keyof ThemeColors) => (color: string, colors: any) => {
@@ -56,12 +60,13 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
 
   const handleSetDefault = () => {
     setThemeColors(defaultThemeColors);
-    setHideExplicitContent(true);
-    setImagesOnlyMode(false);
+    hideExplicitContent.current = true;
+    imagesOnlyMode.current = false;
   };
 
   const handleSaveSettings = () => {
     localStorage.setItem('JiYouSettings', JSON.stringify({theme: themeColors, feedSettings: {hideExplicitContent: hideExplicitContent, imagesOnlyMode: imagesOnlyMode}}));
+    setFetchEvents(true);
     alert('Settings Saved');
   };
 
@@ -96,12 +101,12 @@ export default function Settings ({imagesOnlyMode, setImagesOnlyMode, hideExplic
         <Grid>
           <FormGroup>
             <FormControlLabel
-              control={<Checkbox checked={hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
+              control={<Checkbox checked={hideExplicit} onChange={handleHideExplicitContentChange}/>} 
               label="Hide Sensetive Content"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
             <FormControlLabel
-              control={<Checkbox checked={imagesOnlyMode ?? false} onChange={handleImagesOnlyChange} />} 
+              control={<Checkbox checked={imagesOnly} onChange={handleImagesOnlyChange} />} 
               label="Images Only"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
