@@ -1,5 +1,5 @@
 import { Chip, IconButton, InputBase, Paper, Stack} from "@mui/material";
-import { useState } from "react";
+import React, { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./HashtagsFilter.css";
 import { sanitizeString } from "../utils/sanitizeUtils";
@@ -11,10 +11,11 @@ import { Close } from "@mui/icons-material";
 interface Props {
   hashtags: string[];
   setHashtags: (hashtags: string[]) => void;
-  fetchEvents: React.MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function HashtagsFilter({ hashtags, setHashtags, fetchEvents }: Props) {
+export default function HashtagsFilter({ hashtags, setHashtags, fetchEvents, setFetchEvents }: Props) {
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
 
@@ -23,12 +24,12 @@ export default function HashtagsFilter({ hashtags, setHashtags, fetchEvents }: P
     if (hashtag === "" || hashtags.includes(hashtag)) return;
     setInput("");
     setHashtags([...hashtags, hashtag]);
-    fetchEvents.current = true;
+    setFetchEvents(true);
   };
 
   const removeHashtag = (hashtag: string) => {
     setHashtags(hashtags.filter((h) => h !== hashtag));
-    fetchEvents.current = true;
+    setFetchEvents(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

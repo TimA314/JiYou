@@ -64,7 +64,8 @@ interface NoteProps {
   eventData: FullEventData;
   pool: SimplePool | null;
   relays: RelaySetting[];
-  fetchEvents: React.MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   following: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
@@ -79,6 +80,7 @@ const Note: React.FC<NoteProps> = ({
     pool, 
     relays,
     fetchEvents, 
+    setFetchEvents,
     eventData, 
     following, 
     setHashtags, 
@@ -145,7 +147,7 @@ const Note: React.FC<NoteProps> = ({
   const addHashtag = (tag: string) => {
     console.log("add hashtag", tag)
     setHashtags(hashtags => [...hashtags, tag]);
-    fetchEvents.current = true;
+    setFetchEvents(true);
   }
 
   const handleReplyToNote = (eventData: FullEventData) => {
@@ -157,6 +159,7 @@ const Note: React.FC<NoteProps> = ({
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <NoteModal
         fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
         eventData={eventData}
         setReplyCount={setReplyCount}
         open={noteDetailsOpen}
@@ -180,6 +183,7 @@ const Note: React.FC<NoteProps> = ({
       />
       <ReplyToNote
         fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
         open={replyToNoteOpen} 
         setReplyToNoteOpen={setReplyToNoteOpen} 
         eventData={eventData} 

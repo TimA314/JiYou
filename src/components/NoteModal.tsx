@@ -25,7 +25,8 @@ const style = {
 };
 
 interface NoteModalProps {
-  fetchEvents: React.MutableRefObject<boolean>;
+  fetchEvents: boolean;
+  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   eventData: FullEventData;
   open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
@@ -42,6 +43,7 @@ interface NoteModalProps {
 export default function NoteModal({
   eventData,
   fetchEvents,
+  setFetchEvents,
   open, 
   setNoteDetailsOpen,
   pool,
@@ -143,6 +145,7 @@ export default function NoteModal({
         <Box sx={{height: 'auto', padding: 'auto'}}>
         <Note eventData={eventData}
             fetchEvents={fetchEvents}
+            setFetchEvents={setFetchEvents}
             pool={pool} relays={relays}
             following={following}
             updateFollowing={updateFollowing}
@@ -178,6 +181,7 @@ export default function NoteModal({
                         pool={pool}
                         relays={relays}
                         fetchEvents={fetchEvents}
+                        setFetchEvents={setFetchEvents}
                         following={following}
                         updateFollowing={updateFollowing}
                         setHashtags={setHashtags}
@@ -197,6 +201,7 @@ export default function NoteModal({
           <Box>
               <Note eventData={eventData}
                   fetchEvents={fetchEvents}
+                  setFetchEvents={setFetchEvents}
                   pool={pool} relays={relays}
                   following={following}
                   updateFollowing={updateFollowing}
@@ -221,6 +226,7 @@ export default function NoteModal({
                       pool={pool}
                       relays={relays}
                       fetchEvents={fetchEvents}
+                      setFetchEvents={setFetchEvents}
                       following={following}
                       updateFollowing={updateFollowing}
                       setHashtags={setHashtags}

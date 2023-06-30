@@ -19,7 +19,8 @@ interface ProfileProps {
     profile: ProfileContent;
     following: string[];
     followers: string[];
-    fetchEvents: React.MutableRefObject<boolean>;
+    fetchEvents: boolean;
+    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
 }
@@ -31,7 +32,7 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, updateProfile, getProfile }: ProfileProps) {
+export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, setFetchEvents, updateProfile, getProfile }: ProfileProps) {
 const profileRef = useRef<ProfileContent | null>(profile);
 const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
 const [profileNameInput, setProfileNameInput] = useState("");
@@ -277,6 +278,7 @@ const styles = {
                                         relays={relays} 
                                         eventData={event}
                                         fetchEvents={fetchEvents}
+                                        setFetchEvents={setFetchEvents}
                                         updateFollowing={() => {}} 
                                         following={following} 
                                         setHashtags={() => {}} 

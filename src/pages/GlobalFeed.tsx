@@ -36,10 +36,11 @@ type GlobalFeedProps = {
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     following: string[];
-    fetchEvents: React.MutableRefObject<boolean>;
+    fetchEvents: boolean;
+    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     fetchingEventsInProgress: MutableRefObject<boolean>;
-    hideExplicitContent: boolean;
-    imagesOnlyMode: boolean;
+    hideExplicitContent: MutableRefObject<boolean>;
+    imagesOnlyMode: MutableRefObject<boolean>;
     events: FullEventData[];
     hashtags: string[];
     tabIndex: number;
@@ -51,6 +52,7 @@ type GlobalFeedProps = {
     pk, 
     following,
     fetchEvents,
+    setFetchEvents,
     fetchingEventsInProgress,
     events,
     hashtags,
@@ -66,7 +68,7 @@ type GlobalFeedProps = {
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
-        fetchEvents.current = true;
+        setFetchEvents(true);
     };
 
     const handleCreateNoteOpen = () => {
@@ -84,7 +86,16 @@ type GlobalFeedProps = {
     const getFeed = () => {
         if (fetchingEventsInProgress.current) {
             return (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }} >
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: '100vh',
+                    width: '100vw',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                }} >
                     <Loading />
                 </Box>
             )
@@ -105,6 +116,7 @@ type GlobalFeedProps = {
                             pool={pool} 
                             relays={relays}
                             fetchEvents={fetchEvents}
+                            setFetchEvents={setFetchEvents}
                             eventData={fullEventData} 
                             updateFollowing={updateFollowing} 
                             following={following} 
@@ -129,7 +141,9 @@ type GlobalFeedProps = {
             <HashtagsFilter 
                 hashtags={hashtags} 
                 setHashtags={setHashtags} 
-                fetchEvents={fetchEvents}/>
+                fetchEvents={fetchEvents}
+                setFetchEvents={setFetchEvents}
+                />
             
             {getFeed()}
 
@@ -190,7 +204,7 @@ type GlobalFeedProps = {
                     <Tab 
                         label="Global"
                         />
-                    <Tab label="Followers"/>
+                    <Tab label="Following"/>
                 </Tabs>
 
             </Box>

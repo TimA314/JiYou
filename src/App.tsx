@@ -17,17 +17,17 @@ import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
 
 function App() {
-  const fetchEvents = useRef(false);
+  const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
   const [sk_decoded, setSk_decoded] = useState<string>("");
   const [pk_decoded, setPk_decoded] = useState<string>("");
-  const { relays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents});
+  const { relays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents, setFetchEvents});
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
   const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded });
-  const [hideExplicitContent, setHideExplicitContent] = useState<boolean>(true);
-  const [imagesOnlyMode, setImagesOnlyMode] = useState<boolean>(false);
+  const hideExplicitContent = useRef<boolean>(true);
+  const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { events } = useListEvents({ 
@@ -40,6 +40,7 @@ function App() {
       hideExplicitContent,
       imagesOnlyMode,
       fetchEvents,
+      setFetchEvents,
       fetchingEventsInProgress  
     });
 
@@ -106,7 +107,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    fetchEvents.current = true;
+    setFetchEvents(true);
   }, []);
 
   useEffect(() => {
@@ -118,8 +119,8 @@ function App() {
 
     if (settings) {
       const parsedSettings = JSON.parse(settings);
-      setHideExplicitContent(parsedSettings?.feedSettings?.hideExplicitContent ?? true);
-      setImagesOnlyMode(parsedSettings?.feedSettings?.imagesOnlyMode ?? false);
+      hideExplicitContent.current = parsedSettings?.feedSettings?.hideExplicitContent ?? true
+      imagesOnlyMode.current = parsedSettings?.feedSettings?.imagesOnlyMode ?? false;
     }
   }, []);
 
@@ -132,6 +133,7 @@ function App() {
             <Profile
               relays={relays}
               fetchEvents={fetchEvents}
+              setFetchEvents={setFetchEvents}
               pool={pool}
               pk={pk_decoded}
               following={following}
@@ -158,6 +160,7 @@ function App() {
               imagesOnlyMode={imagesOnlyMode}
               events={events}
               fetchEvents={fetchEvents}
+              setFetchEvents={setFetchEvents}
               fetchingEventsInProgress={fetchingEventsInProgress}
               setTabIndex={setTabIndex}
               hashtags={hashtags}
@@ -174,9 +177,9 @@ function App() {
           <Route path="/settings" element={
             <Settings
               imagesOnlyMode={imagesOnlyMode}
-              setImagesOnlyMode={setImagesOnlyMode}
               hideExplicitContent={hideExplicitContent}
-              setHideExplicitContent={setHideExplicitContent}
+              fetchEvents={fetchEvents}
+              setFetchEvents={setFetchEvents}
             />
           } />
           <Route path="/about" element={
