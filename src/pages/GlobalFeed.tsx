@@ -1,7 +1,7 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { SimplePool } from 'nostr-tools'
+import { Filter, SimplePool } from 'nostr-tools'
 import { MutableRefObject, useState } from 'react'
-import HashtagsFilter from '../components/HashtagsFilter';
+import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
 import EditIcon from '@mui/icons-material/Edit';
@@ -37,6 +37,7 @@ type GlobalFeedProps = {
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     following: string[];
     fetchEvents: boolean;
+    filter: MutableRefObject<Filter | null>;
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: MutableRefObject<boolean>;
@@ -53,6 +54,7 @@ type GlobalFeedProps = {
     following,
     fetchEvents,
     setFetchEvents,
+    filter,
     fetchingEventsInProgress,
     events,
     hashtags,
@@ -65,6 +67,7 @@ type GlobalFeedProps = {
 
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
+
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -100,7 +103,7 @@ type GlobalFeedProps = {
                     <Loading />
                 </Box>
             )
-        } else if (events.length === 0) {
+        } else if (events.length === 0 && !fetchingEventsInProgress.current) {
             return (
                 <Typography 
                     variant="h6" 
@@ -140,11 +143,11 @@ type GlobalFeedProps = {
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <HashtagsFilter 
+            <SearchFilter 
                 hashtags={hashtags} 
                 setHashtags={setHashtags} 
-                fetchEvents={fetchEvents}
                 setFetchEvents={setFetchEvents}
+                filter={filter}
                 />
             
             {getFeed()}
@@ -175,7 +178,7 @@ type GlobalFeedProps = {
                         relays={relays} 
                         pk={pk}
                         setPostedNote={setPostedNote} 
-                        />
+                    />
                 </Box>
             </Modal>
 

@@ -1,7 +1,7 @@
 import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, nip19, validateEvent } from "nostr-tools";
 
 
-export const getEventOptions = (hashtags: string[], tabIndex: number, followers: string[]) => {
+export const getDefaultFeedFilter = (hashtags: string[], tabIndex: number, followers: string[]) => {
     
     let options: Filter = {
         kinds: [1],
