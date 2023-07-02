@@ -179,7 +179,7 @@ const Note: React.FC<NoteProps> = ({
           hashTags={hashTags}
           imagesOnlyMode={imagesOnlyMode}
           />
-        <CardContent>
+        <CardContent sx={{marginBottom: "-25px"}}>
           {eventData.images.length > 0 && (
             eventData.images.map((img) => (
             <CardMedia
@@ -203,7 +203,7 @@ const Note: React.FC<NoteProps> = ({
         <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <CardHeader
           avatar={
-            <Avatar aria-label="recipe" src={eventData.user.picture}>
+            <Avatar sizes='small' aria-label="recipe" src={eventData.user.picture}>
             </Avatar>
           }
           title={moment.unix(eventData.created_at).fromNow()}
