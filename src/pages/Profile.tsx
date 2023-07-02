@@ -5,10 +5,11 @@ import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { RelaySetting } from '../nostr/Types';
+import { FullEventData, RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
+import Notifications from '../components/Notifications';
 
 interface ProfileProps {
     relays: RelaySetting[];
@@ -22,6 +23,7 @@ interface ProfileProps {
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
     imagesOnlyMode: React.MutableRefObject<boolean>;
+    userNotes: FullEventData[];
 }
 
 interface ProfileContent {
@@ -31,7 +33,20 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, setFetchEvents, updateProfile, getProfile, imagesOnlyMode }: ProfileProps) {
+export default function Profile({
+    relays, 
+    pool, 
+    pk, 
+    profile, 
+    following, 
+    followers, 
+    fetchEvents, 
+    setFetchEvents, 
+    updateProfile, 
+    getProfile, 
+    imagesOnlyMode,
+    userNotes
+}: ProfileProps) {
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
@@ -233,8 +248,13 @@ const styles = {
                             pk={pk} 
                             fetchEvents={fetchEvents} 
                             following={following} 
-                            setFetchEvents={setFetchEvents} 
+                            setFetchEvents={setFetchEvents}
+                            userNotes={userNotes}
                             />                    
+                    )}
+
+                    {tabIndex === 1 && (
+                        <Notifications />
                     )}
 
                 </Box>)

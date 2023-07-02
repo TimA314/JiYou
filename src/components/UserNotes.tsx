@@ -13,31 +13,14 @@ type Props = {
     fetchEvents: boolean;
     following: string[]; 
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
+    userNotes: FullEventData[];
 }
 
-export default function UserNotes({pool, relays, pk, fetchEvents, following, setFetchEvents}: Props) {
-    const { themeColors } = useContext(ThemeContext);
-    const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
-    const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
-    const allRelayUrls = relays.map((r) => r.relayUrl);
-
-    const getUserNotes = async () => {
-        if (!pool) return;
-        setUserNotes([]);
-        const filter = {kinds: [1], authors: [pk] };
-        const notes = await fetchNostrEvent(pool, allRelayUrls,allRelayUrls, filter, false)
-        setUserNotes(notes);
-        setUserEventsFetched(true);
-    }
-
-    useEffect(() => {
-        setUserEventsFetched(false);
-        getUserNotes()
-    }, [pk, relays])
+export default function UserNotes({pool, relays, pk, fetchEvents, following, setFetchEvents, userNotes}: Props) {
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                        {userNotes.length > 0 ? userNotes.map((event) => {
+                        {userNotes && userNotes.map((event) => {
                             return (
                                 <Box key={event.sig + Math.random()}>
                                     <Note 
@@ -54,9 +37,7 @@ export default function UserNotes({pool, relays, pk, fetchEvents, following, set
                                         />
                                 </Box>
                             )
-                        }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
-                                {userEventsFetched ? <Typography variant='caption' color={themeColors.textColor}>No Notes Found</Typography> : <CircularProgress color='primary'/>}
-                            </Box>}
+                        })}
                     </Box>
   )
 }

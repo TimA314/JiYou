@@ -15,6 +15,7 @@ import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
+import { useUserNotes } from './hooks/useUserNotes';
 
 function App() {
   const [fetchEvents, setFetchEvents] = useState(false);
@@ -30,6 +31,7 @@ function App() {
   const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
+  const { userNotes } = useUserNotes({ pool, pk_decoded, relays, following });
   const { feedEvents, filter } = useListEvents({ 
       pool,
       setPool, 
@@ -142,6 +144,7 @@ function App() {
               updateProfile={updateProfile}
               getProfile={getProfile}
               imagesOnlyMode={imagesOnlyMode}
+              userNotes={userNotes}
             />} />
           <Route path="/relays" element={
             <Relays

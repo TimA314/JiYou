@@ -1,7 +1,7 @@
 import { Filter, SimplePool, Event } from "nostr-tools";
 import { sanitizeEvent } from "../utils/sanitizeUtils";
 import { eventContainsExplicitContent, setEventData } from "../utils/eventUtils";
-import { MetaData, ReactionCounts } from "./Types";
+import { FullEventData, MetaData, ReactionCounts } from "./Types";
 import { metaDataAndRelayHelpingRelay } from "../utils/miscUtils";
 
 export const fetchNostrEvent = async (pool: SimplePool, readableRelays: string[], allRelays: string[], filter: Filter, hideExplicitContent: boolean) => {
@@ -22,6 +22,13 @@ export const fetchNostrEvent = async (pool: SimplePool, readableRelays: string[]
     }
 
     return [];
+}
+
+export const fetchSingleFullEventData = async (pool: SimplePool, relays: string[], event: Event) => {
+    const sanitizedSingleEvent = sanitizeEvent(event);
+    const reactions = await fetchReactions(pool, relays, [sanitizedSingleEvent]);
+    const metaData = await fetchMetaData(pool, relays, [sanitizedSingleEvent]);
+    return setEventData(sanitizedSingleEvent, metaData[event.pubkey], reactions[event.id]);
 }
 
 const fetchReactions = async (pool: SimplePool, relays: string[], events: Event[]) => {
