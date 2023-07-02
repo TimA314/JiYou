@@ -100,7 +100,7 @@ function CreateNote({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           focused 
-          rows={12}
+          rows={7}
           margin="normal"
           inputProps={{style: {color: themeColors.textColor}}} 
           />

@@ -5,7 +5,7 @@ import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { setEventData } from '../utils/eventUtils';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -156,6 +156,7 @@ export default function NoteModal({
             hashTags={hashTags}
             key={eventData.sig + Math.random()}
             imagesOnlyMode={imagesOnlyMode}
+            isInModal={true}
             />
         <Box sx={{ display: 'flex', justifyContent: "center", alignItems: 'center', margin: '10px' }}>
           <CircularProgress sx={{color: themeColors.primary}}/>
@@ -179,6 +180,7 @@ export default function NoteModal({
                     }}
                   >
                     <Note
+                        key={eventData.sig + Math.random()}
                         eventData={rootEvent}
                         pool={pool}
                         relays={relays}
@@ -192,6 +194,7 @@ export default function NoteModal({
                         gettingThread={gettingThread}
                         hashTags={hashTags}
                         imagesOnlyMode={imagesOnlyMode}
+                        isInModal={true}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'center'}}>
                       <SouthIcon sx={{color: themeColors.textColor}}/>
@@ -214,6 +217,7 @@ export default function NoteModal({
                   hashTags={hashTags}
                   key={eventData.sig + Math.random()}
                   imagesOnlyMode={imagesOnlyMode}
+                  isInModal={true}
                   />
           </Box>
 
@@ -239,6 +243,7 @@ export default function NoteModal({
                       disableReplyIcon={false}
                       hashTags={hashTags}
                       imagesOnlyMode={imagesOnlyMode}
+                      isInModal={true}
                       />
                       );
                     })}
