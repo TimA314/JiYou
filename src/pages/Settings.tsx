@@ -17,7 +17,7 @@ const defaultThemeColors: ThemeColors = {
   primary: '#5D37D5',
   secondary: '#f50057',
   paper: '#121212',
-  background: '#111111',
+  background: '#161616',
   textSize: 14,
   textColor: '#CFCFCF',
 };

@@ -4,6 +4,7 @@ import { useContext, useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+
 type Props = {}
 
 export default function About({}: Props) {
@@ -20,8 +21,8 @@ const handleCopy = () => {
   return (
     <Container sx={{color: themeColors.textColor}}>
     <Box>
-        <Typography variant="h2" align="center" gutterBottom color={themeColors.secondary}>
-            About Jiyou
+        <Typography fontFamily="Audiowide, Lobster" variant="h2" align="center" gutterBottom color={themeColors.secondary}>
+            Jiyou
         </Typography>
 
         <Typography variant="body2" paragraph>

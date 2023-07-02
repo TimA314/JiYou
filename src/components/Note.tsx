@@ -73,6 +73,7 @@ interface NoteProps {
   gettingThread?: boolean;
   hashTags: string[];
   imagesOnlyMode: React.MutableRefObject<boolean>;
+  isInModal?: boolean;
 }
 
 const Note: React.FC<NoteProps> = ({
@@ -88,7 +89,8 @@ const Note: React.FC<NoteProps> = ({
     gettingThread,
     hashTags,
     updateFollowing,
-    imagesOnlyMode
+    imagesOnlyMode,
+    isInModal = false,
   }: NoteProps) => {
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -97,6 +99,7 @@ const Note: React.FC<NoteProps> = ({
   const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
+  const [showImagesOnly ] = useState(imagesOnlyMode.current);
 
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
 
@@ -156,10 +159,27 @@ const Note: React.FC<NoteProps> = ({
     setReplyToNoteOpen(true);
   }
 
-  if (imagesOnlyMode.current && !noteDetailsOpen ) {
+  //Images Only Mode
+  if (imagesOnlyMode.current && showImagesOnly && !isInModal) {
     return (
-      <Card onClick={() => setNoteDetailsOpen(true)} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
-        <Box >
+      <Card sx={{marginBottom: "15px"}}>
+        <NoteModal
+          fetchEvents={fetchEvents}
+          setFetchEvents={setFetchEvents}
+          eventData={eventData}
+          setReplyCount={setReplyCount}
+          open={noteDetailsOpen}
+          setNoteDetailsOpen={setNoteDetailsOpen}
+          pool={pool}
+          relays={relays}
+          following={following}
+          updateFollowing={updateFollowing}
+          setHashtags={setHashtags}
+          pk={pk}
+          hashTags={hashTags}
+          imagesOnlyMode={imagesOnlyMode}
+          />
+        <CardContent sx={{marginBottom: "-25px"}}>
           {eventData.images.length > 0 && (
             eventData.images.map((img) => (
             <CardMedia
@@ -179,11 +199,119 @@ const Note: React.FC<NoteProps> = ({
             style={{ width: '100%', height: '315px' }}
           />
           )}
-        </Box>
+        </CardContent>
+        <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <CardHeader
+          avatar={
+            <Avatar sizes='small' aria-label="recipe" src={eventData.user.picture}>
+            </Avatar>
+          }
+          title={moment.unix(eventData.created_at).fromNow()}
+          titleTypographyProps={{color: themeColors.textColor}}
+        />
+          <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
+          <IconButton aria-label="cart" onClick={showReplyThread}>
+            <StyledBadge color="secondary">
+              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyCount} color="primary"><ForumIcon color="primary"/></Badge> }
+            </StyledBadge>
+          </IconButton>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <IconButton 
+              onClick={() => disableReplyIcon ? () => {} : handleReplyToNote(eventData)}
+              color="secondary"
+            >
+              <RateReviewIcon />
+            </IconButton>
+            <FavoriteIconButton 
+              aria-label="Upvote note" 
+              onClick={likeNote} 
+              disabled={liked} 
+              sx={{ color: liked ? themeColors.primary : themeColors.textColor }}
+              className={liked ? 'animateLike' : ''}
+            >
+            <Typography variant='caption' sx={{color: themeColors.textColor}}>
+              {(eventData.reaction?.upvotes ?? 0) + (liked ? 1 : 0)}
+            </Typography>
+              <FavoriteIcon id={"favorite-icon-" + eventData.sig} />
+            </FavoriteIconButton>
+            <ExpandMore
+              expand={expanded}
+              onClick={handleExpandClick}
+              aria-expanded={expanded}
+              aria-label="show more"
+              sx={{color: themeColors.textColor}}
+            >
+              <ExpandMoreIcon />
+            </ExpandMore>
+          </Box>
+        </CardActions>
+      <Collapse in={expanded} timeout="auto" unmountOnExit>
+        <CardContent>
+          <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
+            <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
+              {isFollowing ? "UnFollow" : "Follow"}
+            </Button>
+          </Box>
+          <Typography variant="h6" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
+            Content:
+          </Typography>
+          <Box sx={{marginBottom: "20px", margin: "10px"}}>
+            <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
+              {eventData.content}
+            </Typography>
+          </Box>
+          <Typography paragraph display="h6" color={themeColors.textColor}>MetaData:</Typography>
+          <Typography variant="caption" display="block" color={themeColors.textColor}>
+            Event Id: {eventData.eventId}
+          </Typography>
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
+            Up Votes: {eventData.reaction?.upvotes}
+          </Typography>
+          <Typography variant='caption' display="block" color={themeColors.textColor}>
+            Down Votes: {eventData.reaction?.downvotes}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            PubKey: {nip19.npubEncode(eventData.pubkey)}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            PubKey hex: {eventData.pubkey}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            Created: {moment.unix(eventData.created_at).format("LLLL")}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            UnixTime: {eventData.created_at}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            Sig: {eventData.sig}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            Tags: <ul >{eventData.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
+          </Typography>
+        </CardContent>
+      </Collapse>
+      <ReplyToNote
+        fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
+        open={replyToNoteOpen} 
+        setReplyToNoteOpen={setReplyToNoteOpen} 
+        eventData={eventData} 
+        pool={pool} 
+        relays={relays} 
+        pk={pk} 
+        following={following} 
+        updateFollowing={updateFollowing} 
+        setHashtags={setHashtags}
+        hashTags={hashTags}
+        imagesOnlyMode={imagesOnlyMode}
+        />
       </Card>
     )
   }
 
+
+  //Normal Mode
   return (
     <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <NoteModal
@@ -239,7 +367,7 @@ const Note: React.FC<NoteProps> = ({
               image={img}
               alt="picture"
               key={img.length + "image" + Math.random().toString()}
-              sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
+              sx={{maxHeight: "300px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
           )}

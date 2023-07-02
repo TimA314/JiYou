@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { Box, FormControlLabel, FormGroup, Switch, TextField, Typography } from '@mui/material';
+import { useContext, useState } from 'react';
+import { Box, FormGroup, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
 import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
@@ -89,7 +89,7 @@ function CreateNote({
   }
 
   return (
-  <Box sx={{ marginTop: "20px",height: "auto", width: "auto"}} >
+  <Box sx={{ marginTop: "20px"}} >
       <FormGroup>
         <TextField
           id="noteContent"
@@ -100,7 +100,7 @@ function CreateNote({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           focused 
-          rows={12}
+          rows={7}
           margin="normal"
           inputProps={{style: {color: themeColors.textColor}}} 
           />
