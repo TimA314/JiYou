@@ -88,10 +88,11 @@ export function insertEventIntoDescendingList<T extends Event>(
     "gore",
     "nudity",
     "nude",
-    "blood"
+    "blood",
+    "nudestr"
   ]
 
   export function eventContainsExplicitContent(event: Event): boolean {
-    return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1])).length > 0
+    return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1].toLowerCase())).length > 0
   }
   

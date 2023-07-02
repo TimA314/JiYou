@@ -1,10 +1,8 @@
-import { useState, useEffect, MutableRefObject } from 'react';
-import { Event, SimplePool } from 'nostr-tools';
-import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { FullEventData, MetaData, ReactionCounts, RelaySetting } from '../nostr/Types';
-import { getEventOptions } from '../nostr/FeedEvents';
-import { eventContainsExplicitContent, setEventData } from '../utils/eventUtils';
-import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
+import { useState, useEffect, MutableRefObject, useRef } from 'react';
+import { Filter, SimplePool } from 'nostr-tools';
+import { FullEventData, RelaySetting } from '../nostr/Types';
+import { getDefaultFeedFilter } from '../nostr/FeedEvents';
+import { fetchNostrEvent } from '../nostr/FetchEvent';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -34,104 +32,55 @@ export const useListEvents = ({
   fetchingEventsInProgress
 }: useListEventsProps) => {
 
-  const [events, setEvents] = useState<FullEventData[]>([]);
+  const [feedEvents, setFeedEvents] = useState<FullEventData[]>([]);
+  const filter = useRef<Filter | null>(null);
   const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
   const allRelayUrls = relays.map((r) => r.relayUrl);
+
+  const fetchEventsFromRelays = async () => {
+    try {
+      if (!pool) return;
+      fetchingEventsInProgress.current = true;
+      setFeedEvents([]);
+      
+      //If no followers and on the followers tab, don't fetch events
+      if (tabIndex === 1 && following.length === 0) {
+        setFetchEvents(false);
+        fetchingEventsInProgress.current = false;
+        return;
+      }
+
+      const filterToUse = filter.current ? filter.current : getDefaultFeedFilter(hashtags, tabIndex, following);
+      
+      console.log('Fetching events with options: ', filterToUse );
+
+      const eventDataSet = await fetchNostrEvent(pool, readableRelayUrls, allRelayUrls, filterToUse, hideExplicitContent.current)
+      
+
+      if (imagesOnlyMode.current) {
+        setFeedEvents(eventDataSet.filter((e) => e.images.length > 0));
+      }
+      else {
+        setFeedEvents(eventDataSet);
+      }
+      setFetchEvents(false);
+      fetchingEventsInProgress.current = false;
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
 
   useEffect(() => {
     if (!pool){
       setPool(new SimplePool());
     } 
 
-    const fetchEventsFromRelays = async () => {
-      try {
-        if (!pool) return;
-        fetchingEventsInProgress.current = true;
-
-        //If no followers and on the followers tab, don't fetch events
-        if (tabIndex === 1 && following.length === 0) {
-          setFetchEvents(false);
-          fetchingEventsInProgress.current = false;
-          return;
-        }
-        
-        console.log('Fetching events with options: ', getEventOptions(hashtags, tabIndex, following));
-
-        const fetchedFeedEvents = await pool.list(readableRelayUrls, [getEventOptions(hashtags, tabIndex, following)]);
-        console.log("number of events fetched: ", fetchedFeedEvents.length);
-
-        let sanitizedEvents = fetchedFeedEvents.map((event: Event) => sanitizeEvent(event));
-
-        if (hideExplicitContent.current) {
-          sanitizedEvents = sanitizedEvents.filter((e: Event) => !eventContainsExplicitContent(e));
-        }
-
-        
-        let eventIds: string[] = sanitizedEvents.map((event: Event) => event.id);
-        let eventsPubkeys: string[] = sanitizedEvents.map((event: Event) => event.pubkey);
-
-        // Fetch reactions
-        const reactionEvents = await pool.list(allRelayUrls, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
-        const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-        reactionEvents.forEach((event: Event) => {
-          const eventTagThatWasLiked = event.tags.filter((tag) => tag[0] === "e");
-          eventTagThatWasLiked.forEach((tag) => {
-            const isValidEventTagThatWasLiked = tag && tag[1];
-            if (isValidEventTagThatWasLiked) {
-
-              if (!retrievedReactionObjects[tag[1]] && event.content === "+") {
-                retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
-              }
-              if (!retrievedReactionObjects[tag[1]] && event.content === "-") {
-                retrievedReactionObjects[tag[1]] = {upvotes: 0, downvotes: 1};
-              }
-              
-              if (retrievedReactionObjects[tag[1]] && event.content === "+") {
-                retrievedReactionObjects[tag[1]].upvotes++;
-              }
-              if(retrievedReactionObjects[tag[1]] && event.content === "-") {
-                retrievedReactionObjects[tag[1]].downvotes++;
-              }
-
-            }
-          });
-        });
-        
-        const fetchedMetaDataEvents = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: eventsPubkeys}]);
-        
-        const metaDataMap: Record<string, MetaData> = {};
-        fetchedMetaDataEvents.forEach((event: Event) => {
-          if(event.content){
-            try {
-              metaDataMap[event.pubkey] = JSON.parse(event.content);
-            } catch (error) {
-              console.error('Error parsing event content:', event.content, error);
-            }
-          }
-        });
-        
-        const eventDataSet = sanitizedEvents.map((e) => setEventData(e, metaDataMap[e.pubkey], retrievedReactionObjects[e.id]))
-
-        setEvents([]);
-        if (imagesOnlyMode.current) {
-          setEvents(eventDataSet.filter((e) => e.images.length > 0));
-        }
-        else {
-          setEvents(eventDataSet);
-        }
-        setFetchEvents(false);
-        fetchingEventsInProgress.current = false;
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      }
-    };
-
     if (fetchEvents && !fetchingEventsInProgress.current)
     {
       fetchEventsFromRelays();
     }
 
-  }, [fetchEvents]);
+  }, [fetchEvents, filter.current]);
 
-  return { events };
+  return { feedEvents, filter };
 };

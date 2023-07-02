@@ -30,7 +30,7 @@ function App() {
   const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const { events } = useListEvents({ 
+  const { feedEvents, filter } = useListEvents({ 
       pool,
       setPool, 
       relays, 
@@ -159,9 +159,10 @@ function App() {
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
-              events={events}
+              events={feedEvents}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
+              filter={filter}
               fetchingEventsInProgress={fetchingEventsInProgress}
               setTabIndex={setTabIndex}
               hashtags={hashtags}
