@@ -1,15 +1,13 @@
-import { AppBar, Avatar, Box, Button, Chip, CircularProgress, Divider, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar, Typography} from '@mui/material'
-import { SimplePool, Event } from 'nostr-tools';
-import { useEffect, useRef, useState } from 'react'
+import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
+import { SimplePool } from 'nostr-tools';
+import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { FullEventData, ReactionCounts, RelaySetting } from '../nostr/Types';
+import { RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { GetImageFromPost } from '../utils/miscUtils';
 import UserNotes from '../components/UserNotes';
 
 interface ProfileProps {
@@ -39,6 +37,7 @@ const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const { themeColors } = useContext(ThemeContext);
+const [tabIndex, setTabIndex] = useState(0);
 
 
 useEffect(() => {
@@ -71,6 +70,9 @@ useEffect(() => {
     getProfile();
 }, [pk])
 
+const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+};
 
 const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
@@ -95,7 +97,7 @@ const styles = {
     return (
         <Box justifyContent="center" >
             {pk !== "" && (
-                <Box>
+                <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Toolbar >
@@ -211,14 +213,30 @@ const styles = {
                                     </Button>
                             </Stack>
                     </Box>
-                    <UserNotes 
-                        pool={pool}
-                        relays={relays} 
-                        pk={pk} 
-                        fetchEvents={fetchEvents} 
-                        following={following} 
-                        setFetchEvents={setFetchEvents} 
-                        />                    
+                    
+                    <Box sx={{color: themeColors.textColor}}>
+                        <Tabs
+                            value={tabIndex}
+                            textColor='inherit'
+                            indicatorColor="secondary"
+                            onChange={handleTabChange}
+                            >
+                            <Tab label="User Notes" />
+                            <Tab label="Notifications" />   
+                        </Tabs>
+                    </Box>
+                    
+                    {tabIndex === 0 && (
+                        <UserNotes 
+                            pool={pool}
+                            relays={relays} 
+                            pk={pk} 
+                            fetchEvents={fetchEvents} 
+                            following={following} 
+                            setFetchEvents={setFetchEvents} 
+                            />                    
+                    )}
+
                 </Box>)
             }
         </Box>

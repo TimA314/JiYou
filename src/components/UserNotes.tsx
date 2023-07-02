@@ -37,11 +37,6 @@ export default function UserNotes({pool, relays, pk, fetchEvents, following, set
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                        <Box sx={{}}>
-                            <Typography variant="h6" sx={{ color: themeColors.textColor }}>
-                                User Notes
-                            </Typography>
-                        </Box>
                         {userNotes.length > 0 ? userNotes.map((event) => {
                             return (
                                 <Box key={event.sig + Math.random()}>
