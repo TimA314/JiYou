@@ -72,7 +72,7 @@ interface NoteProps {
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
   hashTags: string[];
-  imagesOnlyMode: React.MutableRefObject<boolean>;
+  imagesOnlyMode?: React.MutableRefObject<boolean>;
   isInModal?: boolean;
 }
 
@@ -99,7 +99,7 @@ const Note: React.FC<NoteProps> = ({
   const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
-  const [showImagesOnly ] = useState(imagesOnlyMode.current);
+  const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
 
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
 
@@ -160,7 +160,7 @@ const Note: React.FC<NoteProps> = ({
   }
 
   //Images Only Mode
-  if (imagesOnlyMode.current && showImagesOnly && !isInModal) {
+  if (imagesOnlyMode && imagesOnlyMode.current && showImagesOnly && !isInModal) {
     return (
       <Card sx={{marginBottom: "15px"}}>
         <NoteModal
