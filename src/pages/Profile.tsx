@@ -258,7 +258,8 @@ const styles = {
                     )}
 
                     {tabIndex === 1 && (
-                        <Notifications 
+                        <Notifications
+                            userNotes={userNotes}
                             likedNotificationEvents={likedNotificationEvents} 
                             likedNotificationMetaData={likedNotificationMetaData}  
                         />
