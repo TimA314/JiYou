@@ -1,11 +1,11 @@
 import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
-import { SimplePool } from 'nostr-tools';
+import { Event, SimplePool } from 'nostr-tools';
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
@@ -24,6 +24,8 @@ interface ProfileProps {
     getProfile: () => Promise<void>;
     imagesOnlyMode: React.MutableRefObject<boolean>;
     userNotes: FullEventData[];
+    likedNotificationEvents: Event[];
+    likedNotificationMetaData: Record<string, MetaData>;
 }
 
 interface ProfileContent {
@@ -45,7 +47,9 @@ export default function Profile({
     updateProfile, 
     getProfile, 
     imagesOnlyMode,
-    userNotes
+    userNotes,
+    likedNotificationEvents,
+    likedNotificationMetaData
 }: ProfileProps) {
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
@@ -254,7 +258,10 @@ const styles = {
                     )}
 
                     {tabIndex === 1 && (
-                        <Notifications />
+                        <Notifications 
+                            likedNotificationEvents={likedNotificationEvents} 
+                            likedNotificationMetaData={likedNotificationMetaData}  
+                        />
                     )}
 
                 </Box>)

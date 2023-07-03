@@ -1,9 +1,6 @@
-import { Box, CircularProgress, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import Note from './Note'
-import { ThemeContext } from '../theme/ThemeContext';
-import { useContext, useEffect, useState } from 'react';
 import { FullEventData, RelaySetting } from '../nostr/Types';
-import { fetchNostrEvent } from '../nostr/FetchEvent';
 import { SimplePool } from 'nostr-tools';
 
 type Props = {

@@ -31,7 +31,7 @@ export const fetchSingleFullEventData = async (pool: SimplePool, relays: string[
     return setEventData(sanitizedSingleEvent, metaData[event.pubkey], reactions[event.id]);
 }
 
-const fetchReactions = async (pool: SimplePool, relays: string[], events: Event[]) => {
+export const fetchReactions = async (pool: SimplePool, relays: string[], events: Event[]) => {
     let eventIds: string[] = events.map((event: Event) => event.id);
     let eventsPubkeys: string[] = events.map((event: Event) => event.pubkey);
 
@@ -43,14 +43,14 @@ const fetchReactions = async (pool: SimplePool, relays: string[], events: Event[
         const isValidEventTagThatWasLiked = tag && tag[1];
         if (isValidEventTagThatWasLiked) {
 
-          if (!retrievedReactionObjects[tag[1]] && event.content === "+") {
+          if (!retrievedReactionObjects[tag[1]] && event.content !== "-") {
             retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
           }
           if (!retrievedReactionObjects[tag[1]] && event.content === "-") {
             retrievedReactionObjects[tag[1]] = {upvotes: 0, downvotes: 1};
           }
           
-          if (retrievedReactionObjects[tag[1]] && event.content === "+") {
+          if (retrievedReactionObjects[tag[1]] && event.content !== "-") {
             retrievedReactionObjects[tag[1]].upvotes++;
           }
           if(retrievedReactionObjects[tag[1]] && event.content === "-") {
@@ -63,7 +63,7 @@ const fetchReactions = async (pool: SimplePool, relays: string[], events: Event[
     return retrievedReactionObjects;
 }
 
-const fetchMetaData = async (pool: SimplePool, relays: string[], events: Event[]) => {
+export const fetchMetaData = async (pool: SimplePool, relays: string[], events: Event[]) => {
     let eventsPubkeys: string[] = events.map((event: Event) => event.pubkey);
 
     const fetchedMetaDataEvents = await pool.list([...new Set([...relays, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: eventsPubkeys}]);

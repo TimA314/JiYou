@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { SimplePool, Event } from 'nostr-tools';
-import { FullEventData, RelaySetting } from '../nostr/Types';
-import { fetchSingleFullEventData } from '../nostr/FetchEvent';
+import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
+import { fetchMetaData, fetchSingleFullEventData } from '../nostr/FetchEvent';
+
 
 type useUserNotesProps = {
     pool: SimplePool | null;
@@ -18,8 +19,12 @@ export const useUserNotes = ({
 }: useUserNotesProps) => {
 
     const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
+    const [likedNotificationEvents, setLikedNotificationEvents] = useState<Event[]>([]);
+    const [likedNotificationMetaData, setLikedNotificationMetaData] = useState<Record<string, MetaData>>({});
+    
     const allRelayUrls = relays.map((r) => r.relayUrl);
-    const filter = {kinds: [1], authors: [pk_decoded]};
+
+    const userNotesFilter = {kinds: [1], authors: [pk_decoded]};
 
     const setNewEvent = async (event: Event) => {
         if (!pool) return;
@@ -30,16 +35,44 @@ export const useUserNotes = ({
     }
 
     useEffect(() => {
-    if (!pool) return;
+        if (!pool) return;
 
-    let sub = pool.sub(allRelayUrls, [filter]);
+        let sub = pool.sub(allRelayUrls, [userNotesFilter]);
 
-    sub.on('event', event => {
-        console.log('new event', JSON.stringify(event))
-        setNewEvent(event);
-    })
+        sub.on('event', event => {
+            setNewEvent(event);
+        })
 
     }, [pk_decoded]);
 
-    return { userNotes };
+    useEffect(() => {
+        if (!pool) return;
+
+        const notificationsFilter = {kinds: [7], "#e": userNotes.map((e) => e.eventId), "#p": [pk_decoded]};
+
+        let sub = pool.sub(allRelayUrls, [notificationsFilter]);
+
+        sub.on('event', event => {
+            if (likedNotificationEvents.some(e => e.id === event.id)) return;
+            setLikedNotificationEvents(prev => [...prev, event]);
+        })
+
+    }, [userNotes]);
+
+    useEffect(() => {
+        if (!pool) return;
+
+        const fetchMetaDataForLikedNotifications = async () => {
+            const eventsToFetch = likedNotificationEvents.filter((e) => !likedNotificationMetaData[e.pubkey]);
+            const newMetaData = await fetchMetaData(pool, allRelayUrls, eventsToFetch);
+            console.log(newMetaData)
+            setLikedNotificationMetaData(prev => ({...prev, ...newMetaData}));
+        }
+
+        fetchMetaDataForLikedNotifications();
+    }, [likedNotificationEvents])
+
+
+
+    return { userNotes, likedNotificationEvents, likedNotificationMetaData };
 };

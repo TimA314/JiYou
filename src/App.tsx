@@ -31,7 +31,7 @@ function App() {
   const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const { userNotes } = useUserNotes({ pool, pk_decoded, relays, following });
+  const { userNotes, likedNotificationEvents, likedNotificationMetaData } = useUserNotes({ pool, pk_decoded, relays, following });
   const { feedEvents, filter } = useListEvents({ 
       pool,
       setPool, 
@@ -145,6 +145,8 @@ function App() {
               getProfile={getProfile}
               imagesOnlyMode={imagesOnlyMode}
               userNotes={userNotes}
+              likedNotificationEvents={likedNotificationEvents}
+              likedNotificationMetaData={likedNotificationMetaData}
             />} />
           <Route path="/relays" element={
             <Relays
