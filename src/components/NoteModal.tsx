@@ -38,7 +38,7 @@ interface NoteModalProps {
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
   hashTags: string[];
-  imagesOnlyMode: React.MutableRefObject<boolean>;
+  imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
 export default function NoteModal({

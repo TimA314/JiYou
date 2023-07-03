@@ -1,16 +1,15 @@
-import { AppBar, Avatar, Box, Button, Chip, CircularProgress, Divider, IconButton, InputAdornment, MenuItem, Paper, Stack, TextField, Toolbar, Typography} from '@mui/material'
-import { SimplePool, Event } from 'nostr-tools';
-import { useEffect, useRef, useState } from 'react'
+import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
+import { Event, SimplePool } from 'nostr-tools';
+import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { FullEventData, ReactionCounts, RelaySetting } from '../nostr/Types';
-import Note from '../components/Note';
+import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { GetImageFromPost } from '../utils/miscUtils';
+import UserNotes from '../components/UserNotes';
+import Notifications from '../components/Notifications';
 
 interface ProfileProps {
     relays: RelaySetting[];
@@ -24,6 +23,9 @@ interface ProfileProps {
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
     imagesOnlyMode: React.MutableRefObject<boolean>;
+    userNotes: FullEventData[];
+    likedNotificationEvents: Event[];
+    likedNotificationMetaData: Record<string, MetaData>;
 }
 
 interface ProfileContent {
@@ -33,38 +35,28 @@ interface ProfileContent {
     banner: string;
 }
 
-export default function Profile({relays, pool, pk, profile, following, followers, fetchEvents, setFetchEvents, updateProfile, getProfile, imagesOnlyMode }: ProfileProps) {
-const profileRef = useRef<ProfileContent | null>(profile);
-const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
+export default function Profile({
+    relays, 
+    pool, 
+    pk, 
+    profile, 
+    following, 
+    followers, 
+    fetchEvents, 
+    setFetchEvents, 
+    updateProfile, 
+    getProfile, 
+    imagesOnlyMode,
+    userNotes,
+    likedNotificationEvents,
+    likedNotificationMetaData
+}: ProfileProps) {
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
-const [userEventsFetched, setUserEventsFetched] = useState<boolean>(false);
 const { themeColors } = useContext(ThemeContext);
-const allRelayUrls = relays.map((r) => r.relayUrl);
-
-
-const setEventDataForUserEvents = (event: Event, reactions: Record<string, ReactionCounts>, profileData: ProfileContent) => {
-    const fullEventData: FullEventData = {
-        content: event.content,
-        user: {
-            name: profileData.name,
-            picture: profileData.picture,
-            about: profileData.about,
-            nip05: "",
-        },
-        pubkey: event.pubkey,
-        hashtags: event.tags.filter((tag) => tag[0] === "t").map((tag) => tag[1]),
-        eventId: event.id,
-        sig: event.sig,
-        created_at: event.created_at,
-        tags: event?.tags ?? [],
-        reaction: reactions[event?.id] ?? {upvotes: 0, downvotes: 0},
-        images: GetImageFromPost(event.content)
-    }
-    return fullEventData;
-}
+const [tabIndex, setTabIndex] = useState(0);
 
 
 useEffect(() => {
@@ -83,34 +75,6 @@ useEffect(() => {
             setProfileAboutInput(profileContent.about);
             setImageUrlInput(profileContent.picture);
             setBannerUrlInput(profileContent.banner);
-            setUserEventsFetched(false);
-            // Fetch user notes
-            const userNotes = await pool.list(allRelayUrls, [{kinds: [1], authors: [pk] }])
-            const sanitizedEvents = userNotes.map((event) => sanitizeEvent(event));
-            
-            // Fetch reactions
-            const eventIds = sanitizedEvents.map((event) => event.id);
-            
-            const reactionEvents = await pool.list(allRelayUrls, [{ "kinds": [7], "#e": eventIds, "#p": [pk]}]);
-            const retrievedReactionObjects: Record<string, ReactionCounts> = {};
-            reactionEvents.forEach((event) => {
-                const eventTagThatWasLiked = event.tags.filter((tag: string[]) => tag[0] === "e");
-                eventTagThatWasLiked.forEach((tag: (string | number)[] | undefined) => {
-                    const isValidEventTagThatWasLiked = tag !== undefined && tag[1] !== undefined && tag[1] !== null;
-                    if (isValidEventTagThatWasLiked) {
-                        if (!retrievedReactionObjects[tag[1]]) {
-                            retrievedReactionObjects[tag[1]] = {upvotes: 1, downvotes: 0};
-                        }
-                        if (event.content === "+") {
-                    retrievedReactionObjects[tag[1]].upvotes++;
-                } else if(event.content === "-") {
-                    retrievedReactionObjects[tag[1]].downvotes++;
-                }
-            }
-        });});
-
-        setUserEventsFetched(true);
-        setUserNotes(sanitizedEvents.map((event) => setEventDataForUserEvents(event, retrievedReactionObjects, profileContent)));
 
         } catch (error) {
             console.log(error);
@@ -125,6 +89,9 @@ useEffect(() => {
     getProfile();
 }, [pk])
 
+const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+};
 
 const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
@@ -149,7 +116,7 @@ const styles = {
     return (
         <Box justifyContent="center" >
             {pk !== "" && (
-                <Box>
+                <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Toolbar >
@@ -265,34 +232,39 @@ const styles = {
                                     </Button>
                             </Stack>
                     </Box>
-                    <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                        <Box sx={{}}>
-                            <Typography variant="h6" sx={{ color: themeColors.textColor }}>
-                                User Notes
-                            </Typography>
-                        </Box>
-                        {userNotes.length > 0 ? userNotes.map((event) => {
-                            return (
-                                <Box key={event.sig + Math.random()}>
-                                    <Note 
-                                        pool={pool} 
-                                        relays={relays} 
-                                        eventData={event}
-                                        fetchEvents={fetchEvents}
-                                        setFetchEvents={setFetchEvents}
-                                        updateFollowing={() => {}} 
-                                        following={following} 
-                                        setHashtags={() => {}} 
-                                        pk={pk}
-                                        hashTags={[]}
-                                        imagesOnlyMode={imagesOnlyMode}
-                                        />
-                                </Box>
-                            )
-                        }) : <Box sx={{marginTop: "5px", display: "flex", justifyContent: "center"}}>
-                                {userEventsFetched ? <Typography variant='caption' color={themeColors.textColor}>No Notes Found</Typography> : <CircularProgress color='primary'/>}
-                            </Box>}
+                    
+                    <Box sx={{color: themeColors.textColor}}>
+                        <Tabs
+                            value={tabIndex}
+                            textColor='inherit'
+                            indicatorColor="secondary"
+                            onChange={handleTabChange}
+                            >
+                            <Tab label="User Notes" />
+                            <Tab label="Notifications" />   
+                        </Tabs>
                     </Box>
+                    
+                    {tabIndex === 0 && (
+                        <UserNotes 
+                            pool={pool}
+                            relays={relays} 
+                            pk={pk} 
+                            fetchEvents={fetchEvents} 
+                            following={following} 
+                            setFetchEvents={setFetchEvents}
+                            userNotes={userNotes}
+                            />                    
+                    )}
+
+                    {tabIndex === 1 && (
+                        <Notifications
+                            userNotes={userNotes}
+                            likedNotificationEvents={likedNotificationEvents} 
+                            likedNotificationMetaData={likedNotificationMetaData}  
+                        />
+                    )}
+
                 </Box>)
             }
         </Box>
