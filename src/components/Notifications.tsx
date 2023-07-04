@@ -10,7 +10,9 @@ type Props = {
 }
 
 export default function Notifications({likedNotificationEvents, likedNotificationMetaData, userNotes}: Props) {
-  const uniqueEvents = [...new Set(likedNotificationEvents)];
+  const uniqueEvents = likedNotificationEvents.filter((value, index, self) => 
+    self.findIndex(m => m.id === value.id) === index
+  );
 
   return (
     <Stack>

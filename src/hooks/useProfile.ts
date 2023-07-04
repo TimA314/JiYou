@@ -45,7 +45,6 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
   };
 
   useEffect(() => {
-    if (!pool || pk_decoded === "") return;
     getProfile();
   }, [pk_decoded]);
 
