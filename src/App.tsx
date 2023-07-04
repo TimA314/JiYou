@@ -24,7 +24,7 @@ function App() {
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
   const [sk_decoded, setSk_decoded] = useState<string>("");
   const [pk_decoded, setPk_decoded] = useState<string>("");
-  const { relays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents, setFetchEvents});
+  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents, setFetchEvents});
   const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
   const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded });
@@ -47,17 +47,21 @@ function App() {
       fetchingEventsInProgress
     });
 
-  const addKeysToState = useCallback(async () => {
-    let publicKey: string = pk_decoded;
+  const addKeysToState = async () => {
+    let publicKey: string = "";
+    setPk_decoded("");
 
     //Check Nostr Extension for Public Key
     if (window.nostr) {
       try {
         publicKey = await window.nostr.getPublicKey();
-        if (!publicKey) return;
-        setPk_decoded(publicKey);
-        setWillUseNostrExtension(true);
-        return;
+        if (publicKey) {
+          setPk_decoded(publicKey);
+          setWillUseNostrExtension(true);
+          const encodedPk = nip19.npubEncode(publicKey);
+          localStorage.setItem("pk", encodedPk);
+          return;
+        }
       } catch {}
     }
 
@@ -107,7 +111,7 @@ function App() {
       }
 
     }
-  }, []);
+  };
 
   useEffect(() => {
     setFetchEvents(true);
@@ -115,7 +119,7 @@ function App() {
 
   useEffect(() => {
     addKeysToState();
-  }, [addKeysToState]);
+  }, []);
 
   useEffect(() => {
     const settings = localStorage.getItem("JiYouSettings");
@@ -131,7 +135,7 @@ function App() {
     <Box>
       <CssBaseline />
       <Container>
-          <ScrollToTop />
+        <ScrollToTop />
         <Routes>
           <Route path="/profile" element={
             <Profile
@@ -139,7 +143,7 @@ function App() {
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               pool={pool}
-              pk={pk_decoded}
+              pk_decoded={pk_decoded}
               following={following}
               followers={followers}
               profile={profile}
@@ -154,8 +158,8 @@ function App() {
             <Relays
               relays={relays}
               updateRelays={updateRelays}
-              pool={pool}
-              pk={pk_decoded}
+              relaysAndSetting={relays}
+              setRelaysAndSetting={setRelays}
             />} />
           <Route path="/" element={
             <GlobalFeed

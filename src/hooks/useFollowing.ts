@@ -18,7 +18,6 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
 
   const getFollowing = async () => {
     if (!pool || pk_decoded === "") return [];
-    console.log("useFollowers pk: " + pk_decoded)
     let followingPks: string[] = [];
     const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [pk_decoded], limit: 1 }])
     
@@ -30,7 +29,7 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
         followingPks.push(followingArray[i][1]);
       }
     }
-    console.log(followingPks.length + ' following');
+
     setFollowing(followingPks);
     return followingPks;
   };
@@ -39,7 +38,7 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
     if (!pool || pk_decoded === "") return;
 
     const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pk_decoded] }])
-    console.log(JSON.stringify(followerEvents))
+
     if (!followerEvents || followerEvents.length === 0) return;
 
     const followerPks: string[] = followerEvents.map((event) => event.pubkey);
@@ -58,9 +57,7 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
     try {
       const currentFollowing = await getFollowing();
       const isUnfollowing: boolean = !!currentFollowing.find((follower) => follower === followPubkey);
-    
-      console.log("setIsFollowing " + followPubkey + " to following = " + isUnfollowing)
-            
+                
       const newTags: string[][] = isUnfollowing ? [] : [["p", followPubkey]];
       currentFollowing.forEach((follow) => {
         if (follow === followPubkey && isUnfollowing) {
@@ -76,7 +73,6 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
         created_at: Math.floor(Date.now() / 1000),
         tags: newTags,
       } as EventTemplate
-      console.log(_baseEvent)
       
       //sign with Nostr Extension
       if (window.nostr) {

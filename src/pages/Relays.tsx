@@ -1,9 +1,8 @@
 import "./Relays.css";
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, TextField, Box, Grid, Typography, List, ListItem, ListItemIcon, Paper, FormControl, Switch, FormControlLabel } from '@mui/material';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import { SimplePool } from 'nostr-tools';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { RelaySetting } from "../nostr/Types";
@@ -11,15 +10,18 @@ import { RelaySetting } from "../nostr/Types";
 interface RelayProps {
     relays: RelaySetting[];
     updateRelays: (relays: RelaySetting[]) => void;
-    pool: SimplePool | null;
-    pk: string;
+    relaysAndSetting: RelaySetting[];
+    setRelaysAndSetting: React.Dispatch<React.SetStateAction<RelaySetting[]>>;
 }
 
-export default function Relays({relays, updateRelays, pool, pk}: RelayProps) {
+export default function Relays({relays, updateRelays, relaysAndSetting, setRelaysAndSetting}: RelayProps) {
     const [relayInput, setRelayInput] = useState("");
     const { themeColors } = useContext(ThemeContext);
-    const [relaysAndSetting, setRelaysAndSetting] = useState(relays);
     
+    useEffect(() => {
+        setRelaysAndSetting(relays);
+    }, [relays])
+
     const handleToggleRead = (toggledRelay: RelaySetting) => {
         const readValue = toggledRelay.read === true && toggledRelay.write === false ? true : !toggledRelay.read;
         const writeValue = readValue === false && toggledRelay.write === false ? true : toggledRelay.write;

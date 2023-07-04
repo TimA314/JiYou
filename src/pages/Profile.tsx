@@ -14,7 +14,7 @@ import Notifications from '../components/Notifications';
 interface ProfileProps {
     relays: RelaySetting[];
     pool: SimplePool | null;
-    pk: string;
+    pk_decoded: string;
     profile: ProfileContent;
     following: string[];
     followers: string[];
@@ -38,7 +38,7 @@ interface ProfileContent {
 export default function Profile({
     relays, 
     pool, 
-    pk, 
+    pk_decoded, 
     profile, 
     following, 
     followers, 
@@ -60,7 +60,7 @@ const [tabIndex, setTabIndex] = useState(0);
 
 
 useEffect(() => {
-    if (!pool || pk === "") return;
+    if (!pool || pk_decoded === "") return;
 
     const loadProfile = async () => {
         try {
@@ -81,13 +81,12 @@ useEffect(() => {
         }
     }
 
-
     loadProfile();
 }, [profile])
 
 useEffect(() => {
     getProfile();
-}, [pk])
+}, [pk_decoded])
 
 const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -115,7 +114,7 @@ const styles = {
 
     return (
         <Box justifyContent="center" >
-            {pk !== "" && (
+            {pk_decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
@@ -249,7 +248,7 @@ const styles = {
                         <UserNotes 
                             pool={pool}
                             relays={relays} 
-                            pk={pk} 
+                            pk={pk_decoded} 
                             fetchEvents={fetchEvents} 
                             following={following} 
                             setFetchEvents={setFetchEvents}
