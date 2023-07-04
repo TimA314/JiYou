@@ -16,6 +16,7 @@ import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
 import { useUserNotes } from './hooks/useUserNotes';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   const [fetchEvents, setFetchEvents] = useState(false);
@@ -130,6 +131,7 @@ function App() {
     <Box>
       <CssBaseline />
       <Container>
+          <ScrollToTop />
         <Routes>
           <Route path="/profile" element={
             <Profile
