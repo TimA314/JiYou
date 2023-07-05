@@ -22,6 +22,7 @@ export const useUserNotes = ({
     const [likedNotificationEvents, setLikedNotificationEvents] = useState<Event[]>([]);
     const [likedNotificationMetaData, setLikedNotificationMetaData] = useState<Record<string, MetaData>>({});
     const isFetchingUserNotes = useRef(false);
+
     
     const allRelayUrls = relays.map((r) => r.relayUrl);
     const userNotesFilter = {kinds: [1], authors: [pk_decoded]};
@@ -52,7 +53,7 @@ export const useUserNotes = ({
             isFetchingUserNotes.current = false;
         })
 
-    }, [pk_decoded]);
+    }, [pool, pk_decoded]);
 
 
     // fetch like notifications

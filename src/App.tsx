@@ -1,13 +1,13 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import './App.css';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { SimplePool, generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
-import { Box, Container } from '@mui/material';
+import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -20,13 +20,13 @@ import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
 
 function App() {
+  const [sk_decoded, setSk_decoded] = useState<string>("");
+  const [pk_decoded, setPk_decoded] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const [sk_decoded, setSk_decoded] = useState<string>("");
-  const [pk_decoded, setPk_decoded] = useState<string>("");
   const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents, setFetchEvents});
-  const [willUseNostrExtension, setWillUseNostrExtension] = useState<boolean>(false);
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
   const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded });
   const hideExplicitContent = useRef<boolean>(true);
@@ -48,80 +48,50 @@ function App() {
       fetchingEventsInProgress
     });
 
-  const addKeysToState = async () => {
-    let publicKey: string = "";
-    setPk_decoded("");
+    const navigate = useNavigate();
 
-    //Check Nostr Extension for Public Key
-    if (window.nostr) {
-      try {
-        publicKey = await window.nostr.getPublicKey();
-        if (publicKey) {
-          setPk_decoded(publicKey);
-          setWillUseNostrExtension(true);
-          const encodedPk = nip19.npubEncode(publicKey);
-          localStorage.setItem("pk", encodedPk);
-          return;
+    useEffect(() => {
+      if (pk_decoded === "") {
+
+        //check if sk is in local storage
+        const skFromStorage = localStorage.getItem("sk");
+
+        if (skFromStorage && skFromStorage !== ""){
+          const decodedSkFromStorage = nip19.decode(skFromStorage);
+          if (decodedSkFromStorage && decodedSkFromStorage.data.toString() !== ""){
+            setPk_decoded(decodedSkFromStorage.data.toString());
+          }
         }
-      } catch {}
-    }
 
-    //Check Local Storage for Keys
-    const storedSk = localStorage.getItem("secretKey") || "";
-    const storedPk = localStorage.getItem("pk") || "";
-
-
-    //If no keys in local storage, generate a new keys
-    if (storedSk === "" && storedPk === "") {
-      const sk = generatePrivateKey();
-      const encodedSk = nip19.nsecEncode(sk);
-      localStorage.setItem("sk", encodedSk);
-      setSk_decoded(sk);
-
-      publicKey = getPublicKey(sk);
-      const encodedPk = nip19.npubEncode(publicKey);
-      localStorage.setItem("pk", encodedPk);
-      setPk_decoded(publicKey);
-      return;
-    }
-
-    //Check Keys in Local Storage
-    const decodedSk = storedSk && storedSk.length < 90 ? nip19.decode(storedSk) : null;
-    const decodedPk = storedPk && storedPk.length < 90 ? nip19.decode(storedPk) : null;
-
-    if (decodedPk && decodedPk.data.toString() !== "") {
-
-      //If Pk is good set to state
-      setPk_decoded(decodedPk.data.toString());
-      
-    } else {
-
-      //If Pk is bad, check if Sk is good
-      if (decodedSk && decodedSk.data.toString() !== ""){
+        //check if pk is in local storage
+        const pkFromStorage = localStorage.getItem("pk");
         
-        setSk_decoded(decodedSk.data.toString());
-        const pkFromSk = getPublicKey(decodedSk.data.toString());
-        if (pkFromSk && pkFromSk !== "") {
-          setPk_decoded(pkFromSk);
+        if (pkFromStorage && pkFromStorage !== ""){
+          const decodedPkFromStorage = nip19.decode(pkFromStorage);
+          if (decodedPkFromStorage && decodedPkFromStorage.data.toString() !== ""){
+            setPk_decoded(decodedPkFromStorage.data.toString());
+            return;
+          }
         }
-        
-        const encodedPk = nip19.npubEncode(pkFromSk);
-        if (encodedPk !== storedPk) {
-          localStorage.setItem("pk", encodedPk);
-        }
+
+        navigate("/start");
       }
+    }, [pk_decoded]);
 
-    }
-  };
-
+  //Get Feed Events
   useEffect(() => {
     setFetchEvents(true);
   }, []);
 
+  //Clear Alert (error message)
   useEffect(() => {
-    addKeysToState();
-  }, []);
+    if (errorMessage === "") return;
+    const timeoutId = setTimeout(() => setErrorMessage(""), 3000);
 
+    return () => clearTimeout(timeoutId);
+  }, [errorMessage]);
+
+  //Set Settings
   useEffect(() => {
     const settings = localStorage.getItem("JiYouSettings");
 
@@ -137,14 +107,20 @@ function App() {
       <CssBaseline />
       <Container>
         <ScrollToTop />
+        <Fade in={errorMessage !== ""}>
+          <Alert sx={{marginTop: "10px"}} severity="error">{errorMessage}</Alert>
+        </Fade>
         <Routes>
           <Route path="/start" element={
             <StartingPage
+              setErrorMessage={setErrorMessage}
               setSk_decoded={setSk_decoded}
               setPk_decoded={setPk_decoded}
             />} />
           <Route path="/profile" element={
             <Profile
+              setPk_decoded={setPk_decoded}
+              setSk_decoded={setSk_decoded}
               relays={relays}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
@@ -189,9 +165,7 @@ function App() {
           <Route path="/keys" element={
             <Keys
               pk={pk_decoded}
-              setPk={setPk_decoded}
-              willUseNostrExtension={willUseNostrExtension}
-              setWillUseNostrExtension={setWillUseNostrExtension}
+              sk={sk_decoded}
             />} />
           <Route path="/settings" element={
             <Settings

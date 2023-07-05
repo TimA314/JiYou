@@ -10,8 +10,11 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
 import Notifications from '../components/Notifications';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileProps {
+    setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
+    setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
     relays: RelaySetting[];
     pool: SimplePool | null;
     pk_decoded: string;
@@ -36,6 +39,8 @@ interface ProfileContent {
 }
 
 export default function Profile({
+    setPk_decoded,
+    setSk_decoded,
     relays, 
     pool, 
     pk_decoded, 
@@ -57,6 +62,7 @@ const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const [tabIndex, setTabIndex] = useState(0);
+const navigate = useNavigate();
 
 
 useEffect(() => {
@@ -97,6 +103,15 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     if (!pool) return;
     updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
 }
+
+const handleLogout = () => {
+    localStorage.removeItem("pk");
+    localStorage.removeItem("sk");
+    setPk_decoded("");
+    setSk_decoded("");
+    console.log("Logged out");
+    navigate("/start")
+}
     
 // ----------------------------------------------------------------------
     
@@ -117,6 +132,15 @@ const styles = {
             {pk_decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
+                    <Toolbar>
+                        <IconButton edge="start" color="secondary" aria-label="menu">
+                            <MenuItem />
+                        </IconButton>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Button variant="outlined" color="secondary" onClick={handleLogout}>
+                            Logout
+                        </Button>
+                    </Toolbar>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Toolbar >
                             <IconButton edge="start" color="inherit" aria-label="menu">

@@ -1,4 +1,4 @@
-import { Chip, IconButton, InputBase, Paper, Stack} from "@mui/material";
+import { Box, Chip, IconButton, InputBase, Paper, Stack} from "@mui/material";
 import React, { useState } from "react";
 import SearchIcon from '@mui/icons-material/Search';
 import "./SearchFilter.css";
@@ -65,7 +65,7 @@ export default function SearchFilter({ hashtags, setHashtags, setFetchEvents, fi
   }
 
   return (
-    <div className="hashTagFilterContainer">
+    <Box sx={{bgcolor: themeColors.paper}} className="hashTagFilterContainer">
       <Paper className="hashtagChips">
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
           {hashtags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
@@ -120,6 +120,6 @@ export default function SearchFilter({ hashtags, setHashtags, setFetchEvents, fi
           }}
           />
       </Paper>
-    </div>
+    </Box>
   );
 }

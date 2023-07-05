@@ -1,171 +1,33 @@
-import * as React from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import { TextField, Grid, Divider, Stack, Paper } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
-import {nip19, generatePrivateKey, getPublicKey} from 'nostr-tools'
-import { useContext, useEffect, useState } from 'react';
+import { TextField, Grid, Stack, Paper } from '@mui/material';
+import { useContext } from 'react';
 import WarningIcon from '@mui/icons-material/Warning';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import { ThemeContext } from '../theme/ThemeContext';
+import { nip19 } from 'nostr-tools';
 
 
 interface KeysProps {
     pk: string;
-    setPk: (pk: string) => void;
-    willUseNostrExtension: boolean;
-    setWillUseNostrExtension: (willUseNostrExtension: boolean) => void;
+    sk: string;
 }
 
-export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostrExtension}: KeysProps) {
-  const [localPk, setLocalPk] = useState("");
-  const [localSecretKey, setLocalSecretKey] = useState("");
+export default function Keys({ sk, pk }: KeysProps) {
   const { themeColors } = useContext(ThemeContext);
-
-  useEffect(() => {
-    const getNostrPublicKey = async () => {
-      if (!window.nostr) return false;
-      
-      try{
-        //Get pk from nostr extension
-        var pkFromNostr = await window.nostr.getPublicKey();
-        if (!pkFromNostr) return false;
-        setWillUseNostrExtension(true);
-        var encodedPk = nip19.npubEncode(pkFromNostr);
-        if(pkFromNostr && encodedPk && encodedPk.startsWith("npub")) {
-          setLocalPk(encodedPk);
-          setPk(pkFromNostr);
-          return true;
-        }
-      } catch { 
-        return false;
-      }
-    }
-
-    const setKey = async () => {
-      const retrievedPK = await getNostrPublicKey();
-      if (retrievedPK) {
-        return;
-      }
-
-      //Get secret key from local storage
-      try {
-        var secretKey = localStorage.getItem("sk");
-
-        if (secretKey && nip19.decode(secretKey)) {
-          setLocalSecretKey(secretKey);
-          setLocalPk(nip19.npubEncode(getPublicKey(nip19.decode(secretKey).data.toString())));
-          return;
-        }
-
-      } catch {}
-
-      try {
-        var pkStored = localStorage.getItem("pk");
-        console.log(pkStored);
-        var encoded =  pkStored ? nip19.npubEncode(pkStored!) : null;
-        if (pkStored && encoded){
-          setLocalPk(encoded);
-          setPk(pkStored)
-        }
-      } catch {}
-    }
-    
-    if (localPk === ""){
-      setKey();
-    }
-
-  }, []);
-
-
-  const handleSaveSecretKey = () => {
-  
-    if (!localSecretKey.startsWith("nsec")){
-      alert("Secret key should start with 'nsec'.");
-      return;
-    }
-  
-    try{
-      var decodedSecretKey = nip19.decode(localSecretKey.trim());
-      
-      if (!decodedSecretKey) {
-        alert("Invalid secret key.");
-        return;
-      }
-      
-      localStorage.setItem("sk", localSecretKey.trim());
-      var pubKeyFromSk = nip19.npubEncode(getPublicKey(decodedSecretKey.data.toString()));
-      setLocalPk(pubKeyFromSk);
-      localStorage.setItem("pk", pubKeyFromSk);
-
-    } catch {
-      alert("Error, Key NOT saved.");
-      return;
-    }
-  };
-
-  const handleSavePubKey = () => {
-    if (localPk.trim() === "") return;
-  
-    if (!localPk.startsWith("npub")){
-      alert("Public key should start with 'npub'.");
-      return;
-    }
-  
-    try{
-
-      if (!nip19.decode(localPk.trim())) {
-        alert("Invalid public key.");
-        return;
-      }
-      
-      localStorage.setItem("pk", localPk.trim());
-
-    } catch (error){
-      alert("Invalid public key." + error);
-      return;
-    }
-  };
-  
-  const handlePkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalPk(event.target.value);
-  };
-
-  const handleSecretKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    event.preventDefault();
-    setLocalSecretKey(event.target.value);
-  };
-
-  const handlePkSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    handleSavePubKey();
-  };
-
-  const generateNewKeys = () => {
-    var sk = generatePrivateKey();
-    var pk = getPublicKey(sk);
-
-    var encodedPk = nip19.npubEncode(pk);
-    setLocalPk(encodedPk);
-    setPk(pk);
-    localStorage.setItem("pk", encodedPk);
-    
-    var encodedSk = nip19.nsecEncode(sk);
-    setLocalSecretKey(encodedSk);
-    localStorage.setItem("sk", encodedSk);
-  }
+  const encodedSk = nip19.nsecEncode(sk);
+  const encodedPk = nip19.npubEncode(pk);
 
   return (
     <Grid
     container
     direction="column"
-    justifyContent="center"
+
     alignItems="center"
     style={{ minHeight: '100vh' }}
     >
         <Box >
-          {willUseNostrExtension ?
+          {sk === "" ?
             <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
                 <CelebrationIcon color='success'/>
@@ -173,7 +35,7 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                 <CelebrationIcon color='success'/>
               </Stack>
               <Typography id="modal-modal-title" variant="h6" color={themeColors.textColor} component="h2" textAlign="center" marginBottom="5px">
-                Good Job using a Nostr Extension! Your Secret Key will not be stored here.
+                Good Job using a Nostr Extension! Your Secret Key is not stored here.
               </Typography> 
             </Paper>
               :  
@@ -185,8 +47,13 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                     <WarningIcon color='warning'/>
                   </Stack>
                 </Box>
-                <Typography fontSize="small" textAlign="center" color={themeColors.textColor}>
-                  <strong > IT IS HIGHLY RECCOMENDED TO USE A NOSTR EXTENSION TO HANDLE YOUR SECRET KEY.</strong>
+                <Typography
+                  style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }} 
+                  fontSize="small" 
+                  textAlign="center" 
+                  color={themeColors.textColor}
+                >
+                  <strong > IT IS HIGHLY RECCOMENDED TO USE A <br/> NOSTR EXTENSION TO HANDLE YOUR <br/> SECRET KEY.</strong>
                 </Typography>
                 <Box>
                   <Stack flexDirection="row" direction='row' spacing="2" justifyContent="space-between">
@@ -198,73 +65,43 @@ export default function Keys({ willUseNostrExtension, setPk, pk, setWillUseNostr
                 <Typography id="pkTitle" variant="h6" color="secondary" component="h2" marginBottom="5px">
                   Secret Key
                 </Typography>
-                <form onSubmit={handleSaveSecretKey}>
                   <Grid container direction="column" spacing={2}>
                     <Grid item>
-                      <TextField 
-                        disabled={willUseNostrExtension} 
-                        id="secretKeyInput" 
-                        label="nsec..." 
-                        InputLabelProps={{style: {color: themeColors.textColor}}} 
-                        inputProps={{style: {color: themeColors.textColor}}} 
-                        variant="outlined" 
-                        color="secondary" 
-                        value={localSecretKey} 
-                        onChange={handleSecretKeyChange} fullWidth />
-                    </Grid>
-                    <Grid item>
-                      <Button 
-                        variant="contained" 
-                        color="secondary" 
-                        type="submit" 
-                        startIcon={
-                          <SaveIcon />
-                          }>
-                            Save
-                      </Button>
+                      <Typography
+                        style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }} 
+                        variant='body1' 
+                        color={themeColors.textColor}
+                      > 
+                        {encodedSk}
+                      </Typography>
                     </Grid>
                   </Grid>
-                </form>
                 <Typography id="modal-modal-description" color={themeColors.textColor} sx={{ mt: 2}}>
                   This is your secret key. <strong style={{color: "red"}}>DO NOT</strong> share this with others. Your private key will be stored within your browser's local storage. It will be used to sign events. <br/> 
                   </Typography>
             </Box>
       }
+          <Box sx={{marginTop: "50px"}}>          
+            <Typography id="pkTitle" variant="h6" color={themeColors.textColor} component="h2" marginBottom="5px">
+              Public Key
+            </Typography>
+          </Box>
 
-        {!willUseNostrExtension &&
-        <Box>
-          <Divider sx={{marginTop: 2, marginBottom: 2}}/>
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Button variant="contained" color="warning" type="button" onClick={generateNewKeys}>Generate New Keys</Button>
-            </Box>
-          <Divider sx={{marginTop: 2, marginBottom: 2}}/>
-        </Box>
-        }
 
-          <Typography id="pkTitle" variant="h6" color={themeColors.textColor} component="h2" marginBottom="5px">
-            Public Key
-          </Typography>
-          <form onSubmit={handlePkSubmit}>
             <Grid container direction="column" spacing={2}>
               <Grid item>
-                <TextField 
-                  id="publicKeyInput" 
-                  label="npub..." 
-                  InputLabelProps={{style: {color: themeColors.textColor}}} 
-                  inputProps={{style: {color: themeColors.textColor}}} 
-                  variant="outlined" 
-                  value={localPk} 
-                  onChange={handlePkChange} 
-                  fullWidth />
+                <Paper sx={{padding: "5px"}}>
+                  <Typography 
+                    style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }} 
+                    variant='body1' 
+                    color={themeColors.primary} >
+                    {encodedPk}
+                  </Typography>
+                </Paper>
               </Grid>
-              {!willUseNostrExtension &&
-                <Grid item>
-                  <Button variant="contained" color="primary" type="submit" startIcon={<SaveIcon />}>Save</Button>
-                </Grid>
-              }
             </Grid>
-          </form>
-          <Typography id="modal-modal-description" sx={{ mt: 2 }} color={themeColors.textColor}>
+
+          <Typography variant='caption' sx={{ mt: 2 }} color={themeColors.textColor}>
             This is your public key. You can share this with others. Your public key will be stored within your browser's local storage. It will be used to get your profile and other settings.
             </Typography>
         </Box>

@@ -1,5 +1,6 @@
 import { bech32 } from "bech32";
 import { RelaySetting } from "../nostr/Types";
+import { nip19 } from "nostr-tools";
 
 export const bech32ToHex = (str: string) => {
   try {
