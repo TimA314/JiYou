@@ -61,6 +61,7 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 interface NoteProps {
   pk: string;
+  sk_decoded: string;
   eventData: FullEventData;
   pool: SimplePool | null;
   relays: RelaySetting[];
@@ -78,6 +79,7 @@ interface NoteProps {
 
 const Note: React.FC<NoteProps> = ({
     pk,
+    sk_decoded,
     pool, 
     relays,
     fetchEvents, 
@@ -131,7 +133,7 @@ const Note: React.FC<NoteProps> = ({
 
     setLiked(true)
 
-    if (window.nostr){
+    if (window.nostr && sk_decoded === ""){
       const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
@@ -176,6 +178,7 @@ const Note: React.FC<NoteProps> = ({
           updateFollowing={updateFollowing}
           setHashtags={setHashtags}
           pk={pk}
+          sk_decoded={sk_decoded}
           hashTags={hashTags}
           imagesOnlyMode={imagesOnlyMode}
           />
@@ -299,7 +302,8 @@ const Note: React.FC<NoteProps> = ({
         eventData={eventData} 
         pool={pool} 
         relays={relays} 
-        pk={pk} 
+        pk={pk}
+        sk_decoded={sk_decoded}
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
@@ -327,6 +331,7 @@ const Note: React.FC<NoteProps> = ({
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}
         pk={pk}
+        sk_decoded={sk_decoded}
         hashTags={hashTags}
         imagesOnlyMode={imagesOnlyMode}
          />
@@ -348,7 +353,8 @@ const Note: React.FC<NoteProps> = ({
         eventData={eventData} 
         pool={pool} 
         relays={relays} 
-        pk={pk} 
+        pk={pk}
+        sk_decoded={sk_decoded}
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}

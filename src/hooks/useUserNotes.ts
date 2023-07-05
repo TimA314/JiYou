@@ -19,9 +19,11 @@ export const useUserNotes = ({
 }: useUserNotesProps) => {
 
     const [userNotes, setUserNotes] = useState<FullEventData[]>([]);
+    const userNoteIds = useRef<string[]>([]);
     const [likedNotificationEvents, setLikedNotificationEvents] = useState<Event[]>([]);
     const [likedNotificationMetaData, setLikedNotificationMetaData] = useState<Record<string, MetaData>>({});
     const isFetchingUserNotes = useRef(false);
+
     
     const allRelayUrls = relays.map((r) => r.relayUrl);
     const userNotesFilter = {kinds: [1], authors: [pk_decoded]};
@@ -29,8 +31,9 @@ export const useUserNotes = ({
     // Set Full Event Data (metadata)
     const setNewEvent = async (event: Event) => {
         if (!pool) return;
+        if (userNoteIds.current.some(id => id === event.id)) return;
+        userNoteIds.current.push(event.id);
 
-        if (userNotes.some(e => e.eventId === newEvent.eventId)) return;
         const newEvent = await fetchSingleFullEventData(pool, allRelayUrls, event);
         setUserNotes(prev => [...prev, newEvent]);
     }
@@ -41,6 +44,7 @@ export const useUserNotes = ({
         isFetchingUserNotes.current = true;
 
         setUserNotes([]);
+        userNoteIds.current = [];
 
         let sub = pool.sub(allRelayUrls, [userNotesFilter]);
 
@@ -52,7 +56,7 @@ export const useUserNotes = ({
             isFetchingUserNotes.current = false;
         })
 
-    }, [pk_decoded]);
+    }, [pool, pk_decoded]);
 
 
     // fetch like notifications

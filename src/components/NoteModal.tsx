@@ -37,6 +37,7 @@ interface NoteModalProps {
   setReplyCount: (count: number) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   pk: string;
+  sk_decoded: string;
   hashTags: string[];
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
@@ -54,6 +55,7 @@ export default function NoteModal({
   setReplyCount,
   setHashtags,
   pk,
+  sk_decoded,
   hashTags,
   imagesOnlyMode
 }: NoteModalProps) {
@@ -152,6 +154,7 @@ export default function NoteModal({
             updateFollowing={updateFollowing}
             setHashtags={setHashtags}
             pk={pk}
+            sk_decoded={sk_decoded}
             disableReplyIcon={false}
             hashTags={hashTags}
             key={eventData.sig + Math.random()}
@@ -190,6 +193,7 @@ export default function NoteModal({
                         updateFollowing={updateFollowing}
                         setHashtags={setHashtags}
                         pk={pk}
+                        sk_decoded={sk_decoded}
                         disableReplyIcon={false}
                         gettingThread={gettingThread}
                         hashTags={hashTags}
@@ -213,6 +217,7 @@ export default function NoteModal({
                   updateFollowing={updateFollowing}
                   setHashtags={setHashtags}
                   pk={pk}
+                  sk_decoded={sk_decoded}
                   disableReplyIcon={false}
                   hashTags={hashTags}
                   key={eventData.sig + Math.random()}
@@ -239,6 +244,7 @@ export default function NoteModal({
                       updateFollowing={updateFollowing}
                       setHashtags={setHashtags}
                       pk={pk}
+                      sk_decoded={sk_decoded}
                       key={replyEvent.sig + Math.random()}
                       disableReplyIcon={false}
                       hashTags={hashTags}

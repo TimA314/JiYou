@@ -9,15 +9,19 @@ import { RelayReadWriteOrBoth, metaDataAndRelayHelpingRelay } from '../utils/mis
 type UseRelaysProps = {
   pool: SimplePool | null;
   pk_decoded: string;
-  fetchEvents: boolean;
+  sk_decoded: string;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const useRelays = ({ pool, pk_decoded, fetchEvents, setFetchEvents }: UseRelaysProps) => {
+export const useRelays = ({ pool, pk_decoded, sk_decoded, setFetchEvents }: UseRelaysProps) => {
   const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
   
   useEffect(() => {
-    if (!pool || pk_decoded === "") return;
+    if (pk_decoded === "") {
+        setRelays(defaultRelays);
+        return;
+    }
+    if (!pool) return;
 
     const getUserRelays = async () => {
         try {
@@ -71,7 +75,7 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
         } as EventTemplate
 
 
-        if (window.nostr) {
+        if (window.nostr && sk_decoded === "") {
            const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
            if (signedWithNostr) {
                 setRelays(relays);
