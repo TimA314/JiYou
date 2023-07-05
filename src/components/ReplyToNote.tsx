@@ -32,6 +32,7 @@ interface ReplyToNoteProps {
   pool: SimplePool | null;
   relays: RelaySetting[];
   pk: string;
+  sk_decoded: string;
   following: string[];
   hashTags: string[];
   updateFollowing: (pubkey: string) => void;
@@ -47,7 +48,8 @@ export default function ReplyToNote({
   setReplyToNoteOpen, 
   pool, 
   relays, 
-  pk, 
+  pk,
+  sk_decoded,
   following,
   hashTags,
   updateFollowing, 
@@ -86,7 +88,8 @@ export default function ReplyToNote({
               relays={relays}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              pk={pk} 
+              pk={pk}
+              sk_decoded={sk_decoded}
               following={following} 
               updateFollowing={updateFollowing} 
               setHashtags={setHashtags} 
@@ -97,7 +100,8 @@ export default function ReplyToNote({
             <CreateNote 
               pool={pool} 
               relays={relays} 
-              pk={pk}  
+              pk={pk}
+              sk_decoded={sk_decoded}
               replyEventData={eventData} 
               setPostedNote={setPostedNote} 
               />

@@ -7,9 +7,10 @@ type UseFollowingProps = {
   pool: SimplePool | null;
   relays: RelaySetting[];
   pk_decoded: string;
+  sk_decoded: string;
 };
 
-export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) => {
+export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollowingProps) => {
   const [following, setFollowing] = useState<string[]>([]);
   const [followers, setFollowers] = useState<string[]>([]);
   const allRelayUrls = relays.map((r) => r.relayUrl);
@@ -17,7 +18,12 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
 
 
   const getFollowing = async () => {
-    if (!pool || pk_decoded === "") return [];
+    if(pk_decoded === ""){
+      setFollowing([]);
+      return [];
+    }
+
+    if (!pool) return [];
     let followingPks: string[] = [];
     const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [pk_decoded], limit: 1 }])
     
@@ -35,7 +41,11 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
   };
 
   const getFollowers = async () => {
-    if (!pool || pk_decoded === "") return;
+    if(pk_decoded === ""){
+      setFollowers([]);
+      return;
+    }
+    if (!pool) return;
 
     const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pk_decoded] }])
 
@@ -48,7 +58,7 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
   useEffect(() => {
     getFollowing();
     getFollowers();
-  }, [relays, pk_decoded]);
+  }, [relays, pk_decoded, sk_decoded]);
 
   
   const updateFollowing = async (followPubkey: string) => {
@@ -75,7 +85,7 @@ export const useFollowing = ({ pool, relays, pk_decoded }: UseFollowingProps) =>
       } as EventTemplate
       
       //sign with Nostr Extension
-      if (window.nostr) {
+      if (window.nostr && sk_decoded === "") {
         const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signed) {
           setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))

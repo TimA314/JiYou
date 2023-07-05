@@ -18,6 +18,7 @@ interface ProfileProps {
     relays: RelaySetting[];
     pool: SimplePool | null;
     pk_decoded: string;
+    sk_decoded: string;
     profile: ProfileContent;
     following: string[];
     followers: string[];
@@ -43,7 +44,8 @@ export default function Profile({
     setSk_decoded,
     relays, 
     pool, 
-    pk_decoded, 
+    pk_decoded,
+    sk_decoded,
     profile, 
     following, 
     followers, 
@@ -132,15 +134,11 @@ const styles = {
             {pk_decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
-                    <Toolbar>
-                        <IconButton edge="start" color="secondary" aria-label="menu">
-                            <MenuItem />
-                        </IconButton>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Button variant="outlined" color="secondary" onClick={handleLogout}>
-                            Logout
-                        </Button>
-                    </Toolbar>
+                        <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
+                            <Button variant='contained' color="secondary" onClick={handleLogout}>
+                                Logout
+                            </Button>
+                        </Box>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                         <Toolbar >
                             <IconButton edge="start" color="inherit" aria-label="menu">
@@ -153,29 +151,27 @@ const styles = {
                                 sx={{ width: 200, height: 200 }}
                                 />
                         </div>
-                        <Box sx={{ 
-                                color: themeColors.textColor,
-                                padding: '5px',
-                                borderRadius: '5px',
-                                fontSize: '14px',
-                                textAlign: 'center',
-                            }}>
-                            <Chip 
-                                label={"Following: " + following.length}
-                                sx={{ margin: "1px", color: themeColors.textColor }}
-                                 />
-                            <Chip 
-                                label={"Followers: " + followers.length}
-                                sx={{ margin: "1px", color: themeColors.textColor }}
-                                 />
-                        </Box>
                         </AppBar>
                     </Paper>
 
                     <Box sx={{marginTop: "5px", marginBottom: "5px"}}>
                             <Stack direction="column" spacing={3} marginTop="35px">
                                 <Box>
-                                    <Paper sx={{}}>
+                                    <Box sx={{ 
+                                            color: themeColors.textColor,
+                                            textAlign: 'center',
+                                            marginBottom: "3px",
+                                        }}>
+                                        <Chip 
+                                            label={"Following: " + following.length}
+                                            sx={{ margin: "1px", color: themeColors.textColor }}
+                                            />
+                                        <Chip
+                                            label={"Followers: " + followers.length}
+                                            sx={{ margin: "1px", color: themeColors.textColor }}
+                                            />
+                                    </Box>
+                                    <Paper>
                                         <TextField 
                                         id="profileNameInput"
                                         label="Name"
@@ -272,7 +268,8 @@ const styles = {
                         <UserNotes 
                             pool={pool}
                             relays={relays} 
-                            pk={pk_decoded} 
+                            pk={pk_decoded}
+                            sk_decoded={sk_decoded}
                             fetchEvents={fetchEvents} 
                             following={following} 
                             setFetchEvents={setFetchEvents}

@@ -7,13 +7,14 @@ type Props = {
     pool: SimplePool | null;
     relays: RelaySetting[];
     pk: string;
+    sk_decoded: string;
     fetchEvents: boolean;
     following: string[]; 
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     userNotes: FullEventData[];
 }
 
-export default function UserNotes({pool, relays, pk, fetchEvents, following, setFetchEvents, userNotes}: Props) {
+export default function UserNotes({pool, relays, pk, sk_decoded, fetchEvents, following, setFetchEvents, userNotes}: Props) {
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
@@ -30,6 +31,7 @@ export default function UserNotes({pool, relays, pk, fetchEvents, following, set
                                         following={following} 
                                         setHashtags={() => {}} 
                                         pk={pk}
+                                        sk_decoded={sk_decoded}
                                         hashTags={[]}
                                         />
                                 </Box>

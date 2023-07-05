@@ -26,9 +26,9 @@ function App() {
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, fetchEvents, setFetchEvents});
-  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded });
-  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded });
+  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, sk_decoded, setFetchEvents});
+  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded, sk_decoded });
+  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded, sk_decoded });
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -105,11 +105,23 @@ function App() {
   return (
     <Box>
       <CssBaseline />
+      <ScrollToTop />
       <Container>
-        <ScrollToTop />
-        <Fade in={errorMessage !== ""}>
-          <Alert sx={{marginTop: "10px"}} severity="error">{errorMessage}</Alert>
-        </Fade>
+      <Fade in={errorMessage !== ""}>
+        <Alert 
+            sx={{
+                position: 'fixed',
+                top: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 1500,
+                maxWidth: '90%',
+            }}
+            severity="error"
+        >
+            {errorMessage}
+        </Alert>
+    </Fade>
         <Routes>
           <Route path="/start" element={
             <StartingPage
@@ -121,11 +133,12 @@ function App() {
             <Profile
               setPk_decoded={setPk_decoded}
               setSk_decoded={setSk_decoded}
+              pk_decoded={pk_decoded}
+              sk_decoded={sk_decoded}
               relays={relays}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               pool={pool}
-              pk_decoded={pk_decoded}
               following={following}
               followers={followers}
               profile={profile}
@@ -148,6 +161,7 @@ function App() {
               pool={pool}
               relays={relays}
               pk={pk_decoded}
+              sk_decoded={sk_decoded}
               following={following}
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}

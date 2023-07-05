@@ -9,9 +9,10 @@ type UseProfileProps = {
   pool: SimplePool | null;
   relays: RelaySetting[];
   pk_decoded: string;
+  sk_decoded: string;
 };
 
-export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
+export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileProps) => {
   const [profile, setProfile] = useState<ProfileContent>({
     name: "",
     picture: "",
@@ -62,6 +63,7 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
     if (!pool) return;
     console.log("Updating profile");
+
     try {
 
         const updatedProfileContent: ProfileContent = {
@@ -81,7 +83,7 @@ export const useProfile = ({ pool, relays, pk_decoded }: UseProfileProps) => {
         } as EventTemplate
 
          
-      if (window.nostr) {
+      if (window.nostr && sk_decoded === "") {
         const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signed) {
           return;

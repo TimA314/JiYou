@@ -13,6 +13,7 @@ interface Props {
   pool: SimplePool | null;
   relays: RelaySetting[];
   pk: string;
+  sk_decoded: string;
   replyEventData: FullEventData | null;
   setPostedNote: () => void;
 }
@@ -20,7 +21,8 @@ interface Props {
 function CreateNote({
   pool, 
   relays, 
-  pk, 
+  pk,
+  sk_decoded,
   replyEventData, 
   setPostedNote, 
 }: Props) {
@@ -73,7 +75,7 @@ function CreateNote({
     } as EventTemplate
 
     //Sign the event with nostr if possible
-    if (window.nostr){
+    if (window.nostr && sk_decoded === ""){
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {

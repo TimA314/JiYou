@@ -81,6 +81,7 @@ export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMess
                 localStorage.setItem("sk", "");
                 localStorage.setItem("pk", encodedPk);
                 setPk_decoded(publicKey);
+                setSk_decoded("");
                 console.log("Logged in with Nostr Extension");
                 navigate("/");
                 return;
