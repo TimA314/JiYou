@@ -27,6 +27,8 @@ interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   eventData: FullEventData;
+  replyEvents: FullEventData[];
+  rootEvents: FullEventData[];
   open: boolean;
   setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
@@ -43,7 +45,9 @@ interface ReplyToNoteProps {
 export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
-  eventData, 
+  eventData,
+  replyEvents,
+  rootEvents,
   open, 
   setReplyToNoteOpen, 
   pool, 
@@ -83,7 +87,9 @@ export default function ReplyToNote({
             <CloseIcon />
           </IconButton>
             <Note 
-              eventData={eventData} 
+              eventData={eventData}
+              replyEvents={replyEvents}
+              rootEvents={rootEvents}
               pool={pool} 
               relays={relays}
               fetchEvents={fetchEvents}

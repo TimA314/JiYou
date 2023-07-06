@@ -30,6 +30,7 @@ interface ProfileProps {
     userNotes: FullEventData[];
     likedNotificationEvents: Event[];
     likedNotificationMetaData: Record<string, MetaData>;
+    hideExplicitContent: React.MutableRefObject<boolean>;
 }
 
 interface ProfileContent {
@@ -53,7 +54,7 @@ export default function Profile({
     setFetchEvents, 
     updateProfile, 
     getProfile, 
-    imagesOnlyMode,
+    hideExplicitContent,
     userNotes,
     likedNotificationEvents,
     likedNotificationMetaData
@@ -274,6 +275,7 @@ const styles = {
                             following={following} 
                             setFetchEvents={setFetchEvents}
                             userNotes={userNotes}
+                            hideExplicitContent={hideExplicitContent}
                             />                    
                     )}
 

@@ -33,9 +33,42 @@ export const useListEvents = ({
 }: useListEventsProps) => {
 
   const [feedEvents, setFeedEvents] = useState<FullEventData[]>([]);
+  const [replyEvents, setReplyEvents] = useState<FullEventData[]>([]);
+  const [rootEvents, setRootEvents] = useState<FullEventData[]>([]);
   const filter = useRef<Filter | null>(null);
   const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
   const allRelayUrls = relays.map((r) => r.relayUrl);
+
+  const fetchThreadEvents = async (eventDataSet: FullEventData[]) => {
+    if (!pool) return;
+
+    //Reply Events
+    const replyFilter = { "kinds": [1], "#e": eventDataSet.map((e) => e.eventId)};
+
+    const fetchedReplyEvents = await fetchNostrEvent(pool, allRelayUrls, allRelayUrls, replyFilter, hideExplicitContent.current)
+    const newReplyEvents = [...new Set([...replyEvents, ...fetchedReplyEvents])];
+    setReplyEvents(newReplyEvents);
+
+    //Root Events
+    const rootEventIdsToFetch: string[] = [];
+    const relaysToFetchFrom: string[] = [];
+
+    eventDataSet.forEach((f) => {
+      const eventIdsFromTags = f.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== f.eventId).map((t) => t[1]);
+      const recommendedEventRelays = f.tags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2]);
+
+      rootEventIdsToFetch.push(...eventIdsFromTags);
+      relaysToFetchFrom.push(...recommendedEventRelays);
+    });
+
+    const filteredRootEventsToFetch = [...new Set(rootEventIdsToFetch)].filter((r) => !rootEvents.some((e) => e.eventId === r));
+    const rootFilter = { "kinds": [1], ids: filteredRootEventsToFetch};
+
+    const fetchedRootEvents = await fetchNostrEvent(pool, [...new Set([...allRelayUrls, ...relaysToFetchFrom])], allRelayUrls, rootFilter, hideExplicitContent.current)
+    const newRootEvents = [...new Set([...rootEvents, ...fetchedRootEvents])];
+    setRootEvents(newRootEvents);
+    console.log('Root Events: ', newRootEvents.length, " Reply Events: ", newReplyEvents.length)
+  }
 
   const fetchEventsFromRelays = async () => {
     try {
@@ -56,6 +89,7 @@ export const useListEvents = ({
 
       const eventDataSet = await fetchNostrEvent(pool, readableRelayUrls, allRelayUrls, filterToUse, hideExplicitContent.current)
       
+      await fetchThreadEvents(eventDataSet);
 
       if (imagesOnlyMode.current) {
         setFeedEvents(eventDataSet.filter((e) => e.images.length > 0));
@@ -70,6 +104,8 @@ export const useListEvents = ({
     }
   };
 
+
+
   useEffect(() => {
     if (!pool){
       setPool(new SimplePool());
@@ -82,5 +118,5 @@ export const useListEvents = ({
 
   }, [fetchEvents, filter.current]);
 
-  return { feedEvents, filter };
+  return { feedEvents, filter, replyEvents, rootEvents };
 };
