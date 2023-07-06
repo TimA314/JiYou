@@ -40,6 +40,8 @@ type GlobalFeedProps = {
     hideExplicitContent: MutableRefObject<boolean>;
     imagesOnlyMode: MutableRefObject<boolean>;
     events: FullEventData[];
+    replyEvents: FullEventData[];
+    rootEvents: FullEventData[];
     hashtags: string[];
     tabIndex: number;
   };
@@ -55,6 +57,8 @@ type GlobalFeedProps = {
     filter,
     fetchingEventsInProgress,
     events,
+    replyEvents,
+    rootEvents,
     hashtags,
     tabIndex,
     updateFollowing,
@@ -113,13 +117,19 @@ type GlobalFeedProps = {
         } else {
             return (
                 events.map((fullEventData) => {
+                    const rootEventIds = fullEventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== fullEventData.eventId).map((t) => t[1]);
+                    const eventRootNotes: FullEventData[] = rootEvents.filter((e) => rootEventIds.includes(e.eventId));
+                    const eventReplyNotes: FullEventData[] = replyEvents.filter((r) => r.tags.some((t) => t[0] === "e" && t[1] && t[1] === fullEventData.eventId));
+
                     return (
                         <Note 
                             pool={pool} 
                             relays={relays}
                             fetchEvents={fetchEvents}
                             setFetchEvents={setFetchEvents}
-                            eventData={fullEventData} 
+                            eventData={fullEventData}
+                            replyEvents={eventReplyNotes}
+                            rootEvents={eventRootNotes}
                             updateFollowing={updateFollowing} 
                             following={following} 
                             setHashtags={setHashtags} 

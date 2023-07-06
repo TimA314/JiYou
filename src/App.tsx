@@ -34,7 +34,7 @@ function App() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { userNotes, likedNotificationEvents, likedNotificationMetaData } = useUserNotes({ pool, pk_decoded, relays, following });
-  const { feedEvents, filter } = useListEvents({ 
+  const { feedEvents, filter, replyEvents, rootEvents } = useListEvents({ 
       pool,
       setPool, 
       relays, 
@@ -167,6 +167,8 @@ function App() {
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
               events={feedEvents}
+              replyEvents={replyEvents}
+              rootEvents={rootEvents}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               filter={filter}

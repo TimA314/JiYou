@@ -63,6 +63,8 @@ interface NoteProps {
   pk: string;
   sk_decoded: string;
   eventData: FullEventData;
+  replyEvents: FullEventData[];
+  rootEvents: FullEventData[];
   pool: SimplePool | null;
   relays: RelaySetting[];
   fetchEvents: boolean;
@@ -84,7 +86,9 @@ const Note: React.FC<NoteProps> = ({
     relays,
     fetchEvents, 
     setFetchEvents,
-    eventData, 
+    eventData,
+    replyEvents,
+    rootEvents,
     following, 
     setHashtags, 
     disableReplyIcon, 
@@ -98,7 +102,6 @@ const Note: React.FC<NoteProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(following.includes(eventData.pubkey));
-  const [replyCount, setReplyCount] = useState(0);
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
@@ -169,7 +172,8 @@ const Note: React.FC<NoteProps> = ({
           fetchEvents={fetchEvents}
           setFetchEvents={setFetchEvents}
           eventData={eventData}
-          setReplyCount={setReplyCount}
+          replyEvents={replyEvents}
+          rootEvents={rootEvents}
           open={noteDetailsOpen}
           setNoteDetailsOpen={setNoteDetailsOpen}
           pool={pool}
@@ -215,7 +219,7 @@ const Note: React.FC<NoteProps> = ({
           <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
           <IconButton aria-label="cart" onClick={showReplyThread}>
             <StyledBadge color="secondary">
-              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyCount} color="primary"><ForumIcon color="primary"/></Badge> }
+              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length + rootEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
             </StyledBadge>
           </IconButton>
           </Box>
@@ -299,7 +303,9 @@ const Note: React.FC<NoteProps> = ({
         setFetchEvents={setFetchEvents}
         open={replyToNoteOpen} 
         setReplyToNoteOpen={setReplyToNoteOpen} 
-        eventData={eventData} 
+        eventData={eventData}
+        rootEvents={rootEvents}
+        replyEvents={replyEvents}
         pool={pool} 
         relays={relays} 
         pk={pk}
@@ -322,7 +328,8 @@ const Note: React.FC<NoteProps> = ({
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
         eventData={eventData}
-        setReplyCount={setReplyCount}
+        replyEvents={replyEvents}
+        rootEvents={rootEvents}
         open={noteDetailsOpen}
         setNoteDetailsOpen={setNoteDetailsOpen}
         pool={pool}
@@ -350,7 +357,9 @@ const Note: React.FC<NoteProps> = ({
         setFetchEvents={setFetchEvents}
         open={replyToNoteOpen} 
         setReplyToNoteOpen={setReplyToNoteOpen} 
-        eventData={eventData} 
+        eventData={eventData}
+        replyEvents={replyEvents}
+        rootEvents={rootEvents}
         pool={pool} 
         relays={relays} 
         pk={pk}
@@ -416,7 +425,7 @@ const Note: React.FC<NoteProps> = ({
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyCount} color="primary"><ForumIcon color="primary"/></Badge> }
+            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length + rootEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>

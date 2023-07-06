@@ -25,6 +25,8 @@ export default function UserNotes({pool, relays, pk, sk_decoded, fetchEvents, fo
                                         pool={pool} 
                                         relays={relays} 
                                         eventData={event}
+                                        replyEvents={[]}
+                                        rootEvents={[]}
                                         fetchEvents={fetchEvents}
                                         setFetchEvents={setFetchEvents}
                                         updateFollowing={() => {}} 
