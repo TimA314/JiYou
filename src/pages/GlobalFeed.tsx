@@ -19,12 +19,8 @@ const createNoteStyle = {
     transform: 'translate(-50%, -50%)',
     width: "95%",
     maxWidth: "600px",
-    height: "auto",
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
+    height: "325px",
     p: 2,
-    overflowY: 'auto' as 'auto', //scrollable
   };
 
 
@@ -158,9 +154,7 @@ type GlobalFeedProps = {
             <Modal
                 open={createNoteOpen}
                 onClose={handleCreateNoteClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
-                sx={createNoteStyle}
+                sx={{...createNoteStyle, backgroundColor: themeColors.paper}}
                 >
                 <Box>
                     <IconButton 
