@@ -89,6 +89,7 @@ export const useListEvents = ({
 
       const eventDataSet = await fetchNostrEvent(pool, readableRelayUrls, allRelayUrls, filterToUse, hideExplicitContent.current)
       
+      await fetchThreadEvents(eventDataSet);
 
       if (imagesOnlyMode.current) {
         setFeedEvents(eventDataSet.filter((e) => e.images.length > 0));
@@ -98,7 +99,6 @@ export const useListEvents = ({
       }
       setFetchEvents(false);
       fetchingEventsInProgress.current = false;
-      fetchThreadEvents(eventDataSet);
     } catch (error) {
       console.error('Error fetching events:', error);
     }
