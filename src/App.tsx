@@ -148,6 +148,7 @@ function App() {
               userNotes={userNotes}
               likedNotificationEvents={likedNotificationEvents}
               likedNotificationMetaData={likedNotificationMetaData}
+              hideExplicitContent={hideExplicitContent}
             />} />
           <Route path="/relays" element={
             <Relays

@@ -136,7 +136,9 @@ const Note: React.FC<NoteProps> = ({
 
     setLiked(true)
 
-    if (window.nostr && sk_decoded === ""){
+    const skFromStorage = localStorage.getItem("sk");
+    const shouldSignWithNostr = window.nostr && sk_decoded === "" && (skFromStorage === null || skFromStorage === "");
+    if (shouldSignWithNostr){
       const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
@@ -219,7 +221,7 @@ const Note: React.FC<NoteProps> = ({
           <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
           <IconButton aria-label="cart" onClick={showReplyThread}>
             <StyledBadge color="secondary">
-              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length + rootEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
+              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
             </StyledBadge>
           </IconButton>
           </Box>
@@ -425,7 +427,7 @@ const Note: React.FC<NoteProps> = ({
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length + rootEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
+            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents.length} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>
