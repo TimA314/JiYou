@@ -182,7 +182,7 @@ const Note: React.FC<NoteProps> = ({
           hashTags={hashTags}
           imagesOnlyMode={imagesOnlyMode}
           />
-        <CardContent sx={{marginBottom: "-25px"}}>
+        <CardContent sx={{margin: "-16px"}}>
           {eventData.images.length > 0 && (
             eventData.images.map((img) => (
             <CardMedia
@@ -317,7 +317,7 @@ const Note: React.FC<NoteProps> = ({
 
   //Normal Mode
   return (
-    <Card sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+    <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <NoteModal
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}

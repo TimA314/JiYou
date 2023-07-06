@@ -192,9 +192,9 @@ function App() {
             <About />
           } />
         </Routes>
-        <NavBar
-          profile={profile}
-        />
+        {pk_decoded !== "" && 
+        <NavBar profile={profile} />
+        }
       </Container>
     </Box>
   );
