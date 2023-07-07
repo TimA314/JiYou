@@ -5,7 +5,7 @@ export const getDefaultFeedFilter = (hashtags: string[], tabIndex: number, follo
     
     let options: Filter = {
         kinds: [1],
-        limit: 100
+        limit: 200
     }
     
     if(hashtags.length > 0) {
