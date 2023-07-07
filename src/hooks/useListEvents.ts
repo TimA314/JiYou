@@ -1,4 +1,4 @@
-import { useState, useEffect, MutableRefObject, useRef } from 'react';
+import { useState, useEffect, MutableRefObject, useRef, useMemo } from 'react';
 import { Filter, SimplePool } from 'nostr-tools';
 import { FullEventData, RelaySetting } from '../nostr/Types';
 import { getDefaultFeedFilter } from '../nostr/FeedEvents';
@@ -32,12 +32,19 @@ export const useListEvents = ({
   fetchingEventsInProgress
 }: useListEventsProps) => {
 
-  const [feedEvents, setFeedEvents] = useState<FullEventData[]>([]);
-  const [replyEvents, setReplyEvents] = useState<FullEventData[]>([]);
-  const [rootEvents, setRootEvents] = useState<FullEventData[]>([]);
+  const [threadEvents, setThreadEvents] = useState<{
+    feedEvents: Map<string, FullEventData>, 
+    replyEvents: Map<string, FullEventData>, 
+    rootEvents: Map<string, FullEventData>
+  }>({
+    feedEvents: new Map(),
+    replyEvents: new Map(), 
+    rootEvents: new Map()
+  });
+
   const filter = useRef<Filter | null>(null);
-  const readableRelayUrls = relays.filter((r) => r.read).map((r) => r.relayUrl);
-  const allRelayUrls = relays.map((r) => r.relayUrl);
+  const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
+  const allRelayUrls = useMemo(() => relays.map((r) => r.relayUrl), [relays]);
 
   const fetchThreadEvents = async (eventDataSet: FullEventData[]) => {
     if (!pool) return;
@@ -46,8 +53,10 @@ export const useListEvents = ({
     const replyFilter = { "kinds": [1], "#e": eventDataSet.map((e) => e.eventId)};
 
     const fetchedReplyEvents = await fetchNostrEvent(pool, allRelayUrls, allRelayUrls, replyFilter, hideExplicitContent.current)
-    const newReplyEvents = [...new Set([...replyEvents, ...fetchedReplyEvents])];
-    setReplyEvents(newReplyEvents);
+    let newReplyEvents = new Map(threadEvents.replyEvents);
+    fetchedReplyEvents.forEach((event) => {
+      newReplyEvents.set(event.eventId, event);
+    });
 
     //Root Events
     const rootEventIdsToFetch: string[] = [];
@@ -57,25 +66,49 @@ export const useListEvents = ({
       const eventIdsFromTags = f.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== f.eventId).map((t) => t[1]);
       const recommendedEventRelays = f.tags.filter((t) => t[2] && t[2].startsWith("wss")).map((t) => t[2]);
 
-      rootEventIdsToFetch.push(...eventIdsFromTags);
-      relaysToFetchFrom.push(...recommendedEventRelays);
+        eventIdsFromTags.forEach((e) => {
+          if (threadEvents.rootEvents.has(e)) return;
+          rootEventIdsToFetch.push(e);
+        });
+        relaysToFetchFrom.push(...recommendedEventRelays);
     });
 
-    const filteredRootEventsToFetch = [...new Set(rootEventIdsToFetch)].filter((r) => !rootEvents.some((e) => e.eventId === r));
-    const rootFilter = { "kinds": [1], ids: filteredRootEventsToFetch};
+    const rootFilter = { "kinds": [1], ids: rootEventIdsToFetch};
 
     const fetchedRootEvents = await fetchNostrEvent(pool, [...new Set([...allRelayUrls, ...relaysToFetchFrom])], allRelayUrls, rootFilter, hideExplicitContent.current)
-    const newRootEvents = [...new Set([...rootEvents, ...fetchedRootEvents])];
-    setRootEvents(newRootEvents);
-    console.log('Root Events: ', newRootEvents.length, " Reply Events: ", newReplyEvents.length)
+    let newRootEvents = new Map(threadEvents.rootEvents);
+    fetchedRootEvents.forEach((event) => {
+      newRootEvents.set(event.eventId, event);
+    });
+
+
+    if (imagesOnlyMode.current) {
+      setThreadEvents({
+        feedEvents: new Map(eventDataSet.filter((e) => e.images.length > 0).map(event => [event.eventId, event])), 
+        replyEvents: newReplyEvents, 
+        rootEvents: newRootEvents
+      });
+    } else {
+      setThreadEvents({
+        feedEvents: new Map(eventDataSet.map(event => [event.eventId, event])),
+        replyEvents: newReplyEvents, 
+        rootEvents: newRootEvents
+      });
+    }
   }
 
   const fetchEventsFromRelays = async () => {
     try {
       if (!pool) return;
       fetchingEventsInProgress.current = true;
-      setFeedEvents([]);
-      
+
+      //Reset events
+      setThreadEvents({
+        feedEvents: new Map(),
+        replyEvents: new Map(), 
+        rootEvents: new Map()
+      });
+
       //If no followers and on the followers tab, don't fetch events
       if (tabIndex === 1 && following.length === 0) {
         setFetchEvents(false);
@@ -91,16 +124,11 @@ export const useListEvents = ({
       
       await fetchThreadEvents(eventDataSet);
 
-      if (imagesOnlyMode.current) {
-        setFeedEvents(eventDataSet.filter((e) => e.images.length > 0));
-      }
-      else {
-        setFeedEvents(eventDataSet);
-      }
-      setFetchEvents(false);
-      fetchingEventsInProgress.current = false;
     } catch (error) {
       console.error('Error fetching events:', error);
+    } finally {
+      setFetchEvents(false);
+      fetchingEventsInProgress.current = false;
     }
   };
 
@@ -118,5 +146,5 @@ export const useListEvents = ({
 
   }, [fetchEvents, filter.current]);
 
-  return { feedEvents, filter, replyEvents, rootEvents };
+  return { threadEvents, filter};
 };

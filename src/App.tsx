@@ -4,9 +4,9 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { SimplePool, generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
+import { SimplePool, nip19 } from 'nostr-tools';
 import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -34,7 +34,7 @@ function App() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { userNotes, likedNotificationEvents, likedNotificationMetaData } = useUserNotes({ pool, pk_decoded, relays, following });
-  const { feedEvents, filter, replyEvents, rootEvents } = useListEvents({ 
+  const { threadEvents, filter} = useListEvents({ 
       pool,
       setPool, 
       relays, 
@@ -167,9 +167,7 @@ function App() {
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
-              events={feedEvents}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
+              threadEvents={threadEvents}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               filter={filter}

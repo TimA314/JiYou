@@ -39,9 +39,11 @@ type GlobalFeedProps = {
     fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: MutableRefObject<boolean>;
     imagesOnlyMode: MutableRefObject<boolean>;
-    events: FullEventData[];
-    replyEvents: FullEventData[];
-    rootEvents: FullEventData[];
+    threadEvents: {
+        feedEvents: Map<string, FullEventData>, 
+        replyEvents: Map<string, FullEventData>, 
+        rootEvents: Map<string, FullEventData>
+      };
     hashtags: string[];
     tabIndex: number;
   };
@@ -56,9 +58,7 @@ type GlobalFeedProps = {
     setFetchEvents,
     filter,
     fetchingEventsInProgress,
-    events,
-    replyEvents,
-    rootEvents,
+    threadEvents,
     hashtags,
     tabIndex,
     updateFollowing,
@@ -89,7 +89,7 @@ type GlobalFeedProps = {
         setCreateNoteOpen(false);
     }
 
-    const getFeed = () => {
+    const renderFeed = () => {
         if (fetchingEventsInProgress.current) {
             return (
                 <Box sx={{ 
@@ -105,7 +105,7 @@ type GlobalFeedProps = {
                     <Loading />
                 </Box>
             )
-        } else if (events.length === 0 && !fetchingEventsInProgress.current) {
+        } else if (threadEvents.feedEvents.size === 0 && !fetchingEventsInProgress.current) {
             return (
                 <Typography 
                     variant="h6" 
@@ -116,11 +116,11 @@ type GlobalFeedProps = {
             )
         } else {
             return (
-                events.map((fullEventData) => {
+                Array.from(threadEvents.feedEvents.values()).map((fullEventData) => {
                     const rootEventIds = fullEventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== fullEventData.eventId).map((t) => t[1]);
-                    const eventRootNotes: FullEventData[] = rootEvents.filter((e) => rootEventIds.includes(e.eventId));
-                    const eventReplyNotes: FullEventData[] = replyEvents.filter((r) => r.tags.some((t) => t[0] === "e" && t[1] && t[1] === fullEventData.eventId));
-
+                    const eventRootNotes: FullEventData[] = rootEventIds.map((id) => threadEvents.rootEvents.get(id)).filter((event): event is FullEventData => Boolean(event));
+                    const eventReplyNotes: FullEventData[] = Array.from(threadEvents.replyEvents.values()).filter((r) => r.tags.some((t) => t[0] === "e" && t[1] && t[1] === fullEventData.eventId));
+            
                     return (
                         <Note 
                             pool={pool} 
@@ -133,7 +133,7 @@ type GlobalFeedProps = {
                             updateFollowing={updateFollowing} 
                             following={following} 
                             setHashtags={setHashtags} 
-                            key={fullEventData.sig + Math.random()} 
+                            key={fullEventData.sig} 
                             pk={pk}
                             hashTags={hashtags}
                             imagesOnlyMode={imagesOnlyMode}
@@ -159,7 +159,7 @@ type GlobalFeedProps = {
                 filter={filter}
                 />
             
-            {getFeed()}
+            {renderFeed()}
 
             <Modal
                 open={createNoteOpen}
