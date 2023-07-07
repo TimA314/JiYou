@@ -1,12 +1,11 @@
 import { Filter, SimplePool, Event } from "nostr-tools";
 import { sanitizeEvent } from "../utils/sanitizeUtils";
 import { eventContainsExplicitContent, setEventData } from "../utils/eventUtils";
-import { FullEventData, MetaData, ReactionCounts } from "./Types";
+import { MetaData, ReactionCounts } from "./Types";
 import { metaDataAndRelayHelpingRelay } from "../utils/miscUtils";
 
 export const fetchNostrEvent = async (pool: SimplePool, readableRelays: string[], allRelays: string[], filter: Filter, hideExplicitContent: boolean) => {
     const fetchedEvents = await pool.list(readableRelays, [filter]);
-    console.log("number of events fetched: ", fetchedEvents.length);
     let sanitizedEvents = fetchedEvents.map((e) => sanitizeEvent(e));
 
     if (filter.kinds?.includes(1) && hideExplicitContent) {
@@ -15,10 +14,13 @@ export const fetchNostrEvent = async (pool: SimplePool, readableRelays: string[]
 
     // Return FullEventData for Kind 1 Events
     if (filter.kinds?.includes(1)){
-        const reactions = await fetchReactions(pool, allRelays, sanitizedEvents);
-        const metaData = await fetchMetaData(pool, allRelays, sanitizedEvents);
-        const eventDataSet = sanitizedEvents.map((e) => setEventData(e, metaData[e.pubkey], reactions[e.id]))
-        return eventDataSet;
+      const [reactions, metaData] = await Promise.all([
+        fetchReactions(pool, allRelays, sanitizedEvents),
+        fetchMetaData(pool, allRelays, sanitizedEvents)
+      ]);
+      
+      const eventDataSet = sanitizedEvents.map((e) => setEventData(e, metaData[e.pubkey], reactions[e.id]))
+      return eventDataSet;
     }
 
     return [];
