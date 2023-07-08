@@ -66,11 +66,6 @@ export default function Relays({relays, updateRelays, relaysAndSetting, setRelay
     }
 
     const DeleteRelay = async (updatingRelay: RelaySetting) => {
-        if (!window.nostr) {
-            alert("You need to install a Nostr extension to manage relays")
-            return;
-        }
-
         console.log("Deleting Relay: " + updatingRelay.relayUrl);
 
         try{
