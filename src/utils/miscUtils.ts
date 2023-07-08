@@ -1,6 +1,5 @@
 import { bech32 } from "bech32";
 import { RelaySetting } from "../nostr/Types";
-import { nip19 } from "nostr-tools";
 
 export const bech32ToHex = (str: string) => {
   try {
@@ -20,36 +19,41 @@ export const uint8ArrayToHex = (buffer: Uint8Array) => {
     .join('');
 };
   
-  export const GetImageFromPost = (content: string): string[] => {
-    if (!content) return [];
-  
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const urlMatches = content.match(urlRegex)?.filter(url => /\.(jpg|png|gif)$/.test(url));
-  
-    if (!urlMatches) return [];
-    
-    const checkedUrls: string[] = [];
+export const GetImageFromPost = (content: string): string[] => {
+  if (!content) return [];
 
-    for (const url of urlMatches) {
-      const parsedUrl = new URL(url);
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urlMatches = content.match(urlRegex);
 
-      // Check the protocol
-      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-        return [];
-      }
+  if (!urlMatches) return [];
   
-      // Check the file extension
-      const fileExtensions = ['jpg', 'png', 'gif', 'jpeg'];
-      if (!fileExtensions.includes(parsedUrl.pathname.split('.').pop() ?? '')) {
-        continue;
-      }
-      
-      if (checkedUrls.includes(url)) continue;
-      checkedUrls.push(url);
+  const checkedUrls: string[] = [];
+  const fileExtensions = ['jpg', 'png', 'gif', 'jpeg'];
+
+  for (const url of urlMatches) {
+    const parsedUrl = new URL(url);
+
+    // Check the protocol
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      continue;
     }
 
-    return checkedUrls;
-  };
+    // Check the file extension
+    const extension = parsedUrl.pathname.split('.').pop();
+    if (!extension || !fileExtensions.includes(extension)) {
+      continue;
+    }
+    
+    // Skip the URL if it's already included
+    if (checkedUrls.includes(url)) continue;
+
+    // Add the URL to the checkedUrls array
+    checkedUrls.push(url);
+  }
+
+  return checkedUrls;
+};
+
 
   export const getYoutubeVideoFromPost = (content: string): string | null => {
     if (!content) return null;
