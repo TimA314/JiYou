@@ -21,9 +21,9 @@ export const uint8ArrayToHex = (buffer: Uint8Array) => {
   
 export const GetImageFromPost = (content: string): string[] => {
   if (!content) return [];
-
+  const contentAdjusted = content + " ";
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const urlMatches = content.match(urlRegex);
+  const urlMatches = contentAdjusted.match(urlRegex);
 
   if (!urlMatches) return [];
   

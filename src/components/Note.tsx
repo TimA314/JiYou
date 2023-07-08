@@ -200,7 +200,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
-              key={img.length + "image" + Math.random().toString()}
+              key={img + "imageOnlyModeImage" + isInModal}
               sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
@@ -388,7 +388,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
-              key={img.length + "image" + Math.random().toString()}
+              key={img + "normalModeImage" + isInModal}
               sx={{maxHeight: "300px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
@@ -454,12 +454,12 @@ const Note: React.FC<NoteProps> = ({
 
                 <Box>
                   {previewEvent.images.length > 0 && (
-                    eventData.images.map((img) => (
+                    previewEvent.images.map((img) => (
                     <CardMedia
                       component="img"
                       image={img}
                       alt="picture"
-                      key={img.length + "image" + Math.random().toString()}
+                      key={img + "previewEventImage" + isInModal}
                       sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
                     />
                     ))
