@@ -378,7 +378,7 @@ const Note: React.FC<NoteProps> = ({
         imagesOnlyMode={imagesOnlyMode}
         />
       <CardContent >
-        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
+        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
         {eventData.content}
         </Typography>
         <Box>

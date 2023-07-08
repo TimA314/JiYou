@@ -16,8 +16,8 @@ const colorLabels: Record<keyof ThemeColors, string> = {
 const defaultThemeColors: ThemeColors = {
   primary: '#5D37D5',
   secondary: '#f50057',
-  paper: '#2A2438',
-  background: '#352F44',
+  paper: '#212121',
+  background: '#323232',
   textSize: 16,
   textColor: '#CFCFCF',
 };
