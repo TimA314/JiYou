@@ -12,7 +12,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { FullEventData, RelaySetting } from '../nostr/Types';
-import { Badge, BadgeProps, Box, Button, CircularProgress } from '@mui/material';
+import { Badge, BadgeProps, Box, Button, CircularProgress, Grid } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate, Kind } from 'nostr-tools';
 import { getYoutubeVideoFromPost } from '../utils/miscUtils';
@@ -105,10 +105,15 @@ const Note: React.FC<NoteProps> = ({
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
-
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  
+  const rootEventTagToPreview = eventData.tags.find((t) => t[0] === "e" && t[3] === "root");
+  const backupRootEventTagToPreview = eventData.tags.find((t) => t[0] === "e" && t[1]);
+  const previewEvent = rootEvents.find((e) => e.eventId === (rootEventTagToPreview ? rootEventTagToPreview[1] : backupRootEventTagToPreview ? backupRootEventTagToPreview[1] : null));
+  const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
 
   const youtubeFromPost = getYoutubeVideoFromPost(eventData.content);
+  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+
 
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
@@ -420,6 +425,52 @@ const Note: React.FC<NoteProps> = ({
           </Typography>
         ))}
       </CardContent>
+
+      {previewEvent && (
+        <CardContent sx={{margin: "5%"}}>
+          <Card elevation={4} sx={{ marginBottom: "10px", color: themeColors.textColor, fontSize: themeColors.textSize}}>
+                <Grid container direction="row" > 
+
+                    <Grid item xs={1}>
+                        <CardContent>
+                            <Avatar src={previewEvent.user.picture} sx={{width: 24, height: 24}}/>
+                        </CardContent>
+                    </Grid>
+
+                    <Grid item xs={11}>
+                        <CardContent >
+                            <Typography variant="body2">
+                                {previewEvent.content}
+                            </Typography>
+                        </CardContent>
+                    </Grid>
+                </Grid>
+
+                <Box>
+                  {previewEvent.images.length > 0 && (
+                    eventData.images.map((img) => (
+                    <CardMedia
+                      component="img"
+                      image={img}
+                      alt="picture"
+                      key={img.length + "image" + Math.random().toString()}
+                      sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
+                    />
+                    ))
+                  )}
+                  {previewEventVideo && (
+                    <iframe 
+                    src={previewEventVideo} 
+                    title="YouTube video player" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    style={{ width: '100%', height: '315px', marginBottom: "10px" }}
+                  />
+                  )}
+              </Box>
+          </Card>
+        </CardContent>
+      )}
+
       <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="subtitle2" sx={{color: themeColors.textColor}}>
           {moment.unix(eventData.created_at).fromNow()}
