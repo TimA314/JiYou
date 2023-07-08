@@ -11,8 +11,8 @@ const AppThemeProvider: React.FC<AppThemeProviderProps> = ({ children }) => {
   const [themeColors, setThemeColors] = useState<ThemeColors>({
     primary: '#5D37D5',
     secondary: '#f50057',
-    paper: '#121212',
-    background: '#161616',
+    paper: '#2A2438',
+    background: '#352F44',
     textSize: 16,
     textColor: '#CFCFCF',
   });
