@@ -24,8 +24,8 @@ export const ThemeContext = React.createContext<ThemeContextProps>({
   themeColors: {
     primary: '#5D37D5',
     secondary: '#f50057',
-    paper: '#121212',
-    background: '#161616',
+    paper: '#212121',
+    background: '#323232',
     textSize: 16,
     textColor: '#CFCFCF',
   },

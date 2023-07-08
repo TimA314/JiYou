@@ -200,7 +200,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
-              key={img.length + "image" + Math.random().toString()}
+              key={img + "imageOnlyModeImage" + isInModal}
               sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
@@ -378,7 +378,7 @@ const Note: React.FC<NoteProps> = ({
         imagesOnlyMode={imagesOnlyMode}
         />
       <CardContent >
-        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
+        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
         {eventData.content}
         </Typography>
         <Box>
@@ -388,7 +388,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
-              key={img.length + "image" + Math.random().toString()}
+              key={img + "normalModeImage" + isInModal}
               sx={{maxHeight: "300px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
@@ -429,15 +429,21 @@ const Note: React.FC<NoteProps> = ({
       {previewEvent && (
         <CardContent sx={{margin: "5%"}}>
           <Card elevation={4} sx={{ marginBottom: "10px", color: themeColors.textColor, fontSize: themeColors.textSize}}>
-                <Grid container direction="row" > 
+                <Grid container direction="column" > 
 
-                    <Grid item xs={1}>
-                        <CardContent>
-                            <Avatar src={previewEvent.user.picture} sx={{width: 24, height: 24}}/>
-                        </CardContent>
+                    <Grid item xs={4}>
+                        <CardHeader
+                                avatar={
+                                  <Avatar src={previewEvent.user.picture} sx={{width: 24, height: 24}}/>
+                                }
+                                title={previewEvent.user.name}
+                                subheader={previewEvent.user.nip05}
+                                subheaderTypographyProps={{color: themeColors.textColor}}
+                                style={{color: themeColors.textColor}}>
+                        </CardHeader>
                     </Grid>
 
-                    <Grid item xs={11}>
+                    <Grid item xs={8}>
                         <CardContent >
                             <Typography variant="body2">
                                 {previewEvent.content}
@@ -448,12 +454,12 @@ const Note: React.FC<NoteProps> = ({
 
                 <Box>
                   {previewEvent.images.length > 0 && (
-                    eventData.images.map((img) => (
+                    previewEvent.images.map((img) => (
                     <CardMedia
                       component="img"
                       image={img}
                       alt="picture"
-                      key={img.length + "image" + Math.random().toString()}
+                      key={img + "previewEventImage" + isInModal}
                       sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
                     />
                     ))
