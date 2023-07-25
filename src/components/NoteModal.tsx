@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { SimplePool } from 'nostr-tools';
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { Event, SimplePool } from 'nostr-tools';
+import { MetaData, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
@@ -24,9 +24,11 @@ const style = {
 interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  eventData: FullEventData;
-  replyEvents: FullEventData[];
-  rootEvents: FullEventData[];
+  event: Event;
+  replyEvents: Record<string, Event[]>;
+  rootEvents: Record<string, Event[]>;
+  metaData: Record<string, MetaData>;
+  reactions: Record<string, Event[]>;
   open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
@@ -43,9 +45,11 @@ interface NoteModalProps {
 export default function NoteModal({
   pk,
   sk_decoded,
-  eventData,
+  event,
   replyEvents,
   rootEvents,
+  metaData,
+  reactions,
   fetchEvents,
   setFetchEvents,
   open,
@@ -67,8 +71,8 @@ export default function NoteModal({
     return (
       <Box>
         <Box>
-          {rootEvents && rootEvents.length > 0 && 
-            rootEvents.map((rootEvent: FullEventData) => {
+          {rootEvents[event.id] && (rootEvents[event.id]?.length ?? 0) > 0 && 
+            rootEvents[event.id].map((rootEvent: Event) => {
               return (
                 <Box 
                   key={rootEvent.sig + Math.random()}                                        
@@ -80,10 +84,12 @@ export default function NoteModal({
                   }}
                 >
                   <Note
-                      key={eventData.sig + Math.random()}
-                      eventData={rootEvent}
+                      key={rootEvent.sig + Math.random()}
+                      event={rootEvent}
                       replyEvents={replyEvents}
                       rootEvents={rootEvents}
+                      metaData={metaData}
+                      reactions={reactions}
                       pool={pool}
                       relays={relays}
                       fetchEvents={fetchEvents}
@@ -108,10 +114,12 @@ export default function NoteModal({
 
         <Box>
             <Note 
-              eventData={eventData}
+              event={event}
               replyEvents={replyEvents}
               rootEvents={rootEvents}
               fetchEvents={fetchEvents}
+              metaData={metaData}
+              reactions={reactions}
               setFetchEvents={setFetchEvents}
               pool={pool} relays={relays}
               following={following}
@@ -121,38 +129,40 @@ export default function NoteModal({
               sk_decoded={sk_decoded}
               disableReplyIcon={false}
               hashTags={hashTags}
-              key={eventData.sig + Math.random()}
+              key={event.sig + "modal"}
               imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
             />
         </Box>
 
         <Box>
-          {replyEvents.length > 0 && (
+          {(replyEvents[event.id]?.length ?? 0) > 0 && (
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <SouthIcon />
                 </Box>
-                {replyEvents.map((replyEvent) => {
+                {replyEvents[event.id].map((replyEvent) => {
                   return (
                     <Note 
-                    eventData={replyEvent}
-                    replyEvents={replyEvents}
-                    rootEvents={rootEvents}
-                    pool={pool}
-                    relays={relays}
-                    fetchEvents={fetchEvents}
-                    setFetchEvents={setFetchEvents}
-                    following={following}
-                    updateFollowing={updateFollowing}
-                    setHashtags={setHashtags}
-                    pk={pk}
-                    sk_decoded={sk_decoded}
-                    key={replyEvent.sig + Math.random()}
-                    disableReplyIcon={false}
-                    hashTags={hashTags}
-                    imagesOnlyMode={imagesOnlyMode}
-                    isInModal={true}
+                      event={replyEvent}
+                      replyEvents={replyEvents}
+                      rootEvents={rootEvents}
+                      reactions={reactions}
+                      metaData={metaData}
+                      pool={pool}
+                      relays={relays}
+                      fetchEvents={fetchEvents}
+                      setFetchEvents={setFetchEvents}
+                      following={following}
+                      updateFollowing={updateFollowing}
+                      setHashtags={setHashtags}
+                      pk={pk}
+                      sk_decoded={sk_decoded}
+                      key={replyEvent.sig + Math.random()}
+                      disableReplyIcon={false}
+                      hashTags={hashTags}
+                      imagesOnlyMode={imagesOnlyMode}
+                      isInModal={true}
                     />
                     );
                   })}

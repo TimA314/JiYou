@@ -5,10 +5,6 @@ export type EventWithProfile = Event & {
     isFollowing?: boolean;
 };
 
-export type ReactionCounts = {
-    upvotes: number;
-    downvotes: number;
-};
 
 export interface FullEventData {
     content: string;
@@ -24,7 +20,7 @@ export interface FullEventData {
     sig: string;
     created_at: number;
     tags: string[][];
-    reaction: ReactionCounts;
+    reaction: Record<string,Event>;
     images: string[];
 }
 
@@ -32,6 +28,14 @@ declare global {
   interface Window {
     nostr: Nostr;
   }
+}
+
+
+
+export type FeedEvents = {
+  feedEvents: Map<string, FullEventData>, 
+  replyEvents: Map<string, FullEventData>, 
+  rootEvents: Map<string, FullEventData>
 }
 
 export type RelaySetting = {

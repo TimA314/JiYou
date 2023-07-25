@@ -2,24 +2,30 @@ import { Stack } from "@mui/material";
 import { Event } from "nostr-tools";
 import UserNotificationNote from "./UserNotificationNote";
 import { FullEventData, MetaData } from "../nostr/Types";
+import { insertEventIntoDescendingList } from "../utils/eventUtils";
 
 type Props = {
-  likedNotificationEvents: Event[];
-  likedNotificationMetaData: Record<string, MetaData>;
-  userNotes: FullEventData[];
+  userEvents: Event[];
+  reactionEvents: Record<string, Event[]>;
+  metaData: Record<string, MetaData>;
 }
 
-export default function Notifications({likedNotificationEvents, likedNotificationMetaData, userNotes}: Props) {
-  const uniqueEvents = likedNotificationEvents.filter((value, index, self) => 
-    self.findIndex(m => m.id === value.id) === index
-  );
+export default function Notifications({userEvents, reactionEvents, metaData}: Props) {
+
+  for (let key in reactionEvents) {
+    reactionEvents[key].sort((a, b) => b.created_at - a.created_at);
+  }
+  const entries = Object.entries(reactionEvents);
+    entries.sort(([, aEvents], [, bEvents]) => bEvents[0].created_at - aEvents[0].created_at);
+
+    const sortedReactionEvents: Record<string, Event[]> = Object.fromEntries(entries);
 
   return (
     <Stack>
-      {uniqueEvents.map((event) => {
+      {Object.values(sortedReactionEvents).flat().map((event) => {
         const likedNoteEventId = event.tags.find((tag) => tag[0] === "e") || "";
         
-        const likedNote = userNotes.find((note) => note.eventId === likedNoteEventId[1])
+        const likedNote = userEvents.find((note) => note.id === likedNoteEventId[1])
 
         if (!likedNote) return (<></>)
 
@@ -27,7 +33,7 @@ export default function Notifications({likedNotificationEvents, likedNotificatio
           <UserNotificationNote 
             key={event.sig} 
             event={event} 
-            metaData={likedNotificationMetaData[event.pubkey]} 
+            metaData={metaData} 
             userNote={likedNote}
             />
         )

@@ -26,8 +26,8 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 type Props = {
     event: Event;
-    metaData: MetaData;
-    userNote: FullEventData;
+    metaData: Record<string, MetaData>;
+    userNote: Event;
 }
 
 export default function UserNotificationNote({event, metaData, userNote}: Props) {
@@ -50,11 +50,11 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
                     <Grid item xs={4}>
                         <CardHeader
                             avatar={
-                            <Avatar aria-label="profile picture" src={metaData?.picture ?? defaultAvatar}>
+                            <Avatar aria-label="profile picture" src={metaData[event.pubkey]?.picture ?? defaultAvatar}>
                             </Avatar>
                             }
-                            title={metaData?.name ?? event.pubkey.substring(0, 6) + "..."}
-                            subheader={metaData?.nip05 ?? ""}
+                            title={metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                            subheader={metaData[event.pubkey]?.nip05 ?? ""}
                             subheaderTypographyProps={{color: themeColors.textColor}}
                             style={{color: themeColors.textColor}}
                         />
@@ -123,7 +123,7 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
 
                         <Grid item xs={1}>
                             <CardContent>
-                                <Avatar src={userNote.user.picture} sx={{width: 24, height: 24}}/>
+                                <Avatar src={metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
                             </CardContent>
                         </Grid>
 
@@ -149,11 +149,11 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
             <Grid item xs={3}>
                 <CardHeader
                     avatar={
-                    <Avatar aria-label="profile picture" src={metaData?.picture ?? defaultAvatar}>
+                    <Avatar aria-label="profile picture" src={metaData[event.pubkey]?.picture ?? defaultAvatar}>
                     </Avatar>
                     }
-                    title={metaData?.name ?? event.pubkey.substring(0, 6) + "..."}
-                    subheader={metaData?.nip05 ?? ""}
+                    title={metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                    subheader={metaData[event.pubkey]?.nip05 ?? ""}
                     subheaderTypographyProps={{color: themeColors.textColor}}
                     style={{color: themeColors.textColor}}
                 />
@@ -169,7 +169,7 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
             
             <Grid item xs={1}>
                 <CardContent>
-                    <Avatar src={userNote.user.picture} sx={{width: 24, height: 24}}/>
+                    <Avatar src={metaData[event.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                 </CardContent>
             </Grid>
 

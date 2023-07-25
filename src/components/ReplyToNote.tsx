@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { SimplePool } from 'nostr-tools';
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { Event, SimplePool } from 'nostr-tools';
+import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -26,9 +26,11 @@ const style = {
 interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  eventData: FullEventData;
-  replyEvents: FullEventData[];
-  rootEvents: FullEventData[];
+  event: Event;
+  replyEvents: Record<string, Event[]>;
+  rootEvents: Record<string, Event[]>;
+  reactions: Record<string, Event[]>;
+  metaData: Record<string, MetaData>;
   open: boolean;
   setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
@@ -45,9 +47,11 @@ interface ReplyToNoteProps {
 export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
-  eventData,
+  event,
   replyEvents,
   rootEvents,
+  reactions,
+  metaData,
   open, 
   setReplyToNoteOpen, 
   pool, 
@@ -87,15 +91,17 @@ export default function ReplyToNote({
             <CloseIcon />
           </IconButton>
             <Note 
-              eventData={eventData}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
-              pool={pool} 
-              relays={relays}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
               pk={pk}
               sk_decoded={sk_decoded}
+              pool={pool} 
+              relays={relays}
+              event={event}
+              replyEvents={replyEvents}
+              rootEvents={rootEvents}
+              reactions={reactions}
+              metaData={metaData}
+              fetchEvents={fetchEvents}
+              setFetchEvents={setFetchEvents}
               following={following} 
               updateFollowing={updateFollowing} 
               setHashtags={setHashtags} 
@@ -108,7 +114,7 @@ export default function ReplyToNote({
               relays={relays} 
               pk={pk}
               sk_decoded={sk_decoded}
-              replyEventData={eventData} 
+              replyEvent={event} 
               setPostedNote={setPostedNote} 
               />
         </Box>

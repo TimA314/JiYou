@@ -1,6 +1,6 @@
 import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
-import { Event, SimplePool } from 'nostr-tools';
-import { useEffect, useState } from 'react'
+import { Event, Filter, SimplePool } from 'nostr-tools';
+import { useEffect, useRef, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -11,12 +11,14 @@ import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
 import Notifications from '../components/Notifications';
 import { useNavigate } from 'react-router-dom';
+import { useListEvents } from '../hooks/useListEvents';
 
 interface ProfileProps {
     setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
     setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
     relays: RelaySetting[];
     pool: SimplePool | null;
+    setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
     pk_decoded: string;
     sk_decoded: string;
     profile: ProfileContent;
@@ -27,9 +29,6 @@ interface ProfileProps {
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
     getProfile: () => Promise<void>;
     imagesOnlyMode: React.MutableRefObject<boolean>;
-    userNotes: FullEventData[];
-    likedNotificationEvents: Event[];
-    likedNotificationMetaData: Record<string, MetaData>;
     hideExplicitContent: React.MutableRefObject<boolean>;
 }
 
@@ -44,7 +43,8 @@ export default function Profile({
     setPk_decoded,
     setSk_decoded,
     relays, 
-    pool, 
+    pool,
+    setPool,
     pk_decoded,
     sk_decoded,
     profile, 
@@ -55,18 +55,32 @@ export default function Profile({
     updateProfile, 
     getProfile, 
     hideExplicitContent,
-    userNotes,
-    likedNotificationEvents,
-    likedNotificationMetaData
 }: ProfileProps) {
 const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const { themeColors } = useContext(ThemeContext);
-const [tabIndex, setTabIndex] = useState(0);
 const navigate = useNavigate();
-
+const fetchingEventsInProgress = useRef(false);
+const hashtags: string[] = [];
+const [tabIndex, setTabIndex] = useState(0);
+const imagesOnlyMode = useRef<boolean>(false);
+const userNotesFilter: Filter = { kinds: [1], authors: [pk_decoded]};
+const { feedEvents: userEvents, rootEvents, replyEvents, metaData, reactions} = useListEvents({
+    pool, 
+    setPool,
+    relays, 
+    tabIndex: 3, 
+    following, 
+    hashtags,
+    hideExplicitContent, 
+    imagesOnlyMode, 
+    fetchEvents,
+    setFetchEvents, 
+    fetchingEventsInProgress,
+    filter: userNotesFilter
+});
 
 useEffect(() => {
     if (!pool || pk_decoded === "") return;
@@ -268,22 +282,25 @@ const styles = {
                     {tabIndex === 0 && (
                         <UserNotes 
                             pool={pool}
+                            setPool={setPool}
                             relays={relays} 
                             pk={pk_decoded}
                             sk_decoded={sk_decoded}
-                            fetchEvents={fetchEvents} 
                             following={following} 
-                            setFetchEvents={setFetchEvents}
-                            userNotes={userNotes}
                             hideExplicitContent={hideExplicitContent}
+                            userEvents={userEvents}
+                            replyEvents={replyEvents}
+                            rootEvents={rootEvents}
+                            reactions={reactions}
+                            metaData={metaData}
                             />                    
                     )}
 
                     {tabIndex === 1 && (
                         <Notifications
-                            userNotes={userNotes}
-                            likedNotificationEvents={likedNotificationEvents} 
-                            likedNotificationMetaData={likedNotificationMetaData}  
+                            userEvents={userEvents}
+                            reactionEvents={reactions}
+                            metaData={metaData} 
                         />
                     )}
 

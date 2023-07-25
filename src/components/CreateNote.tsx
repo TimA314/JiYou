@@ -2,9 +2,9 @@ import { useContext, useState } from 'react';
 import { Box, FormGroup, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
-import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
@@ -14,7 +14,7 @@ interface Props {
   relays: RelaySetting[];
   pk: string;
   sk_decoded: string;
-  replyEventData: FullEventData | null;
+  replyEvent: Event | null;
   setPostedNote: () => void;
 }
 
@@ -23,7 +23,7 @@ function CreateNote({
   relays, 
   pk,
   sk_decoded,
-  replyEventData, 
+  replyEvent, 
   setPostedNote, 
 }: Props) {
   const [input, setInput] = useState("");
@@ -37,14 +37,14 @@ function CreateNote({
 
     const tags = [];
     //push reply event id and pk
-    if (replyEventData) {
-      tags.push(["e", replyEventData.eventId, "", ""]);
+    if (replyEvent) {
+      tags.push(["e", replyEvent.id, "", ""]);
       tags.push(["p", pk]);
     }
     
     //push other replies in chain
-    const replyEventTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "e") : [];
-    const replyPubKeyTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "p") : [];
+    const replyEventTags = replyEvent ? replyEvent.tags.filter((t) => t[0] === "e") : [];
+    const replyPubKeyTags = replyEvent ? replyEvent.tags.filter((t) => t[0] === "p") : [];
 
     if (replyEventTags.length > 0) {
       replyEventTags.forEach((tag) => {
@@ -111,7 +111,7 @@ function CreateNote({
           color='secondary' 
           onClick={handlePostToRelaysClick}
           >
-            Post {replyEventData ? "Reply" : "Note"} To Relays
+            Post {replyEvent ? "Reply" : "Note"} To Relays
         </Button>
       </FormGroup>
     </Box>

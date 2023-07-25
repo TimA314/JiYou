@@ -6,7 +6,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { SimplePool, nip19 } from 'nostr-tools';
+import { SimplePool, nip19, Event, Filter } from 'nostr-tools';
 import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -15,9 +15,9 @@ import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
-import { useUserNotes } from './hooks/useUserNotes';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
+import { getDefaultFeedFilter } from './nostr/FeedEvents';
 
 function App() {
   const [sk_decoded, setSk_decoded] = useState<string>("");
@@ -25,16 +25,17 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
-  const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, sk_decoded, setFetchEvents});
-  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded, sk_decoded });
-  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded, sk_decoded });
-  const hideExplicitContent = useRef<boolean>(true);
-  const imagesOnlyMode = useRef<boolean>(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const { userNotes, likedNotificationEvents, likedNotificationMetaData } = useUserNotes({ pool, pk_decoded, relays, following });
-  const { threadEvents, filter} = useListEvents({ 
+  const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
+  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, sk_decoded, setFetchEvents});
+  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded, sk_decoded });
+  const defaultFilter = getDefaultFeedFilter(hashtags, tabIndex, following);
+  const filterForFeed = useRef<Filter>(defaultFilter);
+  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded, sk_decoded });
+  const hideExplicitContent = useRef<boolean>(true);
+  const imagesOnlyMode = useRef<boolean>(false);
+  const { feedEvents, rootEvents, replyEvents, reactions, metaData} = useListEvents({ 
       pool,
       setPool, 
       relays, 
@@ -45,7 +46,8 @@ function App() {
       imagesOnlyMode,
       fetchEvents,
       setFetchEvents,
-      fetchingEventsInProgress
+      fetchingEventsInProgress,
+      filter: filterForFeed.current
     });
 
     const navigate = useNavigate();
@@ -139,15 +141,13 @@ function App() {
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               pool={pool}
+              setPool={setPool}
               following={following}
               followers={followers}
               profile={profile}
               updateProfile={updateProfile}
               getProfile={getProfile}
               imagesOnlyMode={imagesOnlyMode}
-              userNotes={userNotes}
-              likedNotificationEvents={likedNotificationEvents}
-              likedNotificationMetaData={likedNotificationMetaData}
               hideExplicitContent={hideExplicitContent}
             />} />
           <Route path="/relays" element={
@@ -167,10 +167,14 @@ function App() {
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
-              threadEvents={threadEvents}
+              feedEvents={feedEvents}
+              rootEvents={rootEvents}
+              replyEvents={replyEvents}
+              reactions={reactions}
+              metaData={metaData}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              filter={filter}
+              filter={filterForFeed}
               fetchingEventsInProgress={fetchingEventsInProgress}
               setTabIndex={setTabIndex}
               hashtags={hashtags}

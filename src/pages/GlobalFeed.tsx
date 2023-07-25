@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { Filter, SimplePool } from 'nostr-tools'
+import { Event, Filter, SimplePool } from 'nostr-tools'
 import { MutableRefObject, useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
@@ -9,7 +9,7 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { MetaData, RelaySetting } from '../nostr/Types';
 import Loading from '../components/Loading';
 
 const createNoteStyle = {
@@ -39,11 +39,11 @@ type GlobalFeedProps = {
     fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: MutableRefObject<boolean>;
     imagesOnlyMode: MutableRefObject<boolean>;
-    threadEvents: {
-        feedEvents: Map<string, FullEventData>, 
-        replyEvents: Map<string, FullEventData>, 
-        rootEvents: Map<string, FullEventData>
-      };
+    feedEvents: Event[];
+    rootEvents: Record<string, Event[]>;
+    replyEvents: Record<string, Event[]>;
+    reactions: Record<string, Event[]>;
+    metaData: Record<string, MetaData>;
     hashtags: string[];
     tabIndex: number;
   };
@@ -58,7 +58,11 @@ type GlobalFeedProps = {
     setFetchEvents,
     filter,
     fetchingEventsInProgress,
-    threadEvents,
+    feedEvents,
+    rootEvents,
+    replyEvents,
+    reactions,
+    metaData,
     hashtags,
     tabIndex,
     updateFollowing,
@@ -105,7 +109,7 @@ type GlobalFeedProps = {
                     <Loading />
                 </Box>
             )
-        } else if (threadEvents.feedEvents.size === 0 && !fetchingEventsInProgress.current) {
+        } else if (feedEvents.length === 0 && !fetchingEventsInProgress.current) {
             return (
                 <Typography 
                     variant="h6" 
@@ -116,24 +120,22 @@ type GlobalFeedProps = {
             )
         } else {
             return (
-                Array.from(threadEvents.feedEvents.values()).map((fullEventData) => {
-                    const rootEventIds = fullEventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== fullEventData.eventId).map((t) => t[1]);
-                    const eventRootNotes: FullEventData[] = rootEventIds.map((id) => threadEvents.rootEvents.get(id)).filter((event): event is FullEventData => Boolean(event));
-                    const eventReplyNotes: FullEventData[] = Array.from(threadEvents.replyEvents.values()).filter((r) => r.tags.some((t) => t[0] === "e" && t[1] && t[1] === fullEventData.eventId));
-            
+                Array.from(feedEvents.values()).map((event) => {
                     return (
                         <Note 
                             pool={pool} 
                             relays={relays}
                             fetchEvents={fetchEvents}
                             setFetchEvents={setFetchEvents}
-                            eventData={fullEventData}
-                            replyEvents={eventReplyNotes}
-                            rootEvents={eventRootNotes}
+                            event={event}
+                            replyEvents={replyEvents}
+                            rootEvents={rootEvents}
+                            reactions={reactions}
+                            metaData={metaData}
                             updateFollowing={updateFollowing} 
                             following={following} 
                             setHashtags={setHashtags} 
-                            key={fullEventData.sig} 
+                            key={event.sig}
                             pk={pk}
                             hashTags={hashtags}
                             imagesOnlyMode={imagesOnlyMode}
@@ -180,7 +182,7 @@ type GlobalFeedProps = {
                         <CloseIcon />
                     </IconButton>
                     <CreateNote 
-                        replyEventData={null} 
+                        replyEvent={null} 
                         pool={pool} 
                         relays={relays} 
                         pk={pk}
