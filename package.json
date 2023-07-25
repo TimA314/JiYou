@@ -26,7 +26,6 @@
     "react-color": "^2.19.3",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.9.0",
-    "react-scripts": "5.0.1",
     "styled-components": "^5.3.9",
     "toastr": "^2.1.4",
     "use-debounce": "^9.0.4",
@@ -41,10 +40,9 @@
     "nostr"
   ],
   "scripts": {
-    "build": "CI=false react-scripts build",
-    "start": "react-scripts start",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview"
   },
   "eslintConfig": {
     "extends": [
@@ -68,6 +66,10 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/react-color": "^3.0.6",
     "@types/validator": "^13.7.14",
-    "typescript": "^5.1.6"
+    "@vitejs/plugin-react": "^4.0.3",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.7",
+    "vite-plugin-svgr": "^3.2.0",
+    "vite-tsconfig-paths": "^4.2.0"
   }
 }
