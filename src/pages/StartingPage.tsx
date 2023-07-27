@@ -4,14 +4,16 @@ import { useContext, useState } from 'react';
 import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 import { useNavigate } from 'react-router-dom';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import { useDispatch } from 'react-redux';
+import { setKeys } from '../redux/slices/keySlice';
+import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
 
 type Props = {
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-    setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
-    setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMessage}: Props) {
+export default function StartingPage({setErrorMessage}: Props) {
+    const dispatch = useDispatch();
     const { themeColors } = useContext(ThemeContext);
     const [skInputEncoded, setSkInputEncoded] = useState<string>("");
     const navigate = useNavigate();
@@ -42,24 +44,20 @@ export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMess
             return;
         }
 
+        const newKeys = generateKeyObject(skInputEncoded);
         localStorage.setItem("sk", skInputEncoded);
-        localStorage.setItem("pk", nip19.npubEncode(publicKeyDecoded));
-        
-        setPk_decoded(publicKeyDecoded);
-        setSk_decoded(decodedSk.data.toString());
+        localStorage.setItem("pk", publicKeyDecoded);
+        dispatch(setKeys(newKeys));
         navigate("/");
     };
 
     const handleCreateNeyKeys = () => {
         const sk = generatePrivateKey();
-        const encodedSk = nip19.nsecEncode(sk);
-        localStorage.setItem("sk", encodedSk);
-        setSk_decoded(sk);
-
-        const publicKey = getPublicKey(sk);
-        const encodedPk = nip19.npubEncode(publicKey);
-        localStorage.setItem("pk", encodedPk);
-        setPk_decoded(publicKey);
+        const newKeys = generateKeyObject(sk);
+    
+        localStorage.setItem("sk", sk);
+        localStorage.setItem("pk", newKeys.publicKey.decoded);
+        dispatch(setKeys(newKeys))
         navigate("/");
     };
 
@@ -79,10 +77,9 @@ export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMess
                 if (encodedPk === "") throw new Error();
 
                 localStorage.setItem("sk", "");
-                localStorage.setItem("pk", encodedPk);
-                setPk_decoded(publicKey);
-                setSk_decoded("");
-                console.log("Logged in with Nostr Extension");
+                localStorage.setItem("pk", publicKey);
+                const newKeys = generatePublicKeyOnlyObject(publicKey);
+                dispatch(setKeys(newKeys));
                 navigate("/");
                 return;
             }

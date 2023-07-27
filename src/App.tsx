@@ -18,8 +18,14 @@ import About from './pages/About';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
 import { getDefaultFeedFilter } from './nostr/FeedEvents';
+import { Provider, useSelector } from 'react-redux';
+import { RootState, store } from './redux/store';
+import { generateKeyObject } from './utils/miscUtils';
+import { setKeys } from './redux/slices/keySlice';
 
 function App() {
+  const publicKey = useSelector((state: RootState) => state.keys.publicKey);
+  const privateKey = useSelector((state: RootState) => state.keys.privateKey);
   const [sk_decoded, setSk_decoded] = useState<string>("");
   const [pk_decoded, setPk_decoded] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -53,15 +59,16 @@ function App() {
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (pk_decoded === "") {
+      if (publicKey.decoded === "") {
 
         //check if sk is in local storage
         const skFromStorage = localStorage.getItem("sk");
 
         if (skFromStorage && skFromStorage !== ""){
-          const decodedSkFromStorage = nip19.decode(skFromStorage);
-          if (decodedSkFromStorage && decodedSkFromStorage.data.toString() !== ""){
-            setPk_decoded(decodedSkFromStorage.data.toString());
+            const newKeys = generateKeyObject(skFromStorage);
+            if (newKeys){
+              store.dispatch(setKeys(newKeys));
+              return;
           }
         }
 
@@ -106,6 +113,7 @@ function App() {
 
   return (
     <Box>
+      <Provider store={store}>
       <CssBaseline />
       <ScrollToTop />
       <Container>
@@ -128,8 +136,6 @@ function App() {
           <Route path="/start" element={
             <StartingPage
               setErrorMessage={setErrorMessage}
-              setSk_decoded={setSk_decoded}
-              setPk_decoded={setPk_decoded}
             />} />
           <Route path="/profile" element={
             <Profile
@@ -201,6 +207,7 @@ function App() {
         <NavBar profile={profile} />
         }
       </Container>
+      </Provider>
     </Box>
   );
 }

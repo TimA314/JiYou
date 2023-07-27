@@ -1,5 +1,6 @@
 import { bech32 } from "bech32";
 import { RelaySetting } from "../nostr/Types";
+import { getPublicKey, nip19 } from "nostr-tools";
 
 export const bech32ToHex = (str: string) => {
   try {
@@ -18,6 +19,33 @@ export const uint8ArrayToHex = (buffer: Uint8Array) => {
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 };
+
+export const generateKeyObject = (secretKeyDecoded: string) => {
+  const pk = getPublicKey(secretKeyDecoded);
+  return {
+    publicKey: {
+      decoded: pk,
+      encoded: nip19.npubEncode(pk)
+    },
+    privateKey: {
+      decoded: secretKeyDecoded,
+      encoded: nip19.nsecEncode(secretKeyDecoded)
+    }
+  }
+} 
+
+export const generatePublicKeyOnlyObject = (publicKeyDecoded: string) => {
+  return {
+    publicKey: {
+      decoded: publicKeyDecoded,
+      encoded: nip19.npubEncode(publicKeyDecoded)
+    },
+    privateKey: {
+      decoded: "",
+      encoded: ""
+    }
+  }
+} 
   
 export const GetImageFromPost = (content: string): string[] => {
   if (!content) return [];
