@@ -27,8 +27,6 @@ const createNoteStyle = {
 type GlobalFeedProps = {
     pool: SimplePool | null;
     relays: RelaySetting[];
-    pk: string;
-    sk_decoded: string;
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -51,8 +49,6 @@ type GlobalFeedProps = {
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
     pool, 
     relays, 
-    pk,
-    sk_decoded,
     following,
     fetchEvents,
     setFetchEvents,
@@ -136,10 +132,8 @@ type GlobalFeedProps = {
                             following={following} 
                             setHashtags={setHashtags} 
                             key={event.sig}
-                            pk={pk}
                             hashTags={hashtags}
                             imagesOnlyMode={imagesOnlyMode}
-                            sk_decoded={sk_decoded}
                         />
                     )
                 })
@@ -185,8 +179,6 @@ type GlobalFeedProps = {
                         replyEvent={null} 
                         pool={pool} 
                         relays={relays} 
-                        pk={pk}
-                        sk_decoded={sk_decoded}
                         setPostedNote={setPostedNote} 
                     />
                 </Box>

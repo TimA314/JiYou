@@ -3,6 +3,8 @@ import { Event, Filter, SimplePool } from 'nostr-tools';
 import { MetaData, RelaySetting } from '../nostr/Types';
 import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -33,7 +35,7 @@ export const useListEvents = ({
   fetchingEventsInProgress,
   filter
 }: useListEventsProps) => {
-
+  
   const [feedEvents, setFeedEvents] = useState<Event[]>([]);
   const [replyEvents, setReplyEvents] = useState<Record<string,Event[]>>({});
   const [rootEvents, setRootEvents] = useState<Record<string,Event[]>>({});

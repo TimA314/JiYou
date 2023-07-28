@@ -35,8 +35,6 @@ interface ReplyToNoteProps {
   setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
   relays: RelaySetting[];
-  pk: string;
-  sk_decoded: string;
   following: string[];
   hashTags: string[];
   updateFollowing: (pubkey: string) => void;
@@ -56,8 +54,6 @@ export default function ReplyToNote({
   setReplyToNoteOpen, 
   pool, 
   relays, 
-  pk,
-  sk_decoded,
   following,
   hashTags,
   updateFollowing, 
@@ -91,8 +87,6 @@ export default function ReplyToNote({
             <CloseIcon />
           </IconButton>
             <Note 
-              pk={pk}
-              sk_decoded={sk_decoded}
               pool={pool} 
               relays={relays}
               event={event}
@@ -112,8 +106,6 @@ export default function ReplyToNote({
             <CreateNote 
               pool={pool} 
               relays={relays} 
-              pk={pk}
-              sk_decoded={sk_decoded}
               replyEvent={event} 
               setPostedNote={setPostedNote} 
               />

@@ -30,6 +30,17 @@ declare global {
   }
 }
 
+export type Keys = {
+  publicKey: {
+    decoded: string,
+    encoded: string
+  },
+  privateKey: {
+    decoded: string,
+    encoded: string
+  }
+}
+
 
 
 export type FeedEvents = {

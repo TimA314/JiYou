@@ -12,15 +12,14 @@ import UserNotes from '../components/UserNotes';
 import Notifications from '../components/Notifications';
 import { useNavigate } from 'react-router-dom';
 import { useListEvents } from '../hooks/useListEvents';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { setKeys } from '../redux/slices/keySlice';
 
 interface ProfileProps {
-    setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
-    setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
     relays: RelaySetting[];
     pool: SimplePool | null;
     setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
-    pk_decoded: string;
-    sk_decoded: string;
     profile: ProfileContent;
     following: string[];
     followers: string[];
@@ -40,13 +39,9 @@ interface ProfileContent {
 }
 
 export default function Profile({
-    setPk_decoded,
-    setSk_decoded,
     relays, 
     pool,
     setPool,
-    pk_decoded,
-    sk_decoded,
     profile, 
     following, 
     followers, 
@@ -66,7 +61,10 @@ const fetchingEventsInProgress = useRef(false);
 const hashtags: string[] = [];
 const [tabIndex, setTabIndex] = useState(0);
 const imagesOnlyMode = useRef<boolean>(false);
-const userNotesFilter: Filter = { kinds: [1], authors: [pk_decoded]};
+const keys = useSelector((state: RootState) => state.keys);
+const dispatch = useDispatch();
+
+const userNotesFilter: Filter = { kinds: [1], authors: [keys.publicKey.decoded]};
 const { feedEvents: userEvents, rootEvents, replyEvents, metaData, reactions} = useListEvents({
     pool, 
     setPool,
@@ -83,7 +81,7 @@ const { feedEvents: userEvents, rootEvents, replyEvents, metaData, reactions} = 
 });
 
 useEffect(() => {
-    if (!pool || pk_decoded === "") return;
+    if (!pool || keys.publicKey.decoded === "") return;
 
     const loadProfile = async () => {
         try {
@@ -109,7 +107,7 @@ useEffect(() => {
 
 useEffect(() => {
     getProfile();
-}, [pk_decoded])
+}, [keys.publicKey.decoded])
 
 const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -124,8 +122,7 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
 const handleLogout = () => {
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
-    setPk_decoded("");
-    setSk_decoded("");
+    dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
     console.log("Logged out");
     navigate("/start")
 }
@@ -146,7 +143,7 @@ const styles = {
 
     return (
         <Box justifyContent="center" >
-            {pk_decoded !== "" && (
+            {keys.publicKey.decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
                         <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
@@ -284,8 +281,6 @@ const styles = {
                             pool={pool}
                             setPool={setPool}
                             relays={relays} 
-                            pk={pk_decoded}
-                            sk_decoded={sk_decoded}
                             following={following} 
                             hideExplicitContent={hideExplicitContent}
                             userEvents={userEvents}

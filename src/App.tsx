@@ -18,27 +18,24 @@ import About from './pages/About';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
 import { getDefaultFeedFilter } from './nostr/FeedEvents';
-import { Provider, useSelector } from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { RootState, store } from './redux/store';
-import { generateKeyObject } from './utils/miscUtils';
+import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtils';
 import { setKeys } from './redux/slices/keySlice';
 
 function App() {
-  const publicKey = useSelector((state: RootState) => state.keys.publicKey);
-  const privateKey = useSelector((state: RootState) => state.keys.privateKey);
-  const [sk_decoded, setSk_decoded] = useState<string>("");
-  const [pk_decoded, setPk_decoded] = useState<string>("");
+  const keys = useSelector((state: RootState) => state.keys);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, sk_decoded, setFetchEvents});
-  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded, sk_decoded });
+  const { relays, setRelays, updateRelays } = useRelays({ pool, setFetchEvents});
+  const { updateFollowing, following, followers } = useFollowing({ pool, relays,});
   const defaultFilter = getDefaultFeedFilter(hashtags, tabIndex, following);
   const filterForFeed = useRef<Filter>(defaultFilter);
-  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded, sk_decoded });
+  const { profile, updateProfile, getProfile} = useProfile({ pool, relays,});
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
   const { feedEvents, rootEvents, replyEvents, reactions, metaData} = useListEvents({ 
@@ -55,11 +52,31 @@ function App() {
       fetchingEventsInProgress,
       filter: filterForFeed.current
     });
+    const dispatch = useDispatch();
 
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (publicKey.decoded === "") {
+      if (keys.publicKey.decoded === "") {
+
+        const getKeyFromNostrExtension = async () => {
+          const pkFromNostr = await window.nostr.getPublicKey();
+          if (pkFromNostr && pkFromNostr !== "")
+          {
+            const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
+            store.dispatch(setKeys(newKeys));
+            return true;
+          }
+          return false;
+        }
+
+
+        if (window.nostr){
+          try {
+            const retrieved = getKeyFromNostrExtension();
+          } catch {}
+        }
+
 
         //check if sk is in local storage
         const skFromStorage = localStorage.getItem("sk");
@@ -72,20 +89,9 @@ function App() {
           }
         }
 
-        //check if pk is in local storage
-        const pkFromStorage = localStorage.getItem("pk");
-        
-        if (pkFromStorage && pkFromStorage !== ""){
-          const decodedPkFromStorage = nip19.decode(pkFromStorage);
-          if (decodedPkFromStorage && decodedPkFromStorage.data.toString() !== ""){
-            setPk_decoded(decodedPkFromStorage.data.toString());
-            return;
-          }
-        }
-
         navigate("/start");
       }
-    }, [pk_decoded]);
+    }, [keys.publicKey.decoded]);
 
   //Get Feed Events
   useEffect(() => {
@@ -113,7 +119,6 @@ function App() {
 
   return (
     <Box>
-      <Provider store={store}>
       <CssBaseline />
       <ScrollToTop />
       <Container>
@@ -139,10 +144,6 @@ function App() {
             />} />
           <Route path="/profile" element={
             <Profile
-              setPk_decoded={setPk_decoded}
-              setSk_decoded={setSk_decoded}
-              pk_decoded={pk_decoded}
-              sk_decoded={sk_decoded}
               relays={relays}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
@@ -167,8 +168,6 @@ function App() {
             <GlobalFeed
               pool={pool}
               relays={relays}
-              pk={pk_decoded}
-              sk_decoded={sk_decoded}
               following={following}
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
@@ -189,8 +188,6 @@ function App() {
             />} />
           <Route path="/keys" element={
             <Keys
-              pk={pk_decoded}
-              sk={sk_decoded}
             />} />
           <Route path="/settings" element={
             <Settings
@@ -203,11 +200,10 @@ function App() {
             <About />
           } />
         </Routes>
-        {pk_decoded !== "" && 
+        {keys.publicKey.decoded !== "" && 
         <NavBar profile={profile} />
         }
       </Container>
-      </Provider>
     </Box>
   );
 }

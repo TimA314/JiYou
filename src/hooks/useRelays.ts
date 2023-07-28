@@ -5,19 +5,20 @@ import { defaultRelays } from '../nostr/DefaultRelays';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RelaySetting } from '../nostr/Types';
 import { RelayReadWriteOrBoth, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
+import { RootState } from '../redux/store';
+import { useSelector } from 'react-redux';
 
 type UseRelaysProps = {
   pool: SimplePool | null;
-  pk_decoded: string;
-  sk_decoded: string;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const useRelays = ({ pool, pk_decoded, sk_decoded, setFetchEvents }: UseRelaysProps) => {
-  const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
+export const useRelays = ({ pool, setFetchEvents }: UseRelaysProps) => {
+    const keys = useSelector((state: RootState) => state.keys);
+    const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
   
   useEffect(() => {
-    if (pk_decoded === "") {
+    if (keys.publicKey.decoded === "") {
         setRelays(defaultRelays);
         return;
     }
@@ -26,7 +27,7 @@ export const useRelays = ({ pool, pk_decoded, sk_decoded, setFetchEvents }: UseR
     const getUserRelays = async () => {
         try {
             const relayUrls = relays.map((r) => r.relayUrl);
-            let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [pk_decoded], limit: 1 }])
+            let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [keys.publicKey.decoded], limit: 1 }])
             
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
                 let updatedRelays: RelaySetting[] = [];
@@ -51,7 +52,7 @@ export const useRelays = ({ pool, pk_decoded, sk_decoded, setFetchEvents }: UseR
     }
 
     getUserRelays();
-}, [pool, pk_decoded])
+}, [pool, keys.publicKey.decoded])
   
   
 const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
@@ -75,7 +76,7 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
         } as EventTemplate
 
 
-        if (window.nostr && sk_decoded === "") {
+        if (window.nostr && keys.privateKey.decoded === "") {
            const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
            if (signedWithNostr) {
                 setRelays(relays);
@@ -85,7 +86,7 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
 
         setRelays(relaysToUpdate);
         setFetchEvents(true);
-        await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
+        await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
 
     } catch (error) {
         console.error("Error adding relay" + error);

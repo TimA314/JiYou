@@ -8,12 +8,12 @@ import { RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 interface Props {
   pool: SimplePool | null;
   relays: RelaySetting[];
-  pk: string;
-  sk_decoded: string;
   replyEvent: Event | null;
   setPostedNote: () => void;
 }
@@ -21,14 +21,13 @@ interface Props {
 function CreateNote({
   pool, 
   relays, 
-  pk,
-  sk_decoded,
   replyEvent, 
   setPostedNote, 
 }: Props) {
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const keys = useSelector((state: RootState) => state.keys);
 
   const handlePostToRelaysClick = async () => {
     if (!pool) {
@@ -39,7 +38,7 @@ function CreateNote({
     //push reply event id and pk
     if (replyEvent) {
       tags.push(["e", replyEvent.id, "", ""]);
-      tags.push(["p", pk]);
+      tags.push(["p", keys.publicKey.decoded]);
     }
     
     //push other replies in chain
@@ -75,7 +74,7 @@ function CreateNote({
     } as EventTemplate
 
     //Sign the event with nostr if possible
-    if (window.nostr && sk_decoded === ""){
+    if (window.nostr && keys.privateKey.decoded === ""){
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {
@@ -86,7 +85,7 @@ function CreateNote({
     }
 
     //Manually sign the event
-    signEventWithStoredSk(pool, writableRelayUrls, _baseEvent)
+    signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
     setPostedNote();
   }
 

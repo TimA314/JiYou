@@ -10,8 +10,6 @@ type Props = {
     pool: SimplePool | null;
     setPool:  React.Dispatch<React.SetStateAction<SimplePool>>;
     relays: RelaySetting[];
-    pk: string;
-    sk_decoded: string;
     following: string[]; 
     hideExplicitContent: React.MutableRefObject<boolean>;
     userEvents: Event[];
@@ -25,8 +23,6 @@ export default function UserNotes({
     pool,
     setPool,
     relays, 
-    pk, 
-    sk_decoded,  
     following, 
     userEvents,
     replyEvents,
@@ -58,8 +54,6 @@ export default function UserNotes({
                                         updateFollowing={() => {}} 
                                         following={following} 
                                         setHashtags={() => {}} 
-                                        pk={pk}
-                                        sk_decoded={sk_decoded}
                                         hashTags={[]}
                                         />
                                 </Box>

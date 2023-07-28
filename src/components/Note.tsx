@@ -24,6 +24,8 @@ import ReplyToNote from './ReplyToNote';
 import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { sanitizeString } from '../utils/sanitizeUtils';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -61,8 +63,6 @@ interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
 }
 interface NoteProps {
-  pk: string;
-  sk_decoded: string;
   event: Event;
   replyEvents: Record<string, Event[]>;
   rootEvents: Record<string, Event[]>;
@@ -83,8 +83,6 @@ interface NoteProps {
 }
 
 const Note: React.FC<NoteProps> = ({
-    pk,
-    sk_decoded,
     pool, 
     relays,
     fetchEvents, 
@@ -110,7 +108,8 @@ const Note: React.FC<NoteProps> = ({
   const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
-  
+  const keys = useSelector((state: RootState) => state.keys);
+
   const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[3] === "root");
   const backupRootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1]);
   const previewEvent = rootEvents[rootEventTagToPreview?.[1] ?? backupRootEventTagToPreview?.[1] ?? ""]?.[0];
@@ -147,8 +146,7 @@ const Note: React.FC<NoteProps> = ({
 
     setLiked(true)
 
-    const skFromStorage = localStorage.getItem("sk");
-    const shouldSignWithNostr = window.nostr && sk_decoded === "" && (skFromStorage === null || skFromStorage === "");
+    const shouldSignWithNostr = window.nostr && keys.privateKey.decoded === "";
     if (shouldSignWithNostr){
       const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
@@ -157,10 +155,10 @@ const Note: React.FC<NoteProps> = ({
       }
     }
 
-    const signedManually = await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
+    const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
     setLiked(signedManually);
 
-  }, [pool, relays, event, pk]);
+  }, [pool, relays, event]);
 
   const showReplyThread = useCallback(() => {
     setNoteDetailsOpen(true);
@@ -196,8 +194,6 @@ const Note: React.FC<NoteProps> = ({
           following={following}
           updateFollowing={updateFollowing}
           setHashtags={setHashtags}
-          pk={pk}
-          sk_decoded={sk_decoded}
           hashTags={hashTags}
           imagesOnlyMode={imagesOnlyMode}
           />
@@ -319,8 +315,6 @@ const Note: React.FC<NoteProps> = ({
         reactions={reactions}
         pool={pool} 
         relays={relays} 
-        pk={pk}
-        sk_decoded={sk_decoded}
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}
@@ -350,8 +344,6 @@ const Note: React.FC<NoteProps> = ({
         following={following}
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}
-        pk={pk}
-        sk_decoded={sk_decoded}
         hashTags={hashTags}
         imagesOnlyMode={imagesOnlyMode}
          />
@@ -377,8 +369,6 @@ const Note: React.FC<NoteProps> = ({
         reactions={reactions}
         pool={pool} 
         relays={relays} 
-        pk={pk}
-        sk_decoded={sk_decoded}
         following={following} 
         updateFollowing={updateFollowing} 
         setHashtags={setHashtags}

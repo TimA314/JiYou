@@ -1,4 +1,5 @@
 import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, nip19, validateEvent } from "nostr-tools";
+import { Keys } from "./Types";
 
 
 export const getDefaultFeedFilter = (hashtags: string[], tabIndex: number, followers: string[]) => {
@@ -69,18 +70,17 @@ event: EventTemplate,
 
 export const signEventWithStoredSk = async (
 pool: SimplePool,
+keys: Keys,
 relays: string[],
 event: EventTemplate,
 ) => {
-    const secretKey = localStorage.getItem('sk');
-    const decodedSk = nip19.decode(secretKey ?? '');
 
-    if (!decodedSk || decodedSk.data.toString().trim() === '') {
+    if (keys.privateKey.decoded === "") {
         alert('Invalid secret key, check settings or use a Nostr extension');
         return false;
     }
     
-    const signedEvent = finishEvent(event, decodedSk.data.toString());
+    const signedEvent = finishEvent(event, keys.privateKey.decoded);
     const validated = validateEvent(signedEvent);
 
     if (!validated) {

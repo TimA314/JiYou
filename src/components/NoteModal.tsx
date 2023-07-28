@@ -36,15 +36,11 @@ interface NoteModalProps {
   following: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-  pk: string;
-  sk_decoded: string;
   hashTags: string[];
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
 export default function NoteModal({
-  pk,
-  sk_decoded,
   event,
   replyEvents,
   rootEvents,
@@ -97,8 +93,6 @@ export default function NoteModal({
                       following={following}
                       updateFollowing={updateFollowing}
                       setHashtags={setHashtags}
-                      pk={pk}
-                      sk_decoded={sk_decoded}
                       disableReplyIcon={false}
                       hashTags={hashTags}
                       imagesOnlyMode={imagesOnlyMode}
@@ -125,8 +119,6 @@ export default function NoteModal({
               following={following}
               updateFollowing={updateFollowing}
               setHashtags={setHashtags}
-              pk={pk}
-              sk_decoded={sk_decoded}
               disableReplyIcon={false}
               hashTags={hashTags}
               key={event.sig + "modal"}
@@ -156,8 +148,6 @@ export default function NoteModal({
                       following={following}
                       updateFollowing={updateFollowing}
                       setHashtags={setHashtags}
-                      pk={pk}
-                      sk_decoded={sk_decoded}
                       key={replyEvent.sig + Math.random()}
                       disableReplyIcon={false}
                       hashTags={hashTags}
