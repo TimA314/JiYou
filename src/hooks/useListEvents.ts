@@ -5,7 +5,7 @@ import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setGlobalNotes, setMetaData, setReactions, setReplyNotes, setRootNotes } from '../redux/slices/notesSlice';
+import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes } from '../redux/slices/notesSlice';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -54,7 +54,7 @@ export const useListEvents = ({
       sub.on("event", (event) => {
           if (hideExplicitContent && eventContainsExplicitContent(event)) return;
           const sanitizedEvent = sanitizeEvent(event);
-          dispatch(setGlobalNotes(insertEventIntoDescendingList(notes.globalNotes, sanitizedEvent)))
+          dispatch(addGlobalNotes(sanitizedEvent))
       });
     }
     subFeedEvents();
@@ -72,7 +72,7 @@ export const useListEvents = ({
       const rootKeysToFetch = Object.values(notes.rootNotes).flat().filter((e) => !notes.metaData[e.pubkey]).map((e) => e.pubkey);
       const replyKeysToFetch = Object.values(notes.replyNotes).flat().filter((e) => !notes.metaData[e.pubkey]).map((e) => e.pubkey);
 
-      const pubkeysToFetch = [...feedKeys,...reactionKeysToFetch,...rootKeysToFetch,...replyKeysToFetch];
+      const pubkeysToFetch = [...new Set([...feedKeys,...reactionKeysToFetch,...rootKeysToFetch,...replyKeysToFetch])];
       if (!notes.metaData[keys.publicKey.decoded]){
         pubkeysToFetch.push(keys.publicKey.decoded)
       }
@@ -81,8 +81,7 @@ export const useListEvents = ({
 
       sub.on("event", (event) => { 
         const sanitizedEvent = sanitizeEvent(event);
-        const metadata = JSON.parse(sanitizedEvent.content) as MetaData;
-        dispatch(setMetaData({ ...notes.metaData, [sanitizedEvent.pubkey]: metadata }))
+        dispatch(addMetaData(sanitizedEvent))
       });
     }
     subMetaDataEvents();
@@ -137,7 +136,7 @@ export const useListEvents = ({
             prevReactionEvents.push(event);
         }
 
-        dispatch(setReactions({ ...notes.reactions, [likedEventId]: prevReactionEvents }))
+        dispatch(addReactions({ [likedEventId]: prevReactionEvents }))
       });
     }
 
@@ -172,7 +171,7 @@ export const useListEvents = ({
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        dispatch(setReplyNotes({ ...notes.replyNotes, [sanitizedEvent.id]: [...(notes.replyNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
+        dispatch(addReplyNotes({[sanitizedEvent.id]: [...(notes.replyNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
       });
 
     }
@@ -203,7 +202,7 @@ export const useListEvents = ({
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        dispatch(setRootNotes({ ...notes.rootNotes, [sanitizedEvent.id]: [...(notes.rootNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
+        dispatch(addRootNotes({ [sanitizedEvent.id]: [...(notes.rootNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
       });
 
     }

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { Notes } from "../../nostr/Types";
+import { MetaData, Notes } from "../../nostr/Types";
 
 const initialState: Notes = {
     globalNotes: [],
@@ -14,26 +14,28 @@ export const notesSlice = createSlice({
     name: "notes",
     initialState,
     reducers: {
-        setGlobalNotes: (state, action) => {
-            state.globalNotes = action.payload;
+        addGlobalNotes: (state, action) => {
+            state.globalNotes = [...state.globalNotes, action.payload];
         },
-        setRootNotes: (state, action) => {
-            state.rootNotes = action.payload;
+        addRootNotes: (state, action) => {
+            state.rootNotes[action.payload.id] = [...(state.rootNotes[action.payload.id] || []), action.payload];
         },
-        setReplyNotes: (state, action) => {
-            state.replyNotes = action.payload;
+        addReplyNotes: (state, action) => {
+            state.replyNotes[action.payload.id] = [...(state.replyNotes[action.payload.id] || []), action.payload];
         },
-        setUserNotes: (state, action) => {
-            state.userNotes = action.payload;
+        addUserNotes: (state, action) => {
+            state.userNotes = [...state.userNotes, action.payload];
         },
-        setMetaData: (state, action) => {
-            state.metaData = action.payload;
+        addMetaData: (state, action) => {
+            console.log("Payload: ", action.payload); // Check what payload you're receiving
+            state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
+            console.log("Updated state: ", state.metaData); // Check if state is updated as expected
         },
-        setReactions: (state, action) => {
-            state.reactions = action.payload;
+        addReactions: (state, action) => {
+            state.reactions[action.payload.id] = action.payload;
         },
     }
 })
 
-export const { setGlobalNotes, setRootNotes, setReplyNotes, setUserNotes, setMetaData, setReactions } = notesSlice.actions;
+export const { addGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions } = notesSlice.actions;
 export default notesSlice.reducer;

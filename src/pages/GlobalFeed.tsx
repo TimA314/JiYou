@@ -9,8 +9,7 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { MetaData, RelaySetting } from '../nostr/Types';
-import Loading from '../components/Loading';
+import { RelaySetting } from '../nostr/Types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
@@ -82,28 +81,13 @@ type GlobalFeedProps = {
     }
 
     const renderFeed = () => {
-        if (fetchingEventsInProgress.current) {
+        if (notes.globalNotes.length === 0) {
             return (
-                <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    height: '100vh',
-                    width: '100vw',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                }} >
-                    <Loading />
-                </Box>
-            )
-        } else if (notes.globalNotes.length === 0 && !fetchingEventsInProgress.current) {
-            return (
-                <Typography 
+                <Typography
                     variant="h6" 
                     color={themeColors.textColor} 
                     sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
-                        No Notes Found
+                        No Notes
                 </Typography>
             )
         } else {

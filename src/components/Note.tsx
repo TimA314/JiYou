@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { MetaData, RelaySetting } from '../nostr/Types';
+import { RelaySetting } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress, Grid } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate, Kind, Event } from 'nostr-tools';
@@ -136,7 +136,6 @@ const Note: React.FC<NoteProps> = ({
       ],
     } as EventTemplate
     
-
     setLiked(true)
 
     const shouldSignWithNostr = window.nostr && keys.privateKey.decoded === "";
@@ -210,7 +209,7 @@ const Note: React.FC<NoteProps> = ({
         <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <CardHeader
           avatar={
-            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.id].picture}>
+            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.pubkey].picture}>
             </Avatar>
           }
           title={moment.unix(event.created_at).fromNow()}
@@ -330,11 +329,11 @@ const Note: React.FC<NoteProps> = ({
          />
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" src={notes.metaData[event.id]?.picture ?? ""}>
+          <Avatar aria-label="recipe" src={notes.metaData[event.pubkey]?.picture ?? ""}>
           </Avatar>
         }
-        title={notes.metaData[event.id]?.name ?? ""}
-        subheader={notes.metaData[event.id]?.nip05 ?? ""}
+        title={notes.metaData[event.pubkey]?.name ?? ""}
+        subheader={notes.metaData[event.pubkey]?.nip05 ?? ""}
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
@@ -409,10 +408,10 @@ const Note: React.FC<NoteProps> = ({
                     <Grid item xs={4}>
                         <CardHeader
                                 avatar={
-                                  <Avatar src={notes.metaData[previewEvent.id].picture} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={notes.metaData[previewEvent.pubkey].picture} sx={{width: 24, height: 24}}/>
                                 }
-                                title={notes.metaData[previewEvent.id].name}
-                                subheader={notes.metaData[previewEvent.id].nip05}
+                                title={notes.metaData[previewEvent.pubkey].name}
+                                subheader={notes.metaData[previewEvent.pubkey].nip05}
                                 subheaderTypographyProps={{color: themeColors.textColor}}
                                 style={{color: themeColors.textColor}}>
                         </CardHeader>
