@@ -38,7 +38,7 @@ function App() {
   const { profile, updateProfile, getProfile} = useProfile({ pool, relays,});
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
-  const { feedEvents, rootEvents, replyEvents, reactions, metaData} = useListEvents({ 
+  const { } = useListEvents({ 
       pool,
       setPool, 
       relays, 
@@ -64,7 +64,7 @@ function App() {
           if (pkFromNostr && pkFromNostr !== "")
           {
             const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
-            store.dispatch(setKeys(newKeys));
+            dispatch(setKeys(newKeys));
             return true;
           }
           return false;
@@ -151,9 +151,7 @@ function App() {
               setPool={setPool}
               following={following}
               followers={followers}
-              profile={profile}
               updateProfile={updateProfile}
-              getProfile={getProfile}
               imagesOnlyMode={imagesOnlyMode}
               hideExplicitContent={hideExplicitContent}
             />} />
@@ -172,11 +170,6 @@ function App() {
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}
-              feedEvents={feedEvents}
-              rootEvents={rootEvents}
-              replyEvents={replyEvents}
-              reactions={reactions}
-              metaData={metaData}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               filter={filterForFeed}

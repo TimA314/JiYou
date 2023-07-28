@@ -5,23 +5,13 @@ export type EventWithProfile = Event & {
     isFollowing?: boolean;
 };
 
-
-export interface FullEventData {
-    content: string;
-    user: {
-      name: string;
-      picture: string;
-      about: string;
-      nip05: string;
-    }
-    pubkey: string;
-    hashtags: string[];
-    eventId: string;
-    sig: string;
-    created_at: number;
-    tags: string[][];
-    reaction: Record<string,Event>;
-    images: string[];
+export type Notes = {
+  globalNotes: Event[],
+  rootNotes: Record<string, Event[]>,
+  replyNotes:  Record<string, Event[]>,
+  userNotes: Event[],
+  metaData:  Record<string, MetaData>,
+  reactions:  Record<string, Event[]>
 }
 
 declare global {
@@ -39,14 +29,6 @@ export type Keys = {
     decoded: string,
     encoded: string
   }
-}
-
-
-
-export type FeedEvents = {
-  feedEvents: Map<string, FullEventData>, 
-  replyEvents: Map<string, FullEventData>, 
-  rootEvents: Map<string, FullEventData>
 }
 
 export type RelaySetting = {

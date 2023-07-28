@@ -8,6 +8,8 @@ import SouthIcon from '@mui/icons-material/South';
 import { useContext } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -25,10 +27,6 @@ interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   event: Event;
-  replyEvents: Record<string, Event[]>;
-  rootEvents: Record<string, Event[]>;
-  metaData: Record<string, MetaData>;
-  reactions: Record<string, Event[]>;
   open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
@@ -42,10 +40,6 @@ interface NoteModalProps {
 
 export default function NoteModal({
   event,
-  replyEvents,
-  rootEvents,
-  metaData,
-  reactions,
   fetchEvents,
   setFetchEvents,
   open,
@@ -61,14 +55,15 @@ export default function NoteModal({
 
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
+  const notes = useSelector((state: RootState) => state.notes);
 
 
   const getThread = () => {
     return (
       <Box>
         <Box>
-          {rootEvents[event.id] && (rootEvents[event.id]?.length ?? 0) > 0 && 
-            rootEvents[event.id].map((rootEvent: Event) => {
+          {notes.rootNotes[event.id] && (notes.rootNotes[event.id]?.length ?? 0) > 0 && 
+            notes.rootNotes[event.id].map((rootEvent: Event) => {
               return (
                 <Box 
                   key={rootEvent.sig + Math.random()}                                        
@@ -82,10 +77,6 @@ export default function NoteModal({
                   <Note
                       key={rootEvent.sig + Math.random()}
                       event={rootEvent}
-                      replyEvents={replyEvents}
-                      rootEvents={rootEvents}
-                      metaData={metaData}
-                      reactions={reactions}
                       pool={pool}
                       relays={relays}
                       fetchEvents={fetchEvents}
@@ -109,11 +100,7 @@ export default function NoteModal({
         <Box>
             <Note 
               event={event}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
               fetchEvents={fetchEvents}
-              metaData={metaData}
-              reactions={reactions}
               setFetchEvents={setFetchEvents}
               pool={pool} relays={relays}
               following={following}
@@ -128,19 +115,15 @@ export default function NoteModal({
         </Box>
 
         <Box>
-          {(replyEvents[event.id]?.length ?? 0) > 0 && (
+          {(notes.replyNotes[event.id]?.length ?? 0) > 0 && (
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <SouthIcon />
                 </Box>
-                {replyEvents[event.id].map((replyEvent) => {
+                {notes.replyNotes[event.id].map((replyEvent) => {
                   return (
                     <Note 
                       event={replyEvent}
-                      replyEvents={replyEvents}
-                      rootEvents={rootEvents}
-                      reactions={reactions}
-                      metaData={metaData}
                       pool={pool}
                       relays={relays}
                       fetchEvents={fetchEvents}

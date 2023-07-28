@@ -1,6 +1,4 @@
-import { Event, nip19 } from "nostr-tools";
-import { FullEventData, MetaData, ProfileContent } from "../nostr/Types";
-import { DiceBears, GetImageFromPost } from "./miscUtils";
+import { Event } from "nostr-tools";
 
 
 

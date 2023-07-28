@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
+import { MetaData, RelaySetting } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress, Grid } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
 import { SimplePool, nip19, EventTemplate, Kind, Event } from 'nostr-tools';
@@ -64,10 +64,6 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 interface NoteProps {
   event: Event;
-  replyEvents: Record<string, Event[]>;
-  rootEvents: Record<string, Event[]>;
-  reactions: Record<string, Event[]>;
-  metaData: Record<string, MetaData>;
   pool: SimplePool | null;
   relays: RelaySetting[];
   fetchEvents: boolean;
@@ -88,10 +84,6 @@ const Note: React.FC<NoteProps> = ({
     fetchEvents, 
     setFetchEvents,
     event,
-    replyEvents,
-    rootEvents,
-    reactions,
-    metaData,
     following, 
     setHashtags, 
     disableReplyIcon, 
@@ -109,10 +101,11 @@ const Note: React.FC<NoteProps> = ({
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
   const keys = useSelector((state: RootState) => state.keys);
+  const notes = useSelector((state: RootState) => state.notes);
 
   const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[3] === "root");
   const backupRootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1]);
-  const previewEvent = rootEvents[rootEventTagToPreview?.[1] ?? backupRootEventTagToPreview?.[1] ?? ""]?.[0];
+  const previewEvent = notes.rootNotes[rootEventTagToPreview?.[1] ?? backupRootEventTagToPreview?.[1] ?? ""]?.[0];
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
   const images = GetImageFromPost(event.content);
@@ -181,12 +174,8 @@ const Note: React.FC<NoteProps> = ({
       <Card sx={{marginBottom: "15px"}}>
         <NoteModal
           fetchEvents={fetchEvents}
-          reactions={reactions}
-          metaData={metaData}
           setFetchEvents={setFetchEvents}
           event={event}
-          replyEvents={replyEvents}
-          rootEvents={rootEvents}
           open={noteDetailsOpen}
           setNoteDetailsOpen={setNoteDetailsOpen}
           pool={pool}
@@ -221,7 +210,7 @@ const Note: React.FC<NoteProps> = ({
         <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <CardHeader
           avatar={
-            <Avatar sizes='small' aria-label="recipe" src={metaData[event.id].picture}>
+            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.id].picture}>
             </Avatar>
           }
           title={moment.unix(event.created_at).fromNow()}
@@ -230,7 +219,7 @@ const Note: React.FC<NoteProps> = ({
           <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
           <IconButton aria-label="cart" onClick={showReplyThread}>
             <StyledBadge color="secondary">
-              {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents[event.id]?.length ?? ""} color="primary"><ForumIcon color="primary"/></Badge> }
+              {gettingThread ? <CircularProgress /> : <Badge badgeContent={notes.replyNotes[event.id]?.length ?? ""} color="primary"><ForumIcon color="primary"/></Badge> }
             </StyledBadge>
           </IconButton>
           </Box>
@@ -249,7 +238,7 @@ const Note: React.FC<NoteProps> = ({
               className={liked ? 'animateLike' : ''}
             >
             <Typography variant='caption' sx={{color: themeColors.textColor}}>
-              {(reactions[event.id].filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
+              {(notes.reactions[event.id].filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
             </Typography>
               <FavoriteIcon id={"favorite-icon-" + event.sig} />
             </FavoriteIconButton>
@@ -309,10 +298,6 @@ const Note: React.FC<NoteProps> = ({
         open={replyToNoteOpen} 
         setReplyToNoteOpen={setReplyToNoteOpen} 
         event={event}
-        rootEvents={rootEvents}
-        replyEvents={replyEvents}
-        metaData={metaData}
-        reactions={reactions}
         pool={pool} 
         relays={relays} 
         following={following} 
@@ -333,10 +318,6 @@ const Note: React.FC<NoteProps> = ({
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
         event={event}
-        replyEvents={replyEvents}
-        rootEvents={rootEvents}
-        metaData={metaData}
-        reactions={reactions}
         open={noteDetailsOpen}
         setNoteDetailsOpen={setNoteDetailsOpen}
         pool={pool}
@@ -349,11 +330,11 @@ const Note: React.FC<NoteProps> = ({
          />
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" src={metaData[event.id]?.picture ?? ""}>
+          <Avatar aria-label="recipe" src={notes.metaData[event.id]?.picture ?? ""}>
           </Avatar>
         }
-        title={metaData[event.id]?.name ?? ""}
-        subheader={metaData[event.id]?.nip05 ?? ""}
+        title={notes.metaData[event.id]?.name ?? ""}
+        subheader={notes.metaData[event.id]?.nip05 ?? ""}
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
@@ -363,10 +344,6 @@ const Note: React.FC<NoteProps> = ({
         open={replyToNoteOpen} 
         setReplyToNoteOpen={setReplyToNoteOpen} 
         event={event}
-        replyEvents={replyEvents}
-        rootEvents={rootEvents}
-        metaData={metaData}
-        reactions={reactions}
         pool={pool} 
         relays={relays} 
         following={following} 
@@ -432,10 +409,10 @@ const Note: React.FC<NoteProps> = ({
                     <Grid item xs={4}>
                         <CardHeader
                                 avatar={
-                                  <Avatar src={metaData[previewEvent.id].picture} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={notes.metaData[previewEvent.id].picture} sx={{width: 24, height: 24}}/>
                                 }
-                                title={metaData[previewEvent.id].name}
-                                subheader={metaData[previewEvent.id].nip05}
+                                title={notes.metaData[previewEvent.id].name}
+                                subheader={notes.metaData[previewEvent.id].nip05}
                                 subheaderTypographyProps={{color: themeColors.textColor}}
                                 style={{color: themeColors.textColor}}>
                         </CardHeader>
@@ -482,7 +459,7 @@ const Note: React.FC<NoteProps> = ({
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            {gettingThread ? <CircularProgress /> : <Badge badgeContent={replyEvents[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
+            {gettingThread ? <CircularProgress /> : <Badge badgeContent={notes.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>
@@ -501,7 +478,7 @@ const Note: React.FC<NoteProps> = ({
             className={liked ? 'animateLike' : ''}
           >
           <Typography variant='caption' sx={{color: themeColors.textColor}}>
-            {(reactions[event.id]?.filter(e => e.content !== "-")?.length ?? 0) + (liked ? 1 : 0)}
+            {(notes.reactions[event.id]?.filter(e => e.content !== "-")?.length ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + event.sig} />
           </FavoriteIconButton>

@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Event, SimplePool } from 'nostr-tools';
-import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
+import { MetaData, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,10 +27,6 @@ interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   event: Event;
-  replyEvents: Record<string, Event[]>;
-  rootEvents: Record<string, Event[]>;
-  reactions: Record<string, Event[]>;
-  metaData: Record<string, MetaData>;
   open: boolean;
   setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
@@ -46,10 +42,6 @@ export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
   event,
-  replyEvents,
-  rootEvents,
-  reactions,
-  metaData,
   open, 
   setReplyToNoteOpen, 
   pool, 
@@ -90,10 +82,6 @@ export default function ReplyToNote({
               pool={pool} 
               relays={relays}
               event={event}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
-              reactions={reactions}
-              metaData={metaData}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               following={following} 

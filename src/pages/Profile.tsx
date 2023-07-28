@@ -5,7 +5,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
+import { RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
@@ -20,35 +20,22 @@ interface ProfileProps {
     relays: RelaySetting[];
     pool: SimplePool | null;
     setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
-    profile: ProfileContent;
     following: string[];
     followers: string[];
     fetchEvents: boolean;
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
-    getProfile: () => Promise<void>;
     imagesOnlyMode: React.MutableRefObject<boolean>;
     hideExplicitContent: React.MutableRefObject<boolean>;
-}
-
-interface ProfileContent {
-    name: string;
-    picture: string;
-    about: string;
-    banner: string;
 }
 
 export default function Profile({
     relays, 
     pool,
     setPool,
-    profile, 
     following, 
     followers, 
-    fetchEvents, 
-    setFetchEvents, 
     updateProfile, 
-    getProfile, 
     hideExplicitContent,
 }: ProfileProps) {
 const [profileNameInput, setProfileNameInput] = useState("");
@@ -57,45 +44,26 @@ const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
-const fetchingEventsInProgress = useRef(false);
-const hashtags: string[] = [];
 const [tabIndex, setTabIndex] = useState(0);
-const imagesOnlyMode = useRef<boolean>(false);
 const keys = useSelector((state: RootState) => state.keys);
+const notes = useSelector((state: RootState) => state.notes);
 const dispatch = useDispatch();
 
 const userNotesFilter: Filter = { kinds: [1], authors: [keys.publicKey.decoded]};
-const { feedEvents: userEvents, rootEvents, replyEvents, metaData, reactions} = useListEvents({
-    pool, 
-    setPool,
-    relays, 
-    tabIndex: 3, 
-    following, 
-    hashtags,
-    hideExplicitContent, 
-    imagesOnlyMode, 
-    fetchEvents,
-    setFetchEvents, 
-    fetchingEventsInProgress,
-    filter: userNotesFilter
-});
+
 
 useEffect(() => {
     if (!pool || keys.publicKey.decoded === "") return;
 
+    const userMetaData = notes.metaData[keys.publicKey.decoded];
+
     const loadProfile = async () => {
         try {
-            const profileContent = {
-                name: profile.name,
-                picture: profile.picture,
-                about: profile.about,
-                banner: profile.banner
-            }
 
-            setProfileNameInput(profileContent.name);
-            setProfileAboutInput(profileContent.about);
-            setImageUrlInput(profileContent.picture);
-            setBannerUrlInput(profileContent.banner);
+            setProfileNameInput(userMetaData?.name ?? "");
+            setProfileAboutInput(userMetaData?.about ?? "");
+            setImageUrlInput(userMetaData?.picture ?? "");
+            setBannerUrlInput(userMetaData?.banner ?? "");
 
         } catch (error) {
             console.log(error);
@@ -103,11 +71,7 @@ useEffect(() => {
     }
 
     loadProfile();
-}, [profile])
-
-useEffect(() => {
-    getProfile();
-}, [keys.publicKey.decoded])
+}, [])
 
 const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -132,7 +96,7 @@ const handleLogout = () => {
 const styles = {
     banner: {
         height: 350,
-        backgroundImage: `url(${profile.banner})`,
+        backgroundImage: `url(${bannerUrlInput})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         margin: -24,
@@ -159,7 +123,7 @@ const styles = {
                         </Toolbar>
                         <div className="avatarContainer">
                             <Avatar
-                                src={profile.picture}
+                                src={imageUrlInput}
                                 sx={{ width: 200, height: 200 }}
                                 />
                         </div>
@@ -283,20 +247,11 @@ const styles = {
                             relays={relays} 
                             following={following} 
                             hideExplicitContent={hideExplicitContent}
-                            userEvents={userEvents}
-                            replyEvents={replyEvents}
-                            rootEvents={rootEvents}
-                            reactions={reactions}
-                            metaData={metaData}
                             />                    
                     )}
 
                     {tabIndex === 1 && (
-                        <Notifications
-                            userEvents={userEvents}
-                            reactionEvents={reactions}
-                            metaData={metaData} 
-                        />
+                        <Notifications />
                     )}
 
                 </Box>)

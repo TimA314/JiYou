@@ -3,8 +3,9 @@ import { Event, Filter, SimplePool } from 'nostr-tools';
 import { MetaData, RelaySetting } from '../nostr/Types';
 import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { setGlobalNotes, setMetaData, setReactions, setReplyNotes, setRootNotes } from '../redux/slices/notesSlice';
 
 type useListEventsProps = {
   pool: SimplePool | null;
@@ -35,14 +36,10 @@ export const useListEvents = ({
   fetchingEventsInProgress,
   filter
 }: useListEventsProps) => {
-  
-  const [feedEvents, setFeedEvents] = useState<Event[]>([]);
-  const [replyEvents, setReplyEvents] = useState<Record<string,Event[]>>({});
-  const [rootEvents, setRootEvents] = useState<Record<string,Event[]>>({});
-  
-  const [reactions, setReactions] = useState<Record<string, Event[]>>({});
-  const [metaData, setMetaData] = useState<Record<string, MetaData>>({});
+  const notes = useSelector((state: RootState) => state.notes);
+  const keys = useSelector((state: RootState) => state.keys);
 
+  const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
   const allRelayUrls = useMemo(() => relays.map((r) => r.relayUrl), [relays]);
 
@@ -57,7 +54,7 @@ export const useListEvents = ({
       sub.on("event", (event) => {
           if (hideExplicitContent && eventContainsExplicitContent(event)) return;
           const sanitizedEvent = sanitizeEvent(event);
-          setFeedEvents((prev) => insertEventIntoDescendingList(prev, sanitizedEvent));
+          dispatch(setGlobalNotes(insertEventIntoDescendingList(notes.globalNotes, sanitizedEvent)))
       });
     }
     subFeedEvents();
@@ -69,21 +66,27 @@ export const useListEvents = ({
     const subMetaDataEvents = async () => {
       if (!pool) return;
 
-      const feedKeys = feedEvents.filter((e) => !metaData[e.pubkey]).map((e) => e.pubkey);
-      const reactionKeysToFetch = Object.keys(reactions).filter((e) => !metaData[e]);
-      const rootKeysToFetch = Object.keys(rootEvents).filter((e) => !metaData[e]);
-      const replyKeysToFetch = Object.keys(replyEvents).filter((e) => !metaData[e]);
 
-      let sub = pool.sub(allRelayUrls, [{ "kinds": [0], authors: [...feedKeys,...reactionKeysToFetch,...rootKeysToFetch,...replyKeysToFetch] }]);
+      const feedKeys = notes.globalNotes.filter((e) => !notes.metaData[e.pubkey])?.map((e) => e.pubkey);
+      const reactionKeysToFetch = Object.values(notes.reactions).flat().filter((e) => !notes.metaData[e.pubkey]).map((e) => e.pubkey);
+      const rootKeysToFetch = Object.values(notes.rootNotes).flat().filter((e) => !notes.metaData[e.pubkey]).map((e) => e.pubkey);
+      const replyKeysToFetch = Object.values(notes.replyNotes).flat().filter((e) => !notes.metaData[e.pubkey]).map((e) => e.pubkey);
+
+      const pubkeysToFetch = [...feedKeys,...reactionKeysToFetch,...rootKeysToFetch,...replyKeysToFetch];
+      if (!notes.metaData[keys.publicKey.decoded]){
+        pubkeysToFetch.push(keys.publicKey.decoded)
+      }
+
+      let sub = pool.sub(allRelayUrls, [{ "kinds": [0], authors: pubkeysToFetch }]);
 
       sub.on("event", (event) => { 
         const sanitizedEvent = sanitizeEvent(event);
         const metadata = JSON.parse(sanitizedEvent.content) as MetaData;
-        setMetaData((prev) => ({ ...prev, [sanitizedEvent.pubkey]: metadata }));
+        dispatch(setMetaData({ ...notes.metaData, [sanitizedEvent.pubkey]: metadata }))
       });
     }
     subMetaDataEvents();
-  }, [feedEvents]);
+  }, [notes.globalNotes, notes.rootNotes, notes.replyNotes, notes.reactions, notes.userNotes, keys.publicKey.decoded]);
 
 
   //Reactions
@@ -91,58 +94,90 @@ export const useListEvents = ({
 
     const subReactionEvents = async () => {
       if (!pool) return;
-      const feedEventsToFetch = feedEvents.filter((e: Event) => !reactions[e.id]);
-      const replyEventsToFetch = Object.values(replyEvents).map((e: Event[]) => e.filter((e: Event) => !reactions[e.id])).flat();
-      const rootEventsToFetch = Object.values(rootEvents).map((e: Event[]) => e.filter((e: Event) => !reactions[e.id])).flat();
+      const allPubkeysToFetch: string[] = []
+      const allEventIdsToFetch: string[] = []
 
-      const feedEventPubkeys = feedEventsToFetch.map((e: Event) => e.pubkey);
-      const replyEventPubkeys = replyEventsToFetch.map((e: Event) => e.pubkey);
-      const rootEventPubkeys = rootEventsToFetch.map((e: Event) => e.pubkey);
+      const feedEventsToFetch = notes.globalNotes.filter((e) => !notes.reactions[e.id]);
+      const replyEventsToFetch = Object.values(notes.replyNotes).flat().filter((e) => !notes.reactions[e.id]);
+      const rootEventsToFetch = Object.values(notes.rootNotes).flat().filter((e) => !notes.reactions[e.id]);
+      const userEventsToFetch = notes.userNotes.filter((e) => !notes.reactions[e.id])
 
-      const eventIds = [...feedEventsToFetch, ...replyEventsToFetch, ...rootEventsToFetch].map((e) => e.id);
-      const eventsPubkeys = [...new Set([...feedEventPubkeys, ...replyEventPubkeys, ...rootEventPubkeys])];
 
-      let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": eventIds, "#p": eventsPubkeys}]);
+      feedEventsToFetch.forEach((e) => {
+        allPubkeysToFetch.push(e.pubkey) 
+        allEventIdsToFetch.push(e.id)
+        }
+      );
+      replyEventsToFetch.forEach((e) => {
+        allPubkeysToFetch.push(e.pubkey) 
+        allEventIdsToFetch.push(e.id)
+        }
+      );
+      rootEventsToFetch.forEach((e) => {
+        allPubkeysToFetch.push(e.pubkey) 
+        allEventIdsToFetch.push(e.id)
+        }
+      );
+      userEventsToFetch.forEach((e) => {
+        allPubkeysToFetch.push(e.pubkey) 
+        allEventIdsToFetch.push(e.id)
+        }
+      );
+
+
+      let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
 
       sub.on("event", (event) => {
         const likedEventId = event.tags.find((t) => t[0] === "e")?.[1];
-        
         if (!likedEventId) return;
-    
-        setReactions((prev) => {
-            const prevReactionEvents = prev[likedEventId] ? [...prev[likedEventId]] : [];
-            const alreadyExists = prevReactionEvents.find(e => e.sig === event.sig);
-    
-            if (!alreadyExists) {
-                prevReactionEvents.push(event);
-            }
-    
-            return { ...prev, [likedEventId]: prevReactionEvents };
-        });
+
+        const prevReactionEvents = notes.reactions[likedEventId] ? [...notes.reactions[likedEventId]] : [];
+        const alreadyExists = prevReactionEvents.find(e => e.sig === event.sig);
+        if (!alreadyExists) {
+            prevReactionEvents.push(event);
+        }
+
+        dispatch(setReactions({ ...notes.reactions, [likedEventId]: prevReactionEvents }))
       });
     }
 
     subReactionEvents();
-  }, [feedEvents, rootEvents, replyEvents]);
+  }, [notes.globalNotes, notes.rootNotes, notes.replyNotes, notes.userNotes]);
 
   
   //Reply Events
   useEffect(() => {
     const subReplyEvents = async () => {
       if (!pool) return;
+      const replyEventsToFetch: string[] = []
+     
+      notes.globalNotes.filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
+        replyEventsToFetch.push(e.id)
+      });
 
-      const replyEventsToFetch: Event[] = feedEvents.filter((e: Event) => !replyEvents[e.id]);
+      Object.values(notes.rootNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
+        replyEventsToFetch.push(e.id)
+      });
 
-      let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventsToFetch.map((e) => e.id)}]);
+      Object.values(notes.replyNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
+        replyEventsToFetch.push(e.id)
+      });
+
+      Object.values(notes.userNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
+        replyEventsToFetch.push(e.id)
+      });
+
+
+      let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventsToFetch}]);
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        setReplyEvents((prev) => ({ ...prev, [sanitizedEvent.id]: [...(prev[sanitizedEvent.id] || []), sanitizedEvent] }));
+        dispatch(setReplyNotes({ ...notes.replyNotes, [sanitizedEvent.id]: [...(notes.replyNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
       });
 
     }
     subReplyEvents();
-  }, [feedEvents]);
+  }, [notes.globalNotes, notes.rootNotes, notes.userNotes]);
 
 
   //Root Events
@@ -152,7 +187,15 @@ export const useListEvents = ({
 
       let idsToFetch: string[] = [];
 
-      Object.values(feedEvents).forEach((e: Event) => {
+      notes.globalNotes.forEach((e: Event) => {
+        idsToFetch = e.tags.filter((t) => t[0] === "e" && t[1]).flat();
+      });
+
+      Object.values(notes.replyNotes).flat().forEach((e: Event) => {
+        idsToFetch = e.tags.filter((t) => t[0] === "e" && t[1]).flat();
+      });
+
+      Object.values(notes.userNotes).forEach((e: Event) => {
         idsToFetch = e.tags.filter((t) => t[0] === "e" && t[1]).flat();
       });
 
@@ -160,12 +203,12 @@ export const useListEvents = ({
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        setRootEvents((prev) => ({ ...prev, [sanitizedEvent.id]: [...(prev[sanitizedEvent.id] || []), sanitizedEvent] }));
+        dispatch(setRootNotes({ ...notes.rootNotes, [sanitizedEvent.id]: [...(notes.rootNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
       });
 
     }
     subRootEvents();
-  }, [feedEvents]);
+  }, [notes.globalNotes, notes.replyNotes, notes.userNotes]);
 
  
   const fetchEventsFromRelays = async () => {
@@ -201,5 +244,5 @@ export const useListEvents = ({
 
   }, [fetchEvents, filter]);
 
-  return { feedEvents, rootEvents, replyEvents, reactions, metaData, filter};
+  return { filter};
 }

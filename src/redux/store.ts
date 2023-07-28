@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import keySlice from './slices/keySlice';
+import notesSlice from './slices/notesSlice';
 
 export const store = configureStore({
     reducer: {
         keys: keySlice,
+        notes: notesSlice
     },
   })
   

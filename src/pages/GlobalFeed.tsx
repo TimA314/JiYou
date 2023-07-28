@@ -11,6 +11,8 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { MetaData, RelaySetting } from '../nostr/Types';
 import Loading from '../components/Loading';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -37,11 +39,6 @@ type GlobalFeedProps = {
     fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: MutableRefObject<boolean>;
     imagesOnlyMode: MutableRefObject<boolean>;
-    feedEvents: Event[];
-    rootEvents: Record<string, Event[]>;
-    replyEvents: Record<string, Event[]>;
-    reactions: Record<string, Event[]>;
-    metaData: Record<string, MetaData>;
     hashtags: string[];
     tabIndex: number;
   };
@@ -54,11 +51,6 @@ type GlobalFeedProps = {
     setFetchEvents,
     filter,
     fetchingEventsInProgress,
-    feedEvents,
-    rootEvents,
-    replyEvents,
-    reactions,
-    metaData,
     hashtags,
     tabIndex,
     updateFollowing,
@@ -66,7 +58,7 @@ type GlobalFeedProps = {
     setHashtags,
     imagesOnlyMode,
   }) => {
-
+    const notes = useSelector((state: RootState) => state.notes);
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
 
@@ -105,7 +97,7 @@ type GlobalFeedProps = {
                     <Loading />
                 </Box>
             )
-        } else if (feedEvents.length === 0 && !fetchingEventsInProgress.current) {
+        } else if (notes.globalNotes.length === 0 && !fetchingEventsInProgress.current) {
             return (
                 <Typography 
                     variant="h6" 
@@ -116,7 +108,7 @@ type GlobalFeedProps = {
             )
         } else {
             return (
-                Array.from(feedEvents.values()).map((event) => {
+                notes.globalNotes.map((event) => {
                     return (
                         <Note 
                             pool={pool} 
@@ -124,10 +116,6 @@ type GlobalFeedProps = {
                             fetchEvents={fetchEvents}
                             setFetchEvents={setFetchEvents}
                             event={event}
-                            replyEvents={replyEvents}
-                            rootEvents={rootEvents}
-                            reactions={reactions}
-                            metaData={metaData}
                             updateFollowing={updateFollowing} 
                             following={following} 
                             setHashtags={setHashtags} 
