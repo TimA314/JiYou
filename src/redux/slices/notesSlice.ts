@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { MetaData, Notes } from "../../nostr/Types";
+import { MetaData } from "../../nostr/Types";
+import { Event } from "nostr-tools";
 
 const initialState: Notes = {
     globalNotes: [],
-    rootNotes: {},
+    rootNotes: [],
     replyNotes: {},
     userNotes: [],
     metaData: {},
@@ -15,27 +16,49 @@ export const notesSlice = createSlice({
     initialState,
     reducers: {
         addGlobalNotes: (state, action) => {
-            state.globalNotes = [...state.globalNotes, action.payload];
+            if (state.globalNotes.length === 0 || !state.globalNotes.find(event => event && event.id && event.id === action.payload.id)) {
+                state.globalNotes.push(action.payload);
+            }
+        },
+        clearGlobalNotes: (state) => {
+            state.globalNotes = [];
         },
         addRootNotes: (state, action) => {
-            state.rootNotes[action.payload.id] = [...(state.rootNotes[action.payload.id] || []), action.payload];
+            if (!state.rootNotes.find(event => event.id === action.payload.id)) {
+                state.rootNotes.push(action.payload);
+            }
         },
         addReplyNotes: (state, action) => {
-            state.replyNotes[action.payload.id] = [...(state.replyNotes[action.payload.id] || []), action.payload];
+            if (!(state.replyNotes[action.payload.id]?.find(event => event.id === action.payload.id))) {
+                state.replyNotes[action.payload.id] = [...(state.replyNotes[action.payload.id] || []), action.payload];
+            }
         },
         addUserNotes: (state, action) => {
-            state.userNotes = [...state.userNotes, action.payload];
+            if (!state.userNotes.find(event => event.id === action.payload.id)) {
+                state.userNotes.push(action.payload);
+            }
         },
         addMetaData: (state, action) => {
-            console.log("Payload: ", action.payload); // Check what payload you're receiving
+            console.log("setMetaData")
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
-            console.log("Updated state: ", state.metaData); // Check if state is updated as expected
         },
         addReactions: (state, action) => {
-            state.reactions[action.payload.id] = action.payload;
+            if (!(state.reactions[action.payload.id]?.find(event => event.id === action.payload.id))) {
+                state.reactions[action.payload.id] = [...(state.reactions[action.payload.id] || []), action.payload];
+            }
         },
     }
-})
+});
 
-export const { addGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions } = notesSlice.actions;
+
+export const { addGlobalNotes, clearGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions } = notesSlice.actions;
 export default notesSlice.reducer;
+
+export type Notes = {
+  globalNotes: Event[],
+  rootNotes: Event[],
+  replyNotes:  Record<string, Event[]>,
+  userNotes: Event[],
+  metaData:  Record<string, MetaData>,
+  reactions:  Record<string, Event[]>
+}

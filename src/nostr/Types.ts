@@ -7,7 +7,7 @@ export type EventWithProfile = Event & {
 
 export type Notes = {
   globalNotes: Event[],
-  rootNotes: Record<string, Event[]>,
+  rootNotes: Event[],
   replyNotes:  Record<string, Event[]>,
   userNotes: Event[],
   metaData:  Record<string, MetaData>,

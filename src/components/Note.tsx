@@ -23,7 +23,6 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import ReplyToNote from './ReplyToNote';
 import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
-import { sanitizeString } from '../utils/sanitizeUtils';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
@@ -103,9 +102,14 @@ const Note: React.FC<NoteProps> = ({
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
 
-  const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[3] === "root");
+  const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[3] === "root")?.map((t) => t[1]);
   const backupRootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1]);
-  const previewEvent = notes.rootNotes[rootEventTagToPreview?.[1] ?? backupRootEventTagToPreview?.[1] ?? ""]?.[0];
+
+
+  let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[1]));
+  if (!previewEvent){
+    previewEvent = notes.rootNotes.find((e: Event)  => (backupRootEventTagToPreview && e.id === backupRootEventTagToPreview[1]));
+  }
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
   const images = GetImageFromPost(event.content);
@@ -209,7 +213,7 @@ const Note: React.FC<NoteProps> = ({
         <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <CardHeader
           avatar={
-            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.pubkey].picture}>
+            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.pubkey]?.picture ?? ""}>
             </Avatar>
           }
           title={moment.unix(event.created_at).fromNow()}
@@ -408,10 +412,10 @@ const Note: React.FC<NoteProps> = ({
                     <Grid item xs={4}>
                         <CardHeader
                                 avatar={
-                                  <Avatar src={notes.metaData[previewEvent.pubkey].picture} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={notes.metaData[previewEvent.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                                 }
-                                title={notes.metaData[previewEvent.pubkey].name}
-                                subheader={notes.metaData[previewEvent.pubkey].nip05}
+                                title={notes.metaData[previewEvent.pubkey]?.name ?? ""}
+                                subheader={notes.metaData[previewEvent.pubkey]?.nip05 ?? ""}
                                 subheaderTypographyProps={{color: themeColors.textColor}}
                                 style={{color: themeColors.textColor}}>
                         </CardHeader>
