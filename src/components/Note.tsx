@@ -102,7 +102,7 @@ const Note: React.FC<NoteProps> = ({
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
 
-  const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const rootEventTagToPreview = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");

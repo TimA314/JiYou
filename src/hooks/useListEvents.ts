@@ -228,7 +228,6 @@ export const useListEvents = ({
       }
 
       let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
-      console.log("rootNotes " + notes.rootNotes.length)
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
