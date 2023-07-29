@@ -102,16 +102,11 @@ const Note: React.FC<NoteProps> = ({
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
 
-  const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[3] === "root")?.map((t) => t[1]);
-  const backupRootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1]);
-
-
-  let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[1]));
-  if (!previewEvent){
-    previewEvent = notes.rootNotes.find((e: Event)  => (backupRootEventTagToPreview && e.id === backupRootEventTagToPreview[1]));
-  }
+  const rootEventTagToPreview = event.tags.find((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
+
   const images = GetImageFromPost(event.content);
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
@@ -462,7 +457,7 @@ const Note: React.FC<NoteProps> = ({
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            {gettingThread ? <CircularProgress /> : <Badge badgeContent={notes.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
+            {<Badge badgeContent={notes.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>

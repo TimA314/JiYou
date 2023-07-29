@@ -16,7 +16,7 @@ export const notesSlice = createSlice({
     initialState,
     reducers: {
         addGlobalNotes: (state, action) => {
-            if (state.globalNotes.length === 0 || !state.globalNotes.find(event => event && event.id && event.id === action.payload.id)) {
+            if (!state.globalNotes.find(event => event && event.id && event.id === action.payload.id)) {
                 state.globalNotes.push(action.payload);
             }
         },
@@ -29,9 +29,13 @@ export const notesSlice = createSlice({
             }
         },
         addReplyNotes: (state, action) => {
-            if (!(state.replyNotes[action.payload.id]?.find(event => event.id === action.payload.id))) {
-                state.replyNotes[action.payload.id] = [...(state.replyNotes[action.payload.id] || []), action.payload];
-            }
+            const repliedToEventIds = action.payload.tags.filter((t: string[]) => t[0] === "e" && t[1]);
+            if (!repliedToEventIds || repliedToEventIds.length === 0) return;
+
+            repliedToEventIds.forEach((id: string) => {
+                const prevReplies = state.replyNotes[id] ? [...state.replyNotes[id]] : [];
+                state.replyNotes[id] = [...new Set([...prevReplies, action.payload])];
+            })
         },
         addUserNotes: (state, action) => {
             if (!state.userNotes.find(event => event.id === action.payload.id)) {

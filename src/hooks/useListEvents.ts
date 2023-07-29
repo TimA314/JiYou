@@ -41,6 +41,8 @@ export const useListEvents = ({
   const notes = useSelector((state: RootState) => state.notes);
   const metadataFetched = useRef<Record<string, boolean>>({});
   const reactionsFetched = useRef<Record<string, boolean>>({});
+  const repliesFetched = useRef<Record<string, boolean>>({});
+  const rootsFetched = useRef<Record<string, boolean>>({});
 
   const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
@@ -71,18 +73,21 @@ export const useListEvents = ({
 
     const fetchMetaData = async () => {
       const pubkeysToFetch = [];
+
       notes.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
+
       Object.values(notes.reactions).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
+
+      Object.values(notes.replyNotes).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
+      .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
       if (!notes.metaData[keys.publicKey.decoded] && metadataFetched.current[keys.publicKey.decoded] !== true) {
         pubkeysToFetch.push(keys.publicKey.decoded)
       }
 
-      pubkeysToFetch.forEach(
-        (pubkey) => (metadataFetched.current[pubkey] = true)
-      );
+      pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = true));
 
       if (pubkeysToFetch.length > 0) {
         const sub = pool.sub(allRelayUrls, [
@@ -117,8 +122,13 @@ export const useListEvents = ({
       const allEventIdsToFetch: string[] = []
 
       const feedEventsToFetch = notes.globalNotes.filter((e) => reactionsFetched.current[e.id] !== true);
+      const rootEventsToFetch = notes.rootNotes.filter((e) => reactionsFetched.current[e.id] !== true);
+      const userEventsToFetch =  notes.userNotes.filter((e) => reactionsFetched.current[e.id] !== true);
+      const replyEventsToFetch = Object.values(notes.replyNotes).flat().filter((e) => reactionsFetched.current[e.id] !== true);
 
-      feedEventsToFetch.forEach((e) => {
+      const uniqueEvents = [...new Set([...feedEventsToFetch, ...rootEventsToFetch, ...userEventsToFetch, ...replyEventsToFetch])];
+
+      uniqueEvents.forEach((e) => {
         reactionsFetched.current[e.id] = true;
         allPubkeysToFetch.push(e.pubkey) 
         allEventIdsToFetch.push(e.id)
@@ -141,95 +151,93 @@ export const useListEvents = ({
 
   
   //Reply Events
-  // useEffect(() => {
+  useEffect(() => {
+    if (!pool) return;
 
-  //   const subReplyEvents = async () => {
-  //     if (!pool || !shouldRunSubReplyEvents) return;
+    const subReplyEvents = async () => {
 
-  //     const replyEventIdsToFetch: string[] = []
+      const replyEventIdsToFetch: string[] = []
      
-  //     notes.globalNotes.filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
-  //       replyEventIdsToFetch.push(e.id)
-  //     });
+      notes.globalNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+        .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-  //     Object.values(notes.rootNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
-  //       replyEventIdsToFetch.push(e.id)
-  //     });
+      Object.values(notes.rootNotes).flat().filter((e: Event) => repliesFetched.current[e.id] !== true)
+      .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-  //     Object.values(notes.replyNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
-  //       replyEventIdsToFetch.push(e.id)
-  //     });
+      Object.values(notes.replyNotes).flat().filter((e: Event) => repliesFetched.current[e.id] !== true)
+      .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-  //     Object.values(notes.userNotes).flat().filter((e: Event) => !notes.replyNotes[e.id]).forEach((e) => {
-  //       replyEventIdsToFetch.push(e.id)
-  //     });
+      notes.userNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+        .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-  //     console.log("replyEvents to fetch: " + replyEventIdsToFetch.length)
-  //     if (replyEventIdsToFetch.length === 0){
-  //       setShouldRunSubReplyEvents(false);
-  //       return;
-  //     }
+      replyEventIdsToFetch.forEach((id) => repliesFetched.current[id] = true)
 
-  //     let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
+      console.log("replyEvents to fetch: " + replyEventIdsToFetch.length)
 
-  //     sub.on("event", (event: Event) => {
-  //       const sanitizedEvent = sanitizeEvent(event);
-  //       dispatch(addReplyNotes({[sanitizedEvent.id]: [...(notes.replyNotes[sanitizedEvent.id] || []), sanitizedEvent] }))
-  //     });
-  //   }
+      if (replyEventIdsToFetch.length === 0) return;
 
-  //   subReplyEvents();
-  // }, [shouldRunSubReplyEvents]);
+      let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
+
+      sub.on("event", (event: Event) => {
+        const sanitizedEvent = sanitizeEvent(event);
+        dispatch(addReplyNotes(sanitizedEvent))
+      });
+    }
+
+    subReplyEvents();
+  }, [notes.globalNotes, notes.replyNotes, notes.rootNotes, notes.userNotes]);
 
 
-  // //Root Events
-  // useEffect(() => {
-  //   const subRootEvents = async () => {
-  //     if (!pool || !shouldRunSubRootEvents) return;
-  //     fetchingRootEvents.current = true;
+  //Root Events
+  useEffect(() => {
+    if (!pool) return;
 
-  //     let idsToFetch: string[] = [];
+    const subRootEvents = async () => {
+      const idsToFetch: string[] = [];
+      
+      notes.globalNotes.forEach((e: Event) => {
+        e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
+          idsToFetch.push(t[1])
+          rootsFetched.current[e.id] = true;
+        }));
+      });
 
-  //     notes.globalNotes.forEach((e: Event) => {
-  //       e.tags?.filter((t) => t[0] === "e" && t[1]).forEach(((t) => {
-  //         idsToFetch.push(t[1])
-  //       }));
-  //     });
+      Object.values(notes.replyNotes).flat().forEach((e: Event) => {
+        e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
+          idsToFetch.push(t[1])
+          rootsFetched.current[e.id] = true;
+        }));
+      });
 
-  //     Object.values(notes.replyNotes).flat().forEach((e: Event) => {
-  //       e.tags?.filter((t) => t[0] === "e" && t[1]).forEach(((t) => {
-  //         idsToFetch.push(t[1])
-  //       }));
-  //     });
+      notes.userNotes.forEach((e: Event) => {
+        e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
+          idsToFetch.push(t[1])
+          rootsFetched.current[e.id] = true;
+        }));
+      });
 
-  //     Object.values(notes.userNotes).forEach((e: Event) => {
-  //       e.tags?.filter((t) => t[0] === "e" && t[1]).forEach(((t) => {
-  //         idsToFetch.push(t[1])
-  //       }));
-  //     });
+      notes.rootNotes.forEach((e: Event) => {
+        e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
+          idsToFetch.push(t[1])
+          rootsFetched.current[e.id] = true;
+        }));
+      });
 
-  //     if (idsToFetch.length === 0){
-  //       setShouldRunSubRootEvents(false);
-  //       return;
-  //     }
+      if (idsToFetch.length === 0){
+        return;
+      }
 
-  //     let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
-  //     console.log("rootNotes " + notes.rootNotes.length)
+      let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
+      console.log("rootNotes " + notes.rootNotes.length)
 
-  //     sub.on("event", (event: Event) => {
-  //       const sanitizedEvent = sanitizeEvent(event);
-  //       dispatch(addRootNotes(sanitizedEvent))
-  //     });
+      sub.on("event", (event: Event) => {
+        const sanitizedEvent = sanitizeEvent(event);
+        dispatch(addRootNotes(sanitizedEvent))
+      });
+    }
 
-  //     sub.on("eose", () => {
-  //       setShouldRunSubRootEvents(false)
-  //       return;
-  //     })
-
-  //   }
-
-  //   subRootEvents();
-  // }, [shouldRunSubRootEvents]);
+    subRootEvents();
+  }, [notes.globalNotes, notes.replyNotes, notes.userNotes, notes.rootNotes]);
 
  
   const fetchEventsFromRelays = async () => {

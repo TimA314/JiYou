@@ -56,7 +56,7 @@ export default function NoteModal({
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
   const notes = useSelector((state: RootState) => state.notes);
-  const idsFromTags = event.tags.find((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const idsFromTags = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   const rootNotes = idsFromTags?.length ?? 0 > 0 ? notes.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
 
   const getThread = () => {
