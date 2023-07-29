@@ -39,13 +39,14 @@ export const notesSlice = createSlice({
             }
         },
         addMetaData: (state, action) => {
-            console.log("setMetaData")
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
         },
         addReactions: (state, action) => {
-            if (!(state.reactions[action.payload.id]?.find(event => event.id === action.payload.id))) {
-                state.reactions[action.payload.id] = [...(state.reactions[action.payload.id] || []), action.payload];
-            }
+            const likedEventId = action.payload.tags.find((t: string[]) => t[0] === "e")?.[1];
+            if (!likedEventId) return;
+            const prevReactionEvents = state.reactions[likedEventId] ? [...state.reactions[likedEventId]] : [];
+
+            state.reactions[likedEventId] = [...new Set([...prevReactionEvents, action.payload])];
         },
     }
 });

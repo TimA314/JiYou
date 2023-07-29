@@ -40,7 +40,7 @@ export const useListEvents = ({
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
   const metadataFetched = useRef<Record<string, boolean>>({});
-  
+  const reactionsFetched = useRef<Record<string, boolean>>({});
 
   const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
@@ -70,8 +70,11 @@ export const useListEvents = ({
     if (!pool) return;
 
     const fetchMetaData = async () => {
-      const pubkeysToFetch = notes.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
-        .map((event) => event.pubkey);
+      const pubkeysToFetch = [];
+      notes.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
+        .forEach((event) => pubkeysToFetch.push(event.pubkey));
+      Object.values(notes.reactions).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
+        .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
       if (!notes.metaData[keys.publicKey.decoded] && metadataFetched.current[keys.publicKey.decoded] !== true) {
         pubkeysToFetch.push(keys.publicKey.decoded)
@@ -104,67 +107,37 @@ export const useListEvents = ({
   
 
 
+  //Reactions
+  useEffect(() => {
 
+    if (!pool) return;
 
-  // //Reactions
-  // useEffect(() => {
+    const fetchReactions = async () => {
+      const allPubkeysToFetch: string[] = []
+      const allEventIdsToFetch: string[] = []
 
-  //   const subReactionEvents = async () => {
-  //     if (!pool || !shouldRunSubReactions) return;
-  //     const allPubkeysToFetch: string[] = []
-  //     const allEventIdsToFetch: string[] = []
+      const feedEventsToFetch = notes.globalNotes.filter((e) => reactionsFetched.current[e.id] !== true);
 
-  //     const feedEventsToFetch = notes.globalNotes.filter((e) => !notes.reactions[e.id]);
-  //     const replyEventsToFetch = Object.values(notes.replyNotes).flat().filter((e) => !notes.reactions[e.id]);
-  //     const rootEventsToFetch = Object.values(notes.rootNotes).flat().filter((e) => !notes.reactions[e.id]);
-  //     const userEventsToFetch = notes.userNotes.filter((e) => !notes.reactions[e.id])
+      feedEventsToFetch.forEach((e) => {
+        reactionsFetched.current[e.id] = true;
+        allPubkeysToFetch.push(e.pubkey) 
+        allEventIdsToFetch.push(e.id)
+        }
+      );
 
+      if(allEventIdsToFetch.length === 0 || allPubkeysToFetch.length === 0){
+        return;
+      }
 
-  //     feedEventsToFetch.forEach((e) => {
-  //       allPubkeysToFetch.push(e.pubkey) 
-  //       allEventIdsToFetch.push(e.id)
-  //       }
-  //     );
-  //     replyEventsToFetch.forEach((e) => {
-  //       allPubkeysToFetch.push(e.pubkey) 
-  //       allEventIdsToFetch.push(e.id)
-  //       }
-  //     );
-  //     rootEventsToFetch.forEach((e) => {
-  //       allPubkeysToFetch.push(e.pubkey) 
-  //       allEventIdsToFetch.push(e.id)
-  //       }
-  //     );
-  //     userEventsToFetch.forEach((e) => {
-  //       allPubkeysToFetch.push(e.pubkey) 
-  //       allEventIdsToFetch.push(e.id)
-  //       }
-  //     );
+      let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
 
-  //     console.log("reactions to fetch: " + allEventIdsToFetch.length)
-  //     if(allEventIdsToFetch.length === 0 || allPubkeysToFetch.length === 0){
-  //       setShouldRunSubReactions(false);
-  //       return;
-  //     }
+      sub.on("event", (event) => {
+        dispatch(addReactions(event))
+      });
+    }
 
-  //     let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
-
-  //     sub.on("event", (event) => {
-  //       const likedEventId = event.tags.find((t) => t[0] === "e")?.[1];
-  //       if (!likedEventId) return;
-
-  //       const prevReactionEvents = notes.reactions[likedEventId] ? [...notes.reactions[likedEventId]] : [];
-  //       const alreadyExists = prevReactionEvents.find(e => e.sig === event.sig);
-  //       if (!alreadyExists) {
-  //           prevReactionEvents.push(event);
-  //       }
-
-  //       dispatch(addReactions({ [likedEventId]: prevReactionEvents }))
-  //     });
-  //   }
-
-  //   subReactionEvents();
-  // }, [shouldRunSubReactions]);
+    fetchReactions();
+  }, [notes]);
 
   
   //Reply Events
