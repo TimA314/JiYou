@@ -14,17 +14,14 @@ export default function UserNotes({
     following
 }: Props) {
     const notes = useSelector((state: RootState) => state.notes);
-
     const [fetchEvents, setFetchEvents] = useState(false);
-
-
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
                         {notes.userNotes && notes.userNotes.map((event) => {
                             
                             return (
-                                <Box key={event.sig + Math.random()}>
+                                <Box key={event.sig}>
                                     <Note 
                                         event={event}
                                         fetchEvents={fetchEvents}

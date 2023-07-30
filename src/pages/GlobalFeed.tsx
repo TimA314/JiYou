@@ -121,16 +121,6 @@ type GlobalFeedProps = {
             
             {renderFeed()}
 
-            <ReplyToNote
-                fetchEvents={fetchEvents}
-                setFetchEvents={setFetchEvents}
-                following={following} 
-                updateFollowing={updateFollowing} 
-                setHashtags={setHashtags}
-                hashTags={hashtags}
-                imagesOnlyMode={imagesOnlyMode}
-                />
-
             <Modal
                 open={createNoteOpen}
                 onClose={handleCreateNoteClose}

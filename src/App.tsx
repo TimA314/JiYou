@@ -22,6 +22,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, store } from './redux/store';
 import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtils';
 import { setKeys } from './redux/slices/keySlice';
+import ReplyToNote from './components/ReplyToNote';
+import NoteModal from './components/NoteModal';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
@@ -133,7 +135,25 @@ function App() {
             {errorMessage}
         </Alert>
     </Fade>
-        <Routes>
+      <ReplyToNote
+        fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
+        following={following} 
+        updateFollowing={updateFollowing} 
+        setHashtags={setHashtags}
+        hashTags={hashtags}
+        imagesOnlyMode={imagesOnlyMode}
+      />
+      <NoteModal
+        fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
+        following={following}
+        updateFollowing={updateFollowing}
+        setHashtags={setHashtags}
+        hashTags={hashtags}
+        imagesOnlyMode={imagesOnlyMode}
+      />
+      <Routes>
           <Route path="/start" element={
             <StartingPage
               setErrorMessage={setErrorMessage}

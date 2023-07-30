@@ -11,21 +11,19 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { RelaySetting } from '../nostr/Types';
 import { Badge, BadgeProps, Box, Button, CircularProgress, Grid } from '@mui/material';
 import { useCallback, useContext, useState } from 'react';
-import { SimplePool, nip19, EventTemplate, Kind, Event } from 'nostr-tools';
+import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import NoteModal from './NoteModal';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import ReplyToNote from './ReplyToNote';
 import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setReplyToNote } from '../redux/slices/noteSlice';
+import { setNoteModalEvent, setReplyToNoteEvent } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -153,7 +151,7 @@ const Note: React.FC<NoteProps> = ({
   }, [pool, nostr.relays, event]);
 
   const showReplyThread = useCallback(() => {
-    setNoteDetailsOpen(true);
+    dispatch(setNoteModalEvent(event));
   }, []);
 
   const addHashtag = (tag: string) => {
@@ -164,24 +162,13 @@ const Note: React.FC<NoteProps> = ({
 
   const handleReplyToNote = () => {
     console.log("reply to note modal open", event);
-    dispatch(setReplyToNote(event));
+    dispatch(setReplyToNoteEvent(event));
   }
 
   //Images Only Mode
   if (imagesOnlyMode && imagesOnlyMode.current && showImagesOnly && !isInModal) {
     return (
       <Card sx={{marginBottom: "15px"}}>
-        <NoteModal
-          fetchEvents={fetchEvents}
-          setFetchEvents={setFetchEvents}
-          event={event}
-          setNoteDetailsOpen={setNoteDetailsOpen}
-          following={following}
-          updateFollowing={updateFollowing}
-          setHashtags={setHashtags}
-          hashTags={hashTags}
-          imagesOnlyMode={imagesOnlyMode}
-          />
         <CardContent sx={{margin: "-16px"}}>
           {(images?.length ?? 0) > 0 && (
             images.map((img) => (
@@ -221,7 +208,7 @@ const Note: React.FC<NoteProps> = ({
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <IconButton 
-              onClick={() => disableReplyIcon ? () => {} : handleReplyToNote()}
+              onClick={() => disableReplyIcon === true ? () => {} : handleReplyToNote()}
               color="secondary"
             >
               <RateReviewIcon />
@@ -296,17 +283,6 @@ const Note: React.FC<NoteProps> = ({
   //Normal Mode
   return (
     <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
-      <NoteModal
-        fetchEvents={fetchEvents}
-        setFetchEvents={setFetchEvents}
-        event={event}
-        setNoteDetailsOpen={setNoteDetailsOpen}
-        following={following}
-        updateFollowing={updateFollowing}
-        setHashtags={setHashtags}
-        hashTags={hashTags}
-        imagesOnlyMode={imagesOnlyMode}
-         />
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={notes.metaData[event.pubkey]?.picture ?? ""}>
@@ -430,7 +406,7 @@ const Note: React.FC<NoteProps> = ({
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <IconButton 
-            onClick={() => disableReplyIcon ? () => {} : handleReplyToNote()}
+            onClick={() => disableReplyIcon === true ? () => {} : handleReplyToNote()}
             color="secondary"
           >
             <RateReviewIcon />

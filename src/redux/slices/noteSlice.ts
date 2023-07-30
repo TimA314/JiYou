@@ -3,28 +3,29 @@ import { Event } from "nostr-tools";
 
 
 const initialState: NoteSlice = {
-    noteModalOpen: false,
-    replyToNote: null
+    noteModalEvent: null,
+    replyToNoteEvent: null
+
 }
 
 export const noteSlice = createSlice({
     name: "note",
     initialState,
     reducers: {
-        toggleNoteModalOpen: (state) => {
-            state.noteModalOpen = !state.noteModalOpen;
+        setNoteModalEvent: (state, action) => {
+            state.noteModalEvent = action.payload;
         },
-        setReplyToNote: (state, action) => {
-            state.replyToNote = action.payload;
+        setReplyToNoteEvent: (state, action) => {
+            state.replyToNoteEvent = action.payload;
         }
     }
 });
 
 
-export const { toggleNoteModalOpen, setReplyToNote } = noteSlice.actions;
+export const { setNoteModalEvent, setReplyToNoteEvent} = noteSlice.actions;
 export default noteSlice.reducer;
 
 export type NoteSlice = {
-  noteModalOpen: Boolean
-  replyToNote: Event | null
+  noteModalEvent: Event | null
+  replyToNoteEvent: Event | null
 }

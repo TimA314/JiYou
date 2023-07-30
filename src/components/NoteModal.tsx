@@ -7,8 +7,9 @@ import SouthIcon from '@mui/icons-material/South';
 import { useContext } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { setNoteModalEvent } from '../redux/slices/noteSlice';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -25,8 +26,6 @@ const style = {
 interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  event: Event;
-  setNoteDetailsOpen: (open: boolean) => void;
   following: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -35,25 +34,27 @@ interface NoteModalProps {
 }
 
 export default function NoteModal({
-  event,
   fetchEvents,
   setFetchEvents,
-  setNoteDetailsOpen,
   following,
   updateFollowing,
   setHashtags,
   hashTags,
   imagesOnlyMode
 }: NoteModalProps) {
-  const handleClose = () => setNoteDetailsOpen(false);
+  const note = useSelector((state: RootState) => state.note);  
+  const dispatch = useDispatch();
   const { themeColors } = useContext(ThemeContext);
   const notes = useSelector((state: RootState) => state.notes);
-  const idsFromTags = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const idsFromTags = note.noteModalEvent?.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   const rootNotes = idsFromTags?.length ?? 0 > 0 ? notes.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
-  const note = useSelector((state: RootState) => state.note);
 
+  const handleClose = () => {
+    dispatch(setNoteModalEvent(null));
+  }
 
   const getThread = () => {
+    if (note.noteModalEvent === null) return <></>;
     return (
       <Box>
         <Box>
@@ -92,7 +93,7 @@ export default function NoteModal({
 
         <Box>
             <Note 
-              event={event}
+              event={note.noteModalEvent}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
               following={following}
@@ -100,19 +101,19 @@ export default function NoteModal({
               setHashtags={setHashtags}
               disableReplyIcon={false}
               hashTags={hashTags}
-              key={event.sig + "modal"}
+              key={note.noteModalEvent.sig + "modal"}
               imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
             />
         </Box>
 
         <Box>
-          {(notes.replyNotes[event.id]?.length ?? 0) > 0 && (
+          {(notes.replyNotes[note.noteModalEvent.id]?.length ?? 0) > 0 && (
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <SouthIcon />
                 </Box>
-                {notes.replyNotes[event.id].map((replyEvent) => {
+                {notes.replyNotes[note.noteModalEvent.id].map((replyEvent) => {
                   return (
                     <Note 
                       event={replyEvent}
@@ -138,7 +139,7 @@ export default function NoteModal({
 
   return (
     <Modal
-        open={Boolean(note.noteModalOpen.valueOf())}
+        open={note.noteModalEvent !== null}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

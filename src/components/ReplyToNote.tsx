@@ -7,7 +7,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import CreateNote from './CreateNote';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setReplyToNote } from '../redux/slices/noteSlice';
+import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -47,16 +47,16 @@ export default function ReplyToNote({
   const dispatch = useDispatch();
 
   const handleClose = () => {
-    dispatch(setReplyToNote(null));
+    dispatch(setReplyToNoteEvent(null));
   }
 
   const getNote = () => {
 
-    if (note.replyToNote){
+    if (note.replyToNoteEvent){
       return (
         <Box>
           <Note 
-          event={note.replyToNote}
+          event={note.replyToNoteEvent}
           fetchEvents={fetchEvents}
           setFetchEvents={setFetchEvents}
           following={following} 
@@ -77,7 +77,7 @@ export default function ReplyToNote({
   return (
     <div>
       <Modal
-        open={note.replyToNote ? true : false}
+        open={note.replyToNoteEvent ? true : false}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

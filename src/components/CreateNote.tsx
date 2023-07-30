@@ -11,7 +11,7 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { toggleRefreshUserNotes } from '../redux/slices/EventsSlice';
-import { setReplyToNote } from '../redux/slices/noteSlice';
+import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 
 interface Props {}
@@ -35,14 +35,14 @@ function CreateNote({}: Props) {
 
     const tags = [];
     //push reply event id and pk
-    if (note.replyToNote) {
-      tags.push(["e", note.replyToNote.id, "", ""]);
+    if (note.replyToNoteEvent) {
+      tags.push(["e", note.replyToNoteEvent.id, "", ""]);
       tags.push(["p", keys.publicKey.decoded]);
     }
     
     //push other replies in chain
-    const replyEventTags = note.replyToNote ? note.replyToNote.tags.filter((t) => t[0] === "e") : [];
-    const replyPubKeyTags = note.replyToNote ? note.replyToNote.tags.filter((t) => t[0] === "p") : [];
+    const replyEventTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "e") : [];
+    const replyPubKeyTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "p") : [];
 
     if (replyEventTags.length > 0) {
       replyEventTags.forEach((tag) => {
@@ -77,7 +77,7 @@ function CreateNote({}: Props) {
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {
-          dispatch(setReplyToNote(null));
+          dispatch(setReplyToNoteEvent(null));
           return;
         }
       } catch {}
@@ -86,7 +86,7 @@ function CreateNote({}: Props) {
     //Manually sign the event
     signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
     dispatch(toggleRefreshUserNotes())
-    dispatch(setReplyToNote(null));
+    dispatch(setReplyToNoteEvent(null));
   }
 
   return (
@@ -110,7 +110,7 @@ function CreateNote({}: Props) {
           color='secondary' 
           onClick={handlePostToRelaysClick}
           >
-            Post {note.replyToNote ? "Reply" : "Note"} To Relays
+            Post {note.replyToNoteEvent ? "Reply" : "Note"} To Relays
         </Button>
       </FormGroup>
     </Box>
