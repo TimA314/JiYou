@@ -1,32 +1,35 @@
-import { useEffect, useState } from 'react';
-import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { useContext, useEffect } from 'react';
+import { EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RelaySetting } from '../nostr/Types';
 import { RelayReadWriteOrBoth, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { RootState } from '../redux/store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setRelays } from '../redux/slices/nostrSlice';
+import { PoolContext } from '../context/PoolContext';
 
 type UseRelaysProps = {
-  pool: SimplePool | null;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const useRelays = ({ pool, setFetchEvents }: UseRelaysProps) => {
+export const useRelays = ({ setFetchEvents }: UseRelaysProps) => {
+    const pool = useContext(PoolContext);
+    const nostr = useSelector((state: RootState) => state.nostr);
     const keys = useSelector((state: RootState) => state.keys);
-    const [relays, setRelays] = useState<RelaySetting[]>(defaultRelays);
+    const dispatch = useDispatch();
   
   useEffect(() => {
     if (keys.publicKey.decoded === "") {
-        setRelays(defaultRelays);
+        dispatch(setRelays(defaultRelays));
         return;
     }
-    if (!pool) return;
-
+    
     const getUserRelays = async () => {
+        if (!pool) return;
         try {
-            const relayUrls = relays.map((r) => r.relayUrl);
+            const relayUrls = nostr.relays.map((r) => r.relayUrl);
             let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [keys.publicKey.decoded], limit: 1 }])
             
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
@@ -43,7 +46,7 @@ export const useRelays = ({ pool, setFetchEvents }: UseRelaysProps) => {
                     }
                 })
 
-                setRelays(updatedRelays);
+                dispatch(setRelays(updatedRelays));
             }
             
         } catch (error) {
@@ -79,12 +82,12 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
         if (window.nostr && keys.privateKey.decoded === "") {
            const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
            if (signedWithNostr) {
-                setRelays(relays);
+                dispatch(setRelays(nostr.relays));
                 return;
            }
         }
 
-        setRelays(relaysToUpdate);
+        dispatch(setRelays(relaysToUpdate));
         setFetchEvents(true);
         await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
 
@@ -93,5 +96,5 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
     }
 }
 
-  return { relays, updateRelays, setRelays };
+  return { updateRelays };
 };

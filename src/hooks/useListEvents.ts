@@ -1,17 +1,13 @@
-import { useState, useEffect, MutableRefObject, useMemo, useRef } from 'react';
-import { Event, Filter, SimplePool } from 'nostr-tools';
-import { MetaData, RelaySetting } from '../nostr/Types';
-import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../utils/eventUtils';
+import { useEffect, MutableRefObject, useMemo, useRef, useContext } from 'react';
+import { Event, Filter } from 'nostr-tools';
+import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/EventsSlice';
-import { useDebounce } from 'use-debounce';
+import { PoolContext } from '../context/PoolContext';
 
 type useListEventsProps = {
-  pool: SimplePool | null;
-  setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
-  relays: RelaySetting[];
   tabIndex: number;
   following: string[];
   hashtags: string[];
@@ -24,9 +20,6 @@ type useListEventsProps = {
 };
 
 export const useListEvents = ({ 
-  pool,
-  setPool,
-  relays, 
   tabIndex, 
   following, 
   hashtags, 
@@ -37,16 +30,18 @@ export const useListEvents = ({
   fetchingEventsInProgress,
   filter
 }: useListEventsProps) => {
+  const pool = useContext(PoolContext);
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
+  const nostr = useSelector((state: RootState) => state.nostr);
   const metadataFetched = useRef<Record<string, boolean>>({});
   const reactionsFetched = useRef<Record<string, boolean>>({});
   const repliesFetched = useRef<Record<string, boolean>>({});
   const rootsFetched = useRef<Record<string, boolean>>({});
 
   const dispatch = useDispatch();
-  const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
-  const allRelayUrls = [...new Set([...relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
+  const readableRelayUrls = useMemo(() => nostr.relays.filter((r) => r.read).map((r) => r.relayUrl), [nostr.relays]);
+  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
 
 
   useEffect(() => {
@@ -69,9 +64,9 @@ export const useListEvents = ({
   //MetaData
   useEffect(() => {
   
-    if (!pool) return;
-
+    
     const fetchMetaData = async () => {
+      if (!pool) return;
       const pubkeysToFetch = [];
 
       notes.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
@@ -115,9 +110,9 @@ export const useListEvents = ({
   //Reactions
   useEffect(() => {
 
-    if (!pool) return;
-
+    
     const fetchReactions = async () => {
+      if (!pool) return;
       const allPubkeysToFetch: string[] = []
       const allEventIdsToFetch: string[] = []
 
@@ -152,9 +147,9 @@ export const useListEvents = ({
   
   //Reply Events
   useEffect(() => {
-    if (!pool) return;
-
+    
     const subReplyEvents = async () => {
+      if (!pool) return;
 
       const replyEventIdsToFetch: string[] = []
      
@@ -172,8 +167,6 @@ export const useListEvents = ({
 
       replyEventIdsToFetch.forEach((id) => repliesFetched.current[id] = true)
 
-      console.log("replyEvents to fetch: " + replyEventIdsToFetch.length)
-
       if (replyEventIdsToFetch.length === 0) return;
 
       let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
@@ -190,9 +183,9 @@ export const useListEvents = ({
 
   //Root Events
   useEffect(() => {
-    if (!pool) return;
-
+    
     const subRootEvents = async () => {
+      if (!pool) return;
       const idsToFetch: string[] = [];
       
       notes.globalNotes.forEach((e: Event) => {
@@ -261,9 +254,9 @@ export const useListEvents = ({
 
   //User Notes
   useEffect(() => {
-    if (!pool) return;
-
+    
     const fetchUserNotes = () => {
+      if (!pool) return;
       const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
 
       sub.on("event", (event: Event) => {
@@ -277,9 +270,6 @@ export const useListEvents = ({
 
 
   useEffect(() => {
-    if (!pool){
-      setPool(new SimplePool());
-    } 
 
     if (fetchEvents && !fetchingEventsInProgress.current)
     {

@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { Event, Filter, SimplePool } from 'nostr-tools'
+import { Filter } from 'nostr-tools'
 import { MutableRefObject, useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
@@ -9,9 +9,9 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { RelaySetting } from '../nostr/Types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import ReplyToNote from '../components/ReplyToNote';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -26,8 +26,6 @@ const createNoteStyle = {
 
 
 type GlobalFeedProps = {
-    pool: SimplePool | null;
-    relays: RelaySetting[];
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
     setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -43,8 +41,6 @@ type GlobalFeedProps = {
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
-    pool, 
-    relays, 
     following,
     fetchEvents,
     setFetchEvents,
@@ -95,8 +91,6 @@ type GlobalFeedProps = {
                 notes.globalNotes.map((event) => {
                     return (
                         <Note 
-                            pool={pool} 
-                            relays={relays}
                             fetchEvents={fetchEvents}
                             setFetchEvents={setFetchEvents}
                             event={event}
@@ -114,8 +108,6 @@ type GlobalFeedProps = {
     }
 
 
-
-
     //render
     return (
         <Box sx={{marginTop: "52px"}}>
@@ -128,6 +120,16 @@ type GlobalFeedProps = {
                 />
             
             {renderFeed()}
+
+            <ReplyToNote
+                fetchEvents={fetchEvents}
+                setFetchEvents={setFetchEvents}
+                following={following} 
+                updateFollowing={updateFollowing} 
+                setHashtags={setHashtags}
+                hashTags={hashtags}
+                imagesOnlyMode={imagesOnlyMode}
+                />
 
             <Modal
                 open={createNoteOpen}
@@ -147,12 +149,7 @@ type GlobalFeedProps = {
                         >
                         <CloseIcon />
                     </IconButton>
-                    <CreateNote 
-                        replyEvent={null} 
-                        pool={pool} 
-                        relays={relays} 
-                        setPostedNote={setPostedNote} 
-                    />
+                    <CreateNote />
                 </Box>
             </Modal>
 

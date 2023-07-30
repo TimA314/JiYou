@@ -6,7 +6,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { SimplePool, nip19, Event, Filter } from 'nostr-tools';
+import { Filter } from 'nostr-tools';
 import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -18,7 +18,7 @@ import About from './pages/About';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
 import { getDefaultFeedFilter } from './nostr/FeedEvents';
-import { Provider, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState, store } from './redux/store';
 import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtils';
 import { setKeys } from './redux/slices/keySlice';
@@ -30,18 +30,14 @@ function App() {
   const fetchingEventsInProgress = useRef(false);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const { relays, setRelays, updateRelays } = useRelays({ pool, setFetchEvents});
-  const { updateFollowing, following, followers } = useFollowing({ pool, relays,});
+  const { updateRelays } = useRelays({ setFetchEvents});
+  const { updateFollowing, following, followers } = useFollowing({});
   const defaultFilter = getDefaultFeedFilter(hashtags, tabIndex, following);
   const filterForFeed = useRef<Filter>(defaultFilter);
-  const { profile, updateProfile, getProfile} = useProfile({ pool, relays,});
+  const { profile, updateProfile} = useProfile({});
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
   const { } = useListEvents({ 
-      pool,
-      setPool, 
-      relays, 
       tabIndex, 
       following, 
       hashtags,
@@ -144,11 +140,8 @@ function App() {
             />} />
           <Route path="/profile" element={
             <Profile
-              relays={relays}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              pool={pool}
-              setPool={setPool}
               following={following}
               followers={followers}
               updateProfile={updateProfile}
@@ -157,15 +150,10 @@ function App() {
             />} />
           <Route path="/relays" element={
             <Relays
-              relays={relays}
               updateRelays={updateRelays}
-              relaysAndSetting={relays}
-              setRelaysAndSetting={setRelays}
             />} />
           <Route path="/" element={
             <GlobalFeed
-              pool={pool}
-              relays={relays}
               following={following}
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}

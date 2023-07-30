@@ -1,21 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Event, EventTemplate, SimplePool } from 'nostr-tools';
+import { useContext, useEffect, useState } from 'react';
+import { Event, EventTemplate } from 'nostr-tools';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
-import { RelaySetting } from '../nostr/Types';
 import { RootState } from '../redux/store';
 import { useSelector } from 'react-redux';
+import { PoolContext } from '../context/PoolContext';
 
-type UseFollowingProps = {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-};
+type UseFollowingProps = {};
 
-export const useFollowing = ({ pool, relays }: UseFollowingProps) => {
+export const useFollowing = ({}: UseFollowingProps) => {
+  const pool = useContext(PoolContext);
+  const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
   const [following, setFollowing] = useState<string[]>([]);
   const [followers, setFollowers] = useState<string[]>([]);
-  const allRelayUrls = relays.map((r) => r.relayUrl);
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
 
 
   const getFollowing = async () => {
@@ -59,7 +58,7 @@ export const useFollowing = ({ pool, relays }: UseFollowingProps) => {
   useEffect(() => {
     getFollowing();
     getFollowers();
-  }, [relays, keys.publicKey.decoded]);
+  }, [nostr.relays, keys.publicKey.decoded]);
 
   
   const updateFollowing = async (followPubkey: string) => {

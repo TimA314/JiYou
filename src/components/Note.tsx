@@ -26,6 +26,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setReplyToNote } from '../redux/slices/noteSlice';
+import { PoolContext } from '../context/PoolContext';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -64,7 +65,6 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 interface NoteProps {
   event: Event;
-  relays: RelaySetting[];
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   following: string[];
@@ -78,7 +78,6 @@ interface NoteProps {
 }
 
 const Note: React.FC<NoteProps> = ({
-    relays,
     fetchEvents, 
     setFetchEvents,
     event,
@@ -91,6 +90,7 @@ const Note: React.FC<NoteProps> = ({
     imagesOnlyMode,
     isInModal = false,
   }: NoteProps) => {
+  const pool = useContext(PoolContext);
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
@@ -109,7 +109,7 @@ const Note: React.FC<NoteProps> = ({
 
   const images = GetImageFromPost(event.content);
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashtags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
 
@@ -123,7 +123,7 @@ const Note: React.FC<NoteProps> = ({
   }, [updateFollowing, event.pubkey]);
   
   const likeNote = useCallback(async () => {
-    if (!nostr.pool) return;
+    if (!pool) return;
     
     //Construct the event
     const _baseEvent = {
@@ -140,17 +140,17 @@ const Note: React.FC<NoteProps> = ({
 
     const shouldSignWithNostr = window.nostr && keys.privateKey.decoded === "";
     if (shouldSignWithNostr){
-      const signedWithNostr = await signEventWithNostr(nostr.pool, writableRelayUrls, _baseEvent);
+      const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
         return;
       }
     }
 
-    const signedManually = await signEventWithStoredSk(nostr.pool, keys, writableRelayUrls, _baseEvent);
+    const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
     setLiked(signedManually);
 
-  }, [nostr.pool, relays, event]);
+  }, [pool, nostr.relays, event]);
 
   const showReplyThread = useCallback(() => {
     setNoteDetailsOpen(true);
@@ -176,7 +176,6 @@ const Note: React.FC<NoteProps> = ({
           setFetchEvents={setFetchEvents}
           event={event}
           setNoteDetailsOpen={setNoteDetailsOpen}
-          relays={relays}
           following={following}
           updateFollowing={updateFollowing}
           setHashtags={setHashtags}
@@ -302,7 +301,6 @@ const Note: React.FC<NoteProps> = ({
         setFetchEvents={setFetchEvents}
         event={event}
         setNoteDetailsOpen={setNoteDetailsOpen}
-        relays={relays}
         following={following}
         updateFollowing={updateFollowing}
         setHashtags={setHashtags}

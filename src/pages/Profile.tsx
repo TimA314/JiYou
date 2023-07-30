@@ -1,11 +1,9 @@
 import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
-import { SimplePool } from 'nostr-tools';
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
@@ -14,11 +12,9 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
+import { PoolContext } from '../context/PoolContext';
 
 interface ProfileProps {
-    relays: RelaySetting[];
-    pool: SimplePool | null;
-    setPool: React.Dispatch<React.SetStateAction<SimplePool>>;
     following: string[];
     followers: string[];
     fetchEvents: boolean;
@@ -29,15 +25,14 @@ interface ProfileProps {
 }
 
 export default function Profile({
-    relays, 
-    pool,
-    setPool,
     following, 
     followers, 
     updateProfile, 
     hideExplicitContent,
 }: ProfileProps) {
+const pool = useContext(PoolContext);
 const notes = useSelector((state: RootState) => state.notes);
+const nostr = useSelector((state: RootState) => state.nostr);
 const keys = useSelector((state: RootState) => state.keys);
 const [profileNameInput, setProfileNameInput] = useState(notes.metaData[keys.publicKey.decoded]?.name ?? "");
 const [profileAboutInput, setProfileAboutInput] = useState(notes.metaData[keys.publicKey.decoded]?.about ?? "");
@@ -238,10 +233,7 @@ const styles = {
                     </Box>
                     
                     {tabIndex === 0 && (
-                        <UserNotes 
-                            pool={pool}
-                            setPool={setPool}
-                            relays={relays} 
+                        <UserNotes
                             following={following} 
                             hideExplicitContent={hideExplicitContent}
                             />                    

@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { useContext, useEffect, useState } from 'react';
+import { Event, EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { ProfileContent, RelaySetting } from '../nostr/Types';
+import { ProfileContent } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { PoolContext } from '../context/PoolContext';
 
-type UseProfileProps = {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-};
+type UseProfileProps = {};
 
-export const useProfile = ({ pool, relays }: UseProfileProps) => {
+export const useProfile = ({}: UseProfileProps) => {
+  const pool = useContext(PoolContext);
+  const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
   
   const [profile, setProfile] = useState<ProfileContent>({
@@ -22,8 +22,8 @@ export const useProfile = ({ pool, relays }: UseProfileProps) => {
     banner: ""
   });
 
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
-  const allRelayUrls = relays.map((r) => r.relayUrl);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
 
   
   const getProfile = async () => {

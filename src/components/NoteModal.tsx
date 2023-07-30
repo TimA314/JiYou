@@ -1,7 +1,6 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { Event, SimplePool } from 'nostr-tools';
-import { MetaData, RelaySetting } from '../nostr/Types';
+import { Event } from 'nostr-tools';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
@@ -28,8 +27,6 @@ interface NoteModalProps {
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   event: Event;
   setNoteDetailsOpen: (open: boolean) => void;
-  pool: SimplePool | null;
-  relays: RelaySetting[];
   following: string[];
   updateFollowing: (pubkey: string) => void;
   setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
@@ -42,8 +39,6 @@ export default function NoteModal({
   fetchEvents,
   setFetchEvents,
   setNoteDetailsOpen,
-  pool,
-  relays,
   following,
   updateFollowing,
   setHashtags,
@@ -77,8 +72,6 @@ export default function NoteModal({
                   <Note
                       key={rootEvent.sig + Math.random()}
                       event={rootEvent}
-                      pool={pool}
-                      relays={relays}
                       fetchEvents={fetchEvents}
                       setFetchEvents={setFetchEvents}
                       following={following}
@@ -102,7 +95,6 @@ export default function NoteModal({
               event={event}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              pool={pool} relays={relays}
               following={following}
               updateFollowing={updateFollowing}
               setHashtags={setHashtags}
@@ -124,8 +116,6 @@ export default function NoteModal({
                   return (
                     <Note 
                       event={replyEvent}
-                      pool={pool}
-                      relays={relays}
                       fetchEvents={fetchEvents}
                       setFetchEvents={setFetchEvents}
                       following={following}

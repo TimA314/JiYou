@@ -11,24 +11,20 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { toggleRefreshUserNotes } from '../redux/slices/EventsSlice';
+import { setReplyToNote } from '../redux/slices/noteSlice';
+import { PoolContext } from '../context/PoolContext';
 
-interface Props {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  replyEvent: Event | null;
-  setPostedNote: () => void;
-}
+interface Props {}
 
-function CreateNote({
-  pool, 
-  relays, 
-  replyEvent, 
-  setPostedNote, 
-}: Props) {
+function CreateNote({}: Props) {
+  const pool = useContext(PoolContext);
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
   const keys = useSelector((state: RootState) => state.keys);
+  const note = useSelector((state: RootState) => state.note);
+  const nostr = useSelector((state: RootState) => state.nostr);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+
   const dispatch = useDispatch();
 
 
@@ -39,14 +35,14 @@ function CreateNote({
 
     const tags = [];
     //push reply event id and pk
-    if (replyEvent) {
-      tags.push(["e", replyEvent.id, "", ""]);
+    if (note.replyToNote) {
+      tags.push(["e", note.replyToNote.id, "", ""]);
       tags.push(["p", keys.publicKey.decoded]);
     }
     
     //push other replies in chain
-    const replyEventTags = replyEvent ? replyEvent.tags.filter((t) => t[0] === "e") : [];
-    const replyPubKeyTags = replyEvent ? replyEvent.tags.filter((t) => t[0] === "p") : [];
+    const replyEventTags = note.replyToNote ? note.replyToNote.tags.filter((t) => t[0] === "e") : [];
+    const replyPubKeyTags = note.replyToNote ? note.replyToNote.tags.filter((t) => t[0] === "p") : [];
 
     if (replyEventTags.length > 0) {
       replyEventTags.forEach((tag) => {
@@ -81,7 +77,7 @@ function CreateNote({
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {
-          setPostedNote();
+          dispatch(setReplyToNote(null));
           return;
         }
       } catch {}
@@ -89,8 +85,8 @@ function CreateNote({
 
     //Manually sign the event
     signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
-    setPostedNote();
     dispatch(toggleRefreshUserNotes())
+    dispatch(setReplyToNote(null));
   }
 
   return (
@@ -114,7 +110,7 @@ function CreateNote({
           color='secondary' 
           onClick={handlePostToRelaysClick}
           >
-            Post {replyEvent ? "Reply" : "Note"} To Relays
+            Post {note.replyToNote ? "Reply" : "Note"} To Relays
         </Button>
       </FormGroup>
     </Box>
