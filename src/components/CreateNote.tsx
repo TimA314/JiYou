@@ -10,7 +10,7 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { toggleRefreshUserNotes } from '../redux/slices/notesSlice';
+import { toggleRefreshUserNotes } from '../redux/slices/EventsSlice';
 
 interface Props {
   pool: SimplePool | null;

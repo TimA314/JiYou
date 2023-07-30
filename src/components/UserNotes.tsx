@@ -42,6 +42,7 @@ export default function UserNotes({
                                         following={following} 
                                         setHashtags={() => {}} 
                                         hashTags={[]}
+                                        disableReplyIcon={false}
                                         />
                                 </Box>
                             )

@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { MetaData } from "../../nostr/Types";
 import { Event } from "nostr-tools";
 
-const initialState: Notes = {
+const initialState: EventsType = {
     globalNotes: [],
     rootNotes: [],
     replyNotes: {},
@@ -12,8 +12,8 @@ const initialState: Notes = {
     refreshUserNotes: false
 }
 
-export const notesSlice = createSlice({
-    name: "notes",
+export const eventsSlice = createSlice({
+    name: "events",
     initialState,
     reducers: {
         addGlobalNotes: (state, action) => {
@@ -61,10 +61,19 @@ export const notesSlice = createSlice({
 });
 
 
-export const { addGlobalNotes, clearGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions, toggleRefreshUserNotes } = notesSlice.actions;
-export default notesSlice.reducer;
+export const { 
+    addGlobalNotes, 
+    clearGlobalNotes, 
+    addRootNotes, 
+    addReplyNotes, 
+    addUserNotes, 
+    addMetaData, 
+    addReactions, 
+    toggleRefreshUserNotes 
+} = eventsSlice.actions;
+export default eventsSlice.reducer;
 
-export type Notes = {
+export type EventsType = {
   globalNotes: Event[],
   rootNotes: Event[],
   replyNotes:  Record<string, Event[]>,

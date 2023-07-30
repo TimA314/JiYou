@@ -7,6 +7,9 @@ import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateNote from './CreateNote';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { toggleReplyModalOpen } from '../redux/slices/noteSlice';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -28,7 +31,6 @@ interface ReplyToNoteProps {
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   event: Event;
   open: boolean;
-  setReplyToNoteOpen: (open: boolean) => void;
   pool: SimplePool | null;
   relays: RelaySetting[];
   following: string[];
@@ -41,9 +43,7 @@ interface ReplyToNoteProps {
 export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
-  event,
-  open, 
-  setReplyToNoteOpen, 
+  event, 
   pool, 
   relays, 
   following,
@@ -52,7 +52,12 @@ export default function ReplyToNote({
   setHashtags,
   imagesOnlyMode
 }: ReplyToNoteProps) {
-  const handleClose = () => setReplyToNoteOpen(false);
+  const note = useSelector((state: RootState) => state.note);
+  const dispatch = useDispatch();
+
+  const handleClose = () => {
+    dispatch(toggleReplyModalOpen());
+  }
 
   const setPostedNote = () => {
     handleClose();
@@ -61,7 +66,7 @@ export default function ReplyToNote({
   return (
     <div>
       <Modal
-        open={open}
+        open={Boolean(note.replyModalOpen.valueOf())}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import keySlice from './slices/keySlice';
-import notesSlice from './slices/notesSlice';
+import notesSlice from './slices/EventsSlice';
+import noteSlice from './slices/noteSlice';
 
 export const store = configureStore({
     reducer: {
         keys: keySlice,
-        notes: notesSlice
+        notes: notesSlice,
+        note: noteSlice
     },
   })
   

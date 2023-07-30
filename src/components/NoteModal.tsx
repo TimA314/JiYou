@@ -27,7 +27,6 @@ interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   event: Event;
-  open: boolean;
   setNoteDetailsOpen: (open: boolean) => void;
   pool: SimplePool | null;
   relays: RelaySetting[];
@@ -42,7 +41,6 @@ export default function NoteModal({
   event,
   fetchEvents,
   setFetchEvents,
-  open,
   setNoteDetailsOpen,
   pool,
   relays,
@@ -52,12 +50,13 @@ export default function NoteModal({
   hashTags,
   imagesOnlyMode
 }: NoteModalProps) {
-
   const handleClose = () => setNoteDetailsOpen(false);
   const { themeColors } = useContext(ThemeContext);
   const notes = useSelector((state: RootState) => state.notes);
   const idsFromTags = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   const rootNotes = idsFromTags?.length ?? 0 > 0 ? notes.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
+  const note = useSelector((state: RootState) => state.note);
+
 
   const getThread = () => {
     return (
@@ -149,7 +148,7 @@ export default function NoteModal({
 
   return (
     <Modal
-        open={open}
+        open={Boolean(note.noteModalOpen.valueOf())}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

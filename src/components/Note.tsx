@@ -23,8 +23,9 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import ReplyToNote from './ReplyToNote';
 import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { toggleReplyModalOpen } from '../redux/slices/noteSlice';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -96,11 +97,11 @@ const Note: React.FC<NoteProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(following.includes(event.pubkey));
-  const [replyToNoteOpen, setReplyToNoteOpen] = useState(false);
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
+  const note = useSelector((state: RootState) => state.note);
 
   const rootEventTagToPreview = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
@@ -111,6 +112,7 @@ const Note: React.FC<NoteProps> = ({
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashtags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+  const dispatch = useDispatch();
 
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
@@ -162,8 +164,8 @@ const Note: React.FC<NoteProps> = ({
   }
 
   const handleReplyToNote = (eventData: Event) => {
-    console.log("reply to note", eventData);
-    setReplyToNoteOpen(true);
+    console.log("reply to note modal open", eventData);
+    dispatch(toggleReplyModalOpen());
   }
 
   //Images Only Mode
@@ -174,7 +176,6 @@ const Note: React.FC<NoteProps> = ({
           fetchEvents={fetchEvents}
           setFetchEvents={setFetchEvents}
           event={event}
-          open={noteDetailsOpen}
           setNoteDetailsOpen={setNoteDetailsOpen}
           pool={pool}
           relays={relays}
@@ -293,8 +294,7 @@ const Note: React.FC<NoteProps> = ({
       <ReplyToNote
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
-        open={replyToNoteOpen} 
-        setReplyToNoteOpen={setReplyToNoteOpen} 
+        open={Boolean(note.replyModalOpen.valueOf())} 
         event={event}
         pool={pool} 
         relays={relays} 
@@ -316,7 +316,6 @@ const Note: React.FC<NoteProps> = ({
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
         event={event}
-        open={noteDetailsOpen}
         setNoteDetailsOpen={setNoteDetailsOpen}
         pool={pool}
         relays={relays}
@@ -339,8 +338,7 @@ const Note: React.FC<NoteProps> = ({
       <ReplyToNote
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
-        open={replyToNoteOpen} 
-        setReplyToNoteOpen={setReplyToNoteOpen} 
+        open={Boolean(note.replyModalOpen.valueOf())} 
         event={event}
         pool={pool} 
         relays={relays} 

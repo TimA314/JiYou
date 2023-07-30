@@ -5,7 +5,7 @@ import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/notesSlice';
+import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/EventsSlice';
 import { useDebounce } from 'use-debounce';
 
 type useListEventsProps = {
