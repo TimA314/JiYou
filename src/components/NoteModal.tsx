@@ -28,8 +28,6 @@ interface NoteModalProps {
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   following: string[];
   updateFollowing: (pubkey: string) => void;
-  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-  hashTags: string[];
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
@@ -38,8 +36,6 @@ export default function NoteModal({
   setFetchEvents,
   following,
   updateFollowing,
-  setHashtags,
-  hashTags,
   imagesOnlyMode
 }: NoteModalProps) {
   const note = useSelector((state: RootState) => state.note);  
@@ -77,9 +73,7 @@ export default function NoteModal({
                       setFetchEvents={setFetchEvents}
                       following={following}
                       updateFollowing={updateFollowing}
-                      setHashtags={setHashtags}
                       disableReplyIcon={false}
-                      hashTags={hashTags}
                       imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}
                   />
@@ -98,9 +92,7 @@ export default function NoteModal({
               setFetchEvents={setFetchEvents}
               following={following}
               updateFollowing={updateFollowing}
-              setHashtags={setHashtags}
               disableReplyIcon={false}
-              hashTags={hashTags}
               key={note.noteModalEvent.sig + "modal"}
               imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
@@ -121,10 +113,8 @@ export default function NoteModal({
                       setFetchEvents={setFetchEvents}
                       following={following}
                       updateFollowing={updateFollowing}
-                      setHashtags={setHashtags}
                       key={replyEvent.sig + Math.random()}
                       disableReplyIcon={false}
-                      hashTags={hashTags}
                       imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}
                     />

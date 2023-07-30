@@ -23,7 +23,7 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setNoteModalEvent, setReplyToNoteEvent } from '../redux/slices/noteSlice';
+import { setHashTags, setNoteModalEvent, setReplyToNoteEvent } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
@@ -67,23 +67,18 @@ interface NoteProps {
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   following: string[];
   updateFollowing: (pubkey: string) => void;
-  setHashtags:  React.Dispatch<React.SetStateAction<string[]>>;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
-  hashTags: string[];
   imagesOnlyMode?: React.MutableRefObject<boolean>;
   isInModal?: boolean;
 }
 
 const Note: React.FC<NoteProps> = ({
-    fetchEvents, 
     setFetchEvents,
     event,
     following, 
-    setHashtags, 
     disableReplyIcon, 
     gettingThread,
-    hashTags,
     updateFollowing,
     imagesOnlyMode,
     isInModal = false,
@@ -156,7 +151,8 @@ const Note: React.FC<NoteProps> = ({
 
   const addHashtag = (tag: string) => {
     console.log("add hashtag", tag)
-    setHashtags(hashtags => [...hashtags, tag]);
+    const newTags = [...new Set([...note.hashTags, tag])]
+    dispatch(setHashTags(newTags));
     setFetchEvents(true);
   }
 

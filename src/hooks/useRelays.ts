@@ -32,6 +32,7 @@ export const useRelays = ({ setFetchEvents }: UseRelaysProps) => {
             const relayUrls = nostr.relays.map((r) => r.relayUrl);
             let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [keys.publicKey.decoded], limit: 1 }])
             
+
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){
                 let updatedRelays: RelaySetting[] = [];
                 currentRelaysEvent[0].tags.forEach((tag) => {

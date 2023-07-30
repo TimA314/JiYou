@@ -6,55 +6,46 @@ import { sanitizeString } from "../utils/sanitizeUtils";
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { Close } from "@mui/icons-material";
-import { Filter } from "nostr-tools";
-
-
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { setHashTags, setSearchEventIds } from "../redux/slices/noteSlice";
 interface Props {
-  hashtags: string[];
-  setHashtags: (hashtags: string[]) => void;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  filter: React.MutableRefObject<Filter | null>;
 }
 
-export default function SearchFilter({ hashtags, setHashtags, setFetchEvents, filter }: Props) {
+export default function SearchFilter({ setFetchEvents }: Props) {
+  const note = useSelector((state: RootState) => state.note);
+  const dispatch = useDispatch();
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
-  const [ searchedEventIds, setSearchedEventIds ] = useState<string[]>([]);
 
 
   const searchFromInput = () => {
     const eventIDRegex = /^[0-9a-fA-F]{64}$/; // Regex pattern for event IDs
 
     if (eventIDRegex.test(input)) {
-      const newEventIds = [...searchedEventIds, input];
-      setSearchedEventIds(newEventIds);
-      filter.current = {kinds: [1], ids: newEventIds};
+      const newEventIds = [...note.searchEventIds, input];
+      dispatch(setSearchEventIds(newEventIds))
       setFetchEvents(true);
       setInput("");
       return;
     }
 
-    const hashtag = sanitizeString(input).trim();
-    if (hashtag === "" || hashtags.includes(hashtag)) return;
+  const hashtag = sanitizeString(input).trim();
+    if (hashtag === "" || note.hashTags.includes(hashtag)) return;
     setInput("");
-    setHashtags([...hashtags, hashtag]);
+    dispatch(setHashTags([...note.hashTags, hashtag]));
     setFetchEvents(true);
   };
 
   const removeSearchedEventId = (id: string) => {
-    const newSearchEventIds = searchedEventIds.filter((e) => e !== id);
-    setSearchedEventIds(newSearchEventIds);
-    if (newSearchEventIds.length === 0) {
-      filter.current = null;
-      setFetchEvents(true);
-      return;
-    }
-    filter.current = {kinds: [1], ids: searchedEventIds};
+    const newSearchEventIds = note.searchEventIds.filter((e) => e !== id);
+    dispatch(setSearchEventIds(newSearchEventIds));
     setFetchEvents(true);
   }
 
   const removeHashtag = (hashtag: string) => {
-    setHashtags(hashtags.filter((h) => h !== hashtag));
+    dispatch(setHashTags(note.hashTags.filter((h) => h !== hashtag)));
     setFetchEvents(true);
   };
 
@@ -68,7 +59,7 @@ export default function SearchFilter({ hashtags, setHashtags, setFetchEvents, fi
     <Box sx={{bgcolor: themeColors.paper}} className="hashTagFilterContainer">
       <Paper className="hashtagChips">
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          {hashtags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
+          {note.hashTags.filter((value, index, self) => self.indexOf(value) === index).map((tag) => (
               <Chip 
                 size="small" 
                 key={tag} 
@@ -82,7 +73,7 @@ export default function SearchFilter({ hashtags, setHashtags, setFetchEvents, fi
                 onDelete={() => removeHashtag(tag)} 
                 />
           ))}
-          {searchedEventIds.map((id) => (
+          {note.searchEventIds.map((id) => (
             <Chip
               size="small"
               key={id}

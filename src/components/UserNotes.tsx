@@ -1,6 +1,5 @@
 import { Box } from '@mui/material'
 import Note from './Note'
-import { RelaySetting } from '../nostr/Types';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -28,8 +27,6 @@ export default function UserNotes({
                                         setFetchEvents={setFetchEvents}
                                         updateFollowing={() => {}} 
                                         following={following} 
-                                        setHashtags={() => {}} 
-                                        hashTags={[]}
                                         disableReplyIcon={false}
                                         />
                                 </Box>

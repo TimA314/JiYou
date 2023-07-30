@@ -2,32 +2,6 @@ import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, ni
 import { Keys } from "./Types";
 
 
-export const getDefaultFeedFilter = (hashtags: string[], tabIndex: number, followers: string[]) => {
-    
-    let options: Filter = {
-        kinds: [1],
-        limit: 200
-    }
-    
-    if(hashtags.length > 0) {
-        options["#t"] = hashtags;
-    }
-    
-    switch (tabIndex) {
-        case 0: //Global
-            break;
-        case 1: //Followers
-            if(followers.length > 0){
-                options.authors = followers;
-            }
-            break;
-        default:
-            break;
-    }
-
-    return options;
-}
-
 export const signEventWithNostr = async (
 pool: SimplePool,
 relays: string[], 

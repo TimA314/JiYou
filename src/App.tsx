@@ -6,7 +6,6 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { Filter } from 'nostr-tools';
 import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -17,7 +16,6 @@ import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
-import { getDefaultFeedFilter } from './nostr/FeedEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, store } from './redux/store';
 import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtils';
@@ -30,25 +28,20 @@ function App() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
-  const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
   const { updateRelays } = useRelays({ setFetchEvents});
   const { updateFollowing, following, followers } = useFollowing({});
-  const defaultFilter = getDefaultFeedFilter(hashtags, tabIndex, following);
-  const filterForFeed = useRef<Filter>(defaultFilter);
   const { profile, updateProfile} = useProfile({});
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
-  const { } = useListEvents({ 
+  useListEvents({ 
       tabIndex, 
       following, 
-      hashtags,
       hideExplicitContent,
       imagesOnlyMode,
       fetchEvents,
       setFetchEvents,
       fetchingEventsInProgress,
-      filter: filterForFeed.current
     });
     const dispatch = useDispatch();
 
@@ -140,8 +133,6 @@ function App() {
         setFetchEvents={setFetchEvents}
         following={following} 
         updateFollowing={updateFollowing} 
-        setHashtags={setHashtags}
-        hashTags={hashtags}
         imagesOnlyMode={imagesOnlyMode}
       />
       <NoteModal
@@ -149,8 +140,6 @@ function App() {
         setFetchEvents={setFetchEvents}
         following={following}
         updateFollowing={updateFollowing}
-        setHashtags={setHashtags}
-        hashTags={hashtags}
         imagesOnlyMode={imagesOnlyMode}
       />
       <Routes>
@@ -180,11 +169,8 @@ function App() {
               imagesOnlyMode={imagesOnlyMode}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              filter={filterForFeed}
               fetchingEventsInProgress={fetchingEventsInProgress}
               setTabIndex={setTabIndex}
-              hashtags={hashtags}
-              setHashtags={setHashtags}
               tabIndex={tabIndex}
             />} />
           <Route path="/keys" element={

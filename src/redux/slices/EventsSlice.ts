@@ -80,5 +80,5 @@ export type EventsType = {
   userNotes: Event[],
   metaData:  Record<string, MetaData>,
   reactions:  Record<string, Event[]>
-  refreshUserNotes: Boolean
+  refreshUserNotes: boolean
 }

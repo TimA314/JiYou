@@ -28,9 +28,7 @@ interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   following: string[];
-  hashTags: string[];
   updateFollowing: (pubkey: string) => void;
-  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
@@ -38,9 +36,7 @@ export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
   following,
-  hashTags,
   updateFollowing, 
-  setHashtags,
   imagesOnlyMode
 }: ReplyToNoteProps) {
   const note = useSelector((state: RootState) => state.note);
@@ -61,9 +57,7 @@ export default function ReplyToNote({
           setFetchEvents={setFetchEvents}
           following={following} 
           updateFollowing={updateFollowing} 
-          setHashtags={setHashtags} 
           disableReplyIcon={true}
-          hashTags={hashTags}
           imagesOnlyMode={imagesOnlyMode}
           />
           <CreateNote />

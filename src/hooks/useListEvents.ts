@@ -10,30 +10,27 @@ import { PoolContext } from '../context/PoolContext';
 type useListEventsProps = {
   tabIndex: number;
   following: string[];
-  hashtags: string[];
   hideExplicitContent: MutableRefObject<boolean>;
   imagesOnlyMode: MutableRefObject<boolean>;
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   fetchingEventsInProgress: MutableRefObject<boolean>;
-  filter: Filter | null;
 };
 
 export const useListEvents = ({ 
   tabIndex, 
   following, 
-  hashtags, 
   hideExplicitContent, 
   imagesOnlyMode, 
   fetchEvents,
   setFetchEvents,
   fetchingEventsInProgress,
-  filter
 }: useListEventsProps) => {
   const pool = useContext(PoolContext);
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
   const nostr = useSelector((state: RootState) => state.nostr);
+  const note = useSelector((state: RootState) => state.note);
   const metadataFetched = useRef<Record<string, boolean>>({});
   const reactionsFetched = useRef<Record<string, boolean>>({});
   const repliesFetched = useRef<Record<string, boolean>>({});
@@ -43,22 +40,40 @@ export const useListEvents = ({
   const readableRelayUrls = useMemo(() => nostr.relays.filter((r) => r.read).map((r) => r.relayUrl), [nostr.relays]);
   const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
 
-
+  //Feed Notes
   useEffect(() => {
     const subFeedEvents = async () => {
       if (!pool) return;
-      
       dispatch(clearGlobalNotes());
-      let sub = pool.sub(readableRelayUrls, [filter ?? {}]);
+
+      let filter: Filter = {kinds: [1]};
+
+      if (note.searchEventIds.length > 0){
+        filter.ids = note.searchEventIds;
+      } 
+      
+      if (note.hashTags.length > 0) {
+        filter["#t"] = note.hashTags;
+      }
+
+      if (note.tabIndex == 1) {
+        if (following.length === 0) return;
+
+        filter.authors = following;
+      }
+
+      console.log("fetching feed with filter: " + JSON.stringify(filter))
+      let sub = pool.sub(readableRelayUrls, [filter]);
 
       sub.on("event", (event) => {
           if (hideExplicitContent && eventContainsExplicitContent(event)) return;
+          if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
           const sanitizedEvent = sanitizeEvent(event);
           dispatch(addGlobalNotes(sanitizedEvent))
       });
     }
     subFeedEvents();
-  }, [fetchEvents]);
+  }, [note.hashTags, note.searchEventIds]);
 
 
   //MetaData
@@ -276,7 +291,5 @@ export const useListEvents = ({
       fetchEventsFromRelays();
     }
 
-  }, [fetchEvents, filter]);
-
-  return { filter};
+  }, [fetchEvents, note.hashTags]);
 }

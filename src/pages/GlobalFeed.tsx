@@ -11,7 +11,6 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import ReplyToNote from '../components/ReplyToNote';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -28,15 +27,12 @@ const createNoteStyle = {
 type GlobalFeedProps = {
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
-    setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
     following: string[];
     fetchEvents: boolean;
-    filter: MutableRefObject<Filter | null>;
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     fetchingEventsInProgress: MutableRefObject<boolean>;
     hideExplicitContent: MutableRefObject<boolean>;
     imagesOnlyMode: MutableRefObject<boolean>;
-    hashtags: string[];
     tabIndex: number;
   };
   
@@ -44,13 +40,10 @@ type GlobalFeedProps = {
     following,
     fetchEvents,
     setFetchEvents,
-    filter,
     fetchingEventsInProgress,
-    hashtags,
     tabIndex,
     updateFollowing,
     setTabIndex,
-    setHashtags,
     imagesOnlyMode,
   }) => {
     const notes = useSelector((state: RootState) => state.notes);
@@ -96,9 +89,7 @@ type GlobalFeedProps = {
                             event={event}
                             updateFollowing={updateFollowing} 
                             following={following} 
-                            setHashtags={setHashtags} 
                             key={event.sig}
-                            hashTags={hashtags}
                             imagesOnlyMode={imagesOnlyMode}
                         />
                     )
@@ -113,10 +104,7 @@ type GlobalFeedProps = {
         <Box sx={{marginTop: "52px"}}>
 
             <SearchFilter 
-                hashtags={hashtags} 
-                setHashtags={setHashtags} 
                 setFetchEvents={setFetchEvents}
-                filter={filter}
                 />
             
             {renderFeed()}
