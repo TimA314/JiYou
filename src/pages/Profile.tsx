@@ -1,6 +1,6 @@
 import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
-import { Event, Filter, SimplePool } from 'nostr-tools';
-import { useEffect, useRef, useState } from 'react'
+import { SimplePool } from 'nostr-tools';
+import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -11,7 +11,6 @@ import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
 import Notifications from '../components/Notifications';
 import { useNavigate } from 'react-router-dom';
-import { useListEvents } from '../hooks/useListEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
@@ -102,7 +101,6 @@ const styles = {
         padding: 24,
     }
 };
-
 
     return (
         <Box justifyContent="center" >

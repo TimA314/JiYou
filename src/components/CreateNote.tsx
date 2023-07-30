@@ -8,8 +8,9 @@ import { RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { toggleRefreshUserNotes } from '../redux/slices/notesSlice';
 
 interface Props {
   pool: SimplePool | null;
@@ -28,6 +29,8 @@ function CreateNote({
   const { themeColors } = useContext(ThemeContext);
   const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
   const keys = useSelector((state: RootState) => state.keys);
+  const dispatch = useDispatch();
+
 
   const handlePostToRelaysClick = async () => {
     if (!pool) {
@@ -87,6 +90,7 @@ function CreateNote({
     //Manually sign the event
     signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
     setPostedNote();
+    dispatch(toggleRefreshUserNotes())
   }
 
   return (

@@ -9,6 +9,7 @@ const initialState: Notes = {
     userNotes: [],
     metaData: {},
     reactions: {},
+    refreshUserNotes: false
 }
 
 export const notesSlice = createSlice({
@@ -53,11 +54,14 @@ export const notesSlice = createSlice({
 
             state.reactions[likedEventId] = [...new Set([...prevReactionEvents, action.payload])];
         },
+        toggleRefreshUserNotes: (state) => {
+            state.refreshUserNotes = !state.refreshUserNotes;
+        }
     }
 });
 
 
-export const { addGlobalNotes, clearGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions } = notesSlice.actions;
+export const { addGlobalNotes, clearGlobalNotes, addRootNotes, addReplyNotes, addUserNotes, addMetaData, addReactions, toggleRefreshUserNotes } = notesSlice.actions;
 export default notesSlice.reducer;
 
 export type Notes = {
@@ -67,4 +71,5 @@ export type Notes = {
   userNotes: Event[],
   metaData:  Record<string, MetaData>,
   reactions:  Record<string, Event[]>
+  refreshUserNotes: Boolean
 }

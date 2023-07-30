@@ -273,7 +273,7 @@ export const useListEvents = ({
     }
 
     fetchUserNotes();
-  }, [pool, keys.publicKey.decoded])
+  }, [pool, keys.publicKey.decoded, notes.refreshUserNotes])
 
 
   useEffect(() => {
