@@ -25,7 +25,7 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { toggleReplyModalOpen } from '../redux/slices/noteSlice';
+import { setReplyToNote } from '../redux/slices/noteSlice';
 
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -64,7 +64,6 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 interface NoteProps {
   event: Event;
-  pool: SimplePool | null;
   relays: RelaySetting[];
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
@@ -79,7 +78,6 @@ interface NoteProps {
 }
 
 const Note: React.FC<NoteProps> = ({
-    pool, 
     relays,
     fetchEvents, 
     setFetchEvents,
@@ -102,6 +100,7 @@ const Note: React.FC<NoteProps> = ({
   const keys = useSelector((state: RootState) => state.keys);
   const notes = useSelector((state: RootState) => state.notes);
   const note = useSelector((state: RootState) => state.note);
+  const nostr = useSelector((state: RootState) => state.nostr);
 
   const rootEventTagToPreview = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
@@ -124,7 +123,7 @@ const Note: React.FC<NoteProps> = ({
   }, [updateFollowing, event.pubkey]);
   
   const likeNote = useCallback(async () => {
-    if (!pool) return;
+    if (!nostr.pool) return;
     
     //Construct the event
     const _baseEvent = {
@@ -141,17 +140,17 @@ const Note: React.FC<NoteProps> = ({
 
     const shouldSignWithNostr = window.nostr && keys.privateKey.decoded === "";
     if (shouldSignWithNostr){
-      const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+      const signedWithNostr = await signEventWithNostr(nostr.pool, writableRelayUrls, _baseEvent);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
         return;
       }
     }
 
-    const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
+    const signedManually = await signEventWithStoredSk(nostr.pool, keys, writableRelayUrls, _baseEvent);
     setLiked(signedManually);
 
-  }, [pool, relays, event]);
+  }, [nostr.pool, relays, event]);
 
   const showReplyThread = useCallback(() => {
     setNoteDetailsOpen(true);
@@ -163,9 +162,9 @@ const Note: React.FC<NoteProps> = ({
     setFetchEvents(true);
   }
 
-  const handleReplyToNote = (eventData: Event) => {
-    console.log("reply to note modal open", eventData);
-    dispatch(toggleReplyModalOpen());
+  const handleReplyToNote = () => {
+    console.log("reply to note modal open", event);
+    dispatch(setReplyToNote(event));
   }
 
   //Images Only Mode
@@ -177,7 +176,6 @@ const Note: React.FC<NoteProps> = ({
           setFetchEvents={setFetchEvents}
           event={event}
           setNoteDetailsOpen={setNoteDetailsOpen}
-          pool={pool}
           relays={relays}
           following={following}
           updateFollowing={updateFollowing}
@@ -224,7 +222,7 @@ const Note: React.FC<NoteProps> = ({
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <IconButton 
-              onClick={() => disableReplyIcon ? () => {} : handleReplyToNote(event)}
+              onClick={() => disableReplyIcon ? () => {} : handleReplyToNote()}
               color="secondary"
             >
               <RateReviewIcon />
@@ -291,19 +289,6 @@ const Note: React.FC<NoteProps> = ({
           </Typography>
         </CardContent>
       </Collapse>
-      <ReplyToNote
-        fetchEvents={fetchEvents}
-        setFetchEvents={setFetchEvents}
-        open={Boolean(note.replyModalOpen.valueOf())} 
-        event={event}
-        pool={pool} 
-        relays={relays} 
-        following={following} 
-        updateFollowing={updateFollowing} 
-        setHashtags={setHashtags}
-        hashTags={hashTags}
-        imagesOnlyMode={imagesOnlyMode}
-        />
       </Card>
     )
   }
@@ -317,7 +302,6 @@ const Note: React.FC<NoteProps> = ({
         setFetchEvents={setFetchEvents}
         event={event}
         setNoteDetailsOpen={setNoteDetailsOpen}
-        pool={pool}
         relays={relays}
         following={following}
         updateFollowing={updateFollowing}
@@ -335,19 +319,6 @@ const Note: React.FC<NoteProps> = ({
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
-      <ReplyToNote
-        fetchEvents={fetchEvents}
-        setFetchEvents={setFetchEvents}
-        open={Boolean(note.replyModalOpen.valueOf())} 
-        event={event}
-        pool={pool} 
-        relays={relays} 
-        following={following} 
-        updateFollowing={updateFollowing} 
-        setHashtags={setHashtags}
-        hashTags={hashTags}
-        imagesOnlyMode={imagesOnlyMode}
-        />
       <CardContent >
         <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
         {event.content}
@@ -461,7 +432,7 @@ const Note: React.FC<NoteProps> = ({
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <IconButton 
-            onClick={() => disableReplyIcon ? () => {} : handleReplyToNote(event)}
+            onClick={() => disableReplyIcon ? () => {} : handleReplyToNote()}
             color="secondary"
           >
             <RateReviewIcon />
