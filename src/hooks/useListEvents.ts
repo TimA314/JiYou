@@ -5,7 +5,7 @@ import { eventContainsExplicitContent, insertEventIntoDescendingList } from '../
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, clearGlobalNotes } from '../redux/slices/notesSlice';
+import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/notesSlice';
 import { useDebounce } from 'use-debounce';
 
 type useListEventsProps = {
@@ -47,7 +47,7 @@ export const useListEvents = ({
   const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => relays.filter((r) => r.read).map((r) => r.relayUrl), [relays]);
   const allRelayUrls = [...new Set([...relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
-  
+
 
   useEffect(() => {
     const subFeedEvents = async () => {
@@ -83,8 +83,8 @@ export const useListEvents = ({
       Object.values(notes.replyNotes).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
       .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
-      if (!notes.metaData[keys.publicKey.decoded] && metadataFetched.current[keys.publicKey.decoded] !== true) {
-        pubkeysToFetch.push(keys.publicKey.decoded)
+      if (!notes.metaData[keys.publicKey.decoded]) {
+        pubkeysToFetch.unshift(keys.publicKey.decoded)
       }
 
       pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = true));
@@ -107,7 +107,7 @@ export const useListEvents = ({
       fetchMetaData();
 
     return () => {};
-  }, [pool, notes.globalNotes]);
+  }, [pool, notes.globalNotes, keys.publicKey.decoded]);
 
   
 
@@ -258,6 +258,22 @@ export const useListEvents = ({
       fetchingEventsInProgress.current = false;
     }
   };
+
+  //User Notes
+  useEffect(() => {
+    if (!pool) return;
+
+    const fetchUserNotes = () => {
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
+
+      sub.on("event", (event: Event) => {
+        const sanitizedEvent = sanitizeEvent(event);
+        dispatch(addUserNotes(sanitizedEvent));
+      })
+    }
+
+    fetchUserNotes();
+  }, [pool, keys.publicKey.decoded])
 
 
   useEffect(() => {

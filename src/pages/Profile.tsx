@@ -38,18 +38,17 @@ export default function Profile({
     updateProfile, 
     hideExplicitContent,
 }: ProfileProps) {
-const [profileNameInput, setProfileNameInput] = useState("");
-const [profileAboutInput, setProfileAboutInput] = useState("");
-const [imageUrlInput, setImageUrlInput] = useState("");
-const [bannerUrlInput, setBannerUrlInput] = useState("");
+const notes = useSelector((state: RootState) => state.notes);
+const keys = useSelector((state: RootState) => state.keys);
+const [profileNameInput, setProfileNameInput] = useState(notes.metaData[keys.publicKey.decoded]?.name ?? "");
+const [profileAboutInput, setProfileAboutInput] = useState(notes.metaData[keys.publicKey.decoded]?.about ?? "");
+const [imageUrlInput, setImageUrlInput] = useState(notes.metaData[keys.publicKey.decoded]?.picture ?? "");
+const [bannerUrlInput, setBannerUrlInput] = useState(notes.metaData[keys.publicKey.decoded]?.banner ?? "");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
-const keys = useSelector((state: RootState) => state.keys);
-const notes = useSelector((state: RootState) => state.notes);
 const dispatch = useDispatch();
 
-const userNotesFilter: Filter = { kinds: [1], authors: [keys.publicKey.decoded]};
 
 
 useEffect(() => {

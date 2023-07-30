@@ -38,7 +38,8 @@ export const notesSlice = createSlice({
             })
         },
         addUserNotes: (state, action) => {
-            if (!state.userNotes.find(event => event.id === action.payload.id)) {
+            const existingNote = state.userNotes.find(event => event.id === action.payload.id);
+            if (!existingNote) {
                 state.userNotes.push(action.payload);
             }
         },
