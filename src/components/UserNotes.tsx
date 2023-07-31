@@ -18,8 +18,6 @@ export default function UserNotes({}: Props) {
                                 <Box key={event.sig}>
                                     <Note 
                                         event={event}
-                                        fetchEvents={fetchEvents}
-                                        setFetchEvents={setFetchEvents}
                                         updateFollowing={() => {}} 
                                         disableReplyIcon={false}
                                         />

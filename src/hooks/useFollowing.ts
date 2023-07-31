@@ -59,7 +59,7 @@ export const useFollowing = ({}: UseFollowingProps) => {
   useEffect(() => {
     getFollowing();
     getFollowers();
-  }, [nostr.relays, keys.publicKey.decoded]);
+  }, [pool, nostr.relays, keys.publicKey.decoded]);
 
   
   const updateFollowing = async (followPubkey: string) => {

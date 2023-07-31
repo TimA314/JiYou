@@ -33,7 +33,6 @@ function App() {
   const { updateFollowing, followers } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
   const hideExplicitContent = useRef<boolean>(true);
-  const imagesOnlyMode = useRef<boolean>(false);
   useListEvents({ 
       tabIndex, 
       hideExplicitContent,
@@ -102,7 +101,6 @@ function App() {
     if (settings) {
       const parsedSettings = JSON.parse(settings);
       hideExplicitContent.current = parsedSettings?.feedSettings?.hideExplicitContent ?? true
-      imagesOnlyMode.current = parsedSettings?.feedSettings?.imagesOnlyMode ?? false;
     }
   }, []);
 
@@ -130,13 +128,11 @@ function App() {
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
         updateFollowing={updateFollowing} 
-        imagesOnlyMode={imagesOnlyMode}
       />
       <NoteModal
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
         updateFollowing={updateFollowing}
-        imagesOnlyMode={imagesOnlyMode}
       />
       <Routes>
           <Route path="/start" element={
@@ -145,12 +141,7 @@ function App() {
             />} />
           <Route path="/profile" element={
             <Profile
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              followers={followers}
               updateProfile={updateProfile}
-              imagesOnlyMode={imagesOnlyMode}
-              hideExplicitContent={hideExplicitContent}
             />} />
           <Route path="/relays" element={
             <Relays
@@ -159,23 +150,12 @@ function App() {
           <Route path="/" element={
             <GlobalFeed
               updateFollowing={updateFollowing}
-              hideExplicitContent={hideExplicitContent}
-              imagesOnlyMode={imagesOnlyMode}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              fetchingEventsInProgress={fetchingEventsInProgress}
-              setTabIndex={setTabIndex}
-              tabIndex={tabIndex}
             />} />
           <Route path="/keys" element={
             <Keys
             />} />
           <Route path="/settings" element={
-            <Settings
-              imagesOnlyMode={imagesOnlyMode}
-              hideExplicitContent={hideExplicitContent}
-              setFetchEvents={setFetchEvents}
-            />
+            <Settings />
           } />
           <Route path="/about" element={
             <About />

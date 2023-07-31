@@ -36,7 +36,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
     const defaultAvatar = DiceBears();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const notes = useSelector((state: RootState) => state.notes);
+    const events = useSelector((state: RootState) => state.events);
 
 
     const handleExpandClick = useCallback(() => {
@@ -51,11 +51,11 @@ export default function UserNotificationNote({event, userNote}: Props) {
                     <Grid item xs={4}>
                         <CardHeader
                             avatar={
-                            <Avatar aria-label="profile picture" src={notes.metaData[event.pubkey]?.picture ?? defaultAvatar}>
+                            <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                             </Avatar>
                             }
-                            title={notes.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
-                            subheader={notes.metaData[event.pubkey]?.nip05 ?? ""}
+                            title={events.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                            subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
                             subheaderTypographyProps={{color: themeColors.textColor}}
                             style={{color: themeColors.textColor}}
                         />
@@ -124,7 +124,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
 
                         <Grid item xs={1}>
                             <CardContent>
-                                <Avatar src={notes.metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
+                                <Avatar src={events.metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
                             </CardContent>
                         </Grid>
 
@@ -150,11 +150,11 @@ export default function UserNotificationNote({event, userNote}: Props) {
             <Grid item xs={3}>
                 <CardHeader
                     avatar={
-                    <Avatar aria-label="profile picture" src={notes.metaData[event.pubkey]?.picture ?? defaultAvatar}>
+                    <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                     </Avatar>
                     }
-                    title={notes.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
-                    subheader={notes.metaData[event.pubkey]?.nip05 ?? ""}
+                    title={events.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                    subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
                     subheaderTypographyProps={{color: themeColors.textColor}}
                     style={{color: themeColors.textColor}}
                 />
@@ -170,7 +170,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
             
             <Grid item xs={1}>
                 <CardContent>
-                    <Avatar src={notes.metaData[event.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
+                    <Avatar src={events.metaData[event.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                 </CardContent>
             </Grid>
 

@@ -63,8 +63,6 @@ interface ExpandMoreProps extends IconButtonProps {
 }
 interface NoteProps {
   event: Event;
-  fetchEvents: boolean;
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
@@ -73,7 +71,6 @@ interface NoteProps {
 }
 
 const Note: React.FC<NoteProps> = ({
-    setFetchEvents,
     event,
     disableReplyIcon, 
     gettingThread,
@@ -93,7 +90,7 @@ const Note: React.FC<NoteProps> = ({
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
 
-  const rootEventTagToPreview = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
@@ -101,7 +98,7 @@ const Note: React.FC<NoteProps> = ({
   const images = GetImageFromPost(event.content);
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
-  const hashtags = event.tags.filter((t) => t[0] === 't').map((t) => t[1]);
+  const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
 
   const handleExpandClick = useCallback(() => {
@@ -151,7 +148,6 @@ const Note: React.FC<NoteProps> = ({
     console.log("add hashtag", tag)
     const newTags = [...new Set([...note.hashTags, tag])]
     dispatch(setHashTags(newTags));
-    setFetchEvents(true);
   }
 
   const handleReplyToNote = () => {
@@ -215,7 +211,7 @@ const Note: React.FC<NoteProps> = ({
               className={liked ? 'animateLike' : ''}
             >
             <Typography variant='caption' sx={{color: themeColors.textColor}}>
-              {(events.reactions[event.id].filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
+              {(events.reactions[event.id]?.filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
             </Typography>
               <FavoriteIcon id={"favorite-icon-" + event.sig} />
             </FavoriteIconButton>
@@ -314,8 +310,8 @@ const Note: React.FC<NoteProps> = ({
         </Box>
       </CardContent>
       <CardContent>
-        {hashtags
-          .filter((tag) => hashtags.indexOf(tag) === hashtags.lastIndexOf(tag))
+        {hashTagsFromNote
+          .filter((tag) => hashTagsFromNote.indexOf(tag) === hashTagsFromNote.lastIndexOf(tag))
           .map((tag) => (
             <Typography
             variant="caption"

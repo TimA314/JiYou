@@ -11,6 +11,7 @@ import { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { clearGlobalNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
+import { setTabIndex } from '../redux/slices/noteSlice';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -26,25 +27,13 @@ const createNoteStyle = {
 
 type GlobalFeedProps = {
     updateFollowing: (pubkey: string) => void;
-    setTabIndex: React.Dispatch<React.SetStateAction<number>>;
-    fetchEvents: boolean;
-    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-    fetchingEventsInProgress: MutableRefObject<boolean>;
-    hideExplicitContent: MutableRefObject<boolean>;
-    imagesOnlyMode: MutableRefObject<boolean>;
-    tabIndex: number;
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
-    fetchEvents,
-    setFetchEvents,
-    fetchingEventsInProgress,
-    tabIndex,
-    updateFollowing,
-    setTabIndex,
-    imagesOnlyMode,
+    updateFollowing
   }) => {
     const events = useSelector((state: RootState) => state.events);
+    const note = useSelector((state: RootState) => state.note);
     const dispatch = useDispatch();
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
@@ -52,7 +41,7 @@ type GlobalFeedProps = {
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTabIndex(newValue);
+        dispatch(setTabIndex(newValue));
         dispatch(clearGlobalNotes());
         dispatch(toggleRefreshFeedNotes())
     };
@@ -79,13 +68,10 @@ type GlobalFeedProps = {
             return (
                 events.globalNotes.map((event) => {
                     return (
-                        <Note 
-                            fetchEvents={fetchEvents}
-                            setFetchEvents={setFetchEvents}
+                        <Note
                             event={event}
                             updateFollowing={updateFollowing} 
                             key={event.sig}
-                            imagesOnlyMode={imagesOnlyMode}
                         />
                     )
                 })
@@ -98,9 +84,7 @@ type GlobalFeedProps = {
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <SearchFilter 
-                setFetchEvents={setFetchEvents}
-                />
+            <SearchFilter />
             
             {renderFeed()}
 
@@ -145,7 +129,7 @@ type GlobalFeedProps = {
                 </Fab>
 
                 <Tabs 
-                    value={tabIndex} 
+                    value={note.tabIndex} 
                     onChange={handleTabChange}
                     textColor='inherit'
                     indicatorColor='secondary'

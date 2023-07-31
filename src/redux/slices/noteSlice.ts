@@ -7,7 +7,9 @@ const initialState: NoteSlice = {
     replyToNoteEvent: null,
     searchEventIds: [],
     hashTags: [],
-    tabIndex: 0
+    tabIndex: 0,
+    imageOnlyMode: (JSON.parse(localStorage.getItem("JiYouSettings") ?? ""))?.feedSettings?.imagesOnlyMode == true ?? false,
+    hideExplicitContent: true
 }
 
 export const noteSlice = createSlice({
@@ -28,12 +30,26 @@ export const noteSlice = createSlice({
         },
         setTabIndex: (state, action) => {
             state.tabIndex = action.payload;
+        },
+        setImageOnlyMode: (state, action) => {
+            state.imageOnlyMode = action.payload;
+        },
+        setHideExplicitContent: (state, action) => {
+            state.hideExplicitContent = action.payload;
         }
     }
 });
 
 
-export const { setNoteModalEvent, setReplyToNoteEvent, setSearchEventIds, setHashTags, setTabIndex} = noteSlice.actions;
+export const { 
+    setNoteModalEvent, 
+    setReplyToNoteEvent, 
+    setSearchEventIds, 
+    setHashTags, 
+    setTabIndex, 
+    setImageOnlyMode,
+    setHideExplicitContent
+} = noteSlice.actions;
 export default noteSlice.reducer;
 
 export type NoteSlice = {
@@ -42,4 +58,6 @@ export type NoteSlice = {
   searchEventIds: string[];
   hashTags: string[];
   tabIndex: number;
+  imageOnlyMode: boolean;
+  hideExplicitContent: boolean;
 }

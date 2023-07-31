@@ -15,18 +15,11 @@ import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
 
 interface ProfileProps {
-    followers: string[];
-    fetchEvents: boolean;
-    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
-    imagesOnlyMode: React.MutableRefObject<boolean>;
-    hideExplicitContent: React.MutableRefObject<boolean>;
 }
 
 export default function Profile({
-    followers, 
     updateProfile, 
-    hideExplicitContent,
 }: ProfileProps) {
 const pool = useContext(PoolContext);
 const events = useSelector((state: RootState) => state.events);
@@ -133,7 +126,7 @@ const styles = {
                                             sx={{ margin: "1px", color: themeColors.textColor }}
                                             />
                                         <Chip
-                                            label={"Followers: " + followers.length}
+                                            label={"Followers: " + nostr.followers.length}
                                             sx={{ margin: "1px", color: themeColors.textColor }}
                                             />
                                     </Box>

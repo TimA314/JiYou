@@ -71,7 +71,7 @@ export const useListEvents = ({
     }
 
     subFeedEvents();
-  }, [note.hashTags, note.searchEventIds, events.refreshFeedNotes]);
+  }, [note.hashTags, note.searchEventIds, events.refreshFeedNotes, note.tabIndex, note.hideExplicitContent, note.imageOnlyMode]);
 
 
   //MetaData

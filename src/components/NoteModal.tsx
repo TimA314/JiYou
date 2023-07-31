@@ -65,10 +65,8 @@ export default function NoteModal({
                   }}
                 >
                   <Note
-                      key={rootEvent.sig + Math.random()}
+                      key={rootEvent.sig + "NoteModal"}
                       event={rootEvent}
-                      fetchEvents={fetchEvents}
-                      setFetchEvents={setFetchEvents}
                       updateFollowing={updateFollowing}
                       disableReplyIcon={false}
                       imagesOnlyMode={imagesOnlyMode}
@@ -85,11 +83,9 @@ export default function NoteModal({
         <Box>
             <Note 
               event={note.noteModalEvent}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
               updateFollowing={updateFollowing}
               disableReplyIcon={false}
-              key={note.noteModalEvent.sig + "modal"}
+              key={note.noteModalEvent.sig + "NoteModal"}
               imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
             />
@@ -105,10 +101,8 @@ export default function NoteModal({
                   return (
                     <Note 
                       event={replyEvent}
-                      fetchEvents={fetchEvents}
-                      setFetchEvents={setFetchEvents}
                       updateFollowing={updateFollowing}
-                      key={replyEvent.sig + Math.random()}
+                      key={replyEvent.sig + "NoteModal"}
                       disableReplyIcon={false}
                       imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}

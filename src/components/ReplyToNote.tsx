@@ -51,8 +51,6 @@ export default function ReplyToNote({
         <Box>
           <Note 
           event={note.replyToNoteEvent}
-          fetchEvents={fetchEvents}
-          setFetchEvents={setFetchEvents}
           updateFollowing={updateFollowing} 
           disableReplyIcon={true}
           imagesOnlyMode={imagesOnlyMode}

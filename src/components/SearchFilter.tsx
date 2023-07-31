@@ -10,11 +10,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { setHashTags, setSearchEventIds } from "../redux/slices/noteSlice";
 import { toggleRefreshFeedNotes } from "../redux/slices/eventsSlice";
-interface Props {
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-}
 
-export default function SearchFilter({ setFetchEvents }: Props) {
+interface Props {}
+
+export default function SearchFilter({}: Props) {
   const note = useSelector((state: RootState) => state.note);
   const dispatch = useDispatch();
   const [input, setInput] = useState("");
