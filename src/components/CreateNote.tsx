@@ -2,15 +2,14 @@ import { useContext, useState } from 'react';
 import { Box, FormGroup, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
-import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
-import { RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { toggleRefreshUserNotes } from '../redux/slices/EventsSlice';
+import { toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 

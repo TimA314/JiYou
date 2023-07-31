@@ -9,6 +9,7 @@ import { Close } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { setHashTags, setSearchEventIds } from "../redux/slices/noteSlice";
+import { toggleRefreshFeedNotes } from "../redux/slices/eventsSlice";
 interface Props {
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -26,7 +27,7 @@ export default function SearchFilter({ setFetchEvents }: Props) {
     if (eventIDRegex.test(input)) {
       const newEventIds = [...note.searchEventIds, input];
       dispatch(setSearchEventIds(newEventIds))
-      setFetchEvents(true);
+      dispatch(toggleRefreshFeedNotes())
       setInput("");
       return;
     }
@@ -35,18 +36,18 @@ export default function SearchFilter({ setFetchEvents }: Props) {
     if (hashtag === "" || note.hashTags.includes(hashtag)) return;
     setInput("");
     dispatch(setHashTags([...note.hashTags, hashtag]));
-    setFetchEvents(true);
+    dispatch(toggleRefreshFeedNotes())
   };
 
   const removeSearchedEventId = (id: string) => {
     const newSearchEventIds = note.searchEventIds.filter((e) => e !== id);
     dispatch(setSearchEventIds(newSearchEventIds));
-    setFetchEvents(true);
+    dispatch(toggleRefreshFeedNotes())
   }
 
   const removeHashtag = (hashtag: string) => {
     dispatch(setHashTags(note.hashTags.filter((h) => h !== hashtag)));
-    setFetchEvents(true);
+    dispatch(toggleRefreshFeedNotes())
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

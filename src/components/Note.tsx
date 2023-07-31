@@ -65,7 +65,6 @@ interface NoteProps {
   event: Event;
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  following: string[];
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
@@ -76,7 +75,6 @@ interface NoteProps {
 const Note: React.FC<NoteProps> = ({
     setFetchEvents,
     event,
-    following, 
     disableReplyIcon, 
     gettingThread,
     updateFollowing,
@@ -84,19 +82,19 @@ const Note: React.FC<NoteProps> = ({
     isInModal = false,
   }: NoteProps) => {
   const pool = useContext(PoolContext);
+  const keys = useSelector((state: RootState) => state.keys);
+  const events = useSelector((state: RootState) => state.events);
+  const note = useSelector((state: RootState) => state.note);
+  const nostr = useSelector((state: RootState) => state.nostr);
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(following.includes(event.pubkey));
+  const [isFollowing, setIsFollowing] = useState(nostr.following.includes(event.pubkey));
   const { themeColors } = useContext(ThemeContext);
   const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
-  const keys = useSelector((state: RootState) => state.keys);
-  const notes = useSelector((state: RootState) => state.notes);
-  const note = useSelector((state: RootState) => state.note);
-  const nostr = useSelector((state: RootState) => state.nostr);
 
   const rootEventTagToPreview = event.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
-  let previewEvent = notes.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
+  let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
 
@@ -189,7 +187,7 @@ const Note: React.FC<NoteProps> = ({
         <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <CardHeader
           avatar={
-            <Avatar sizes='small' aria-label="recipe" src={notes.metaData[event.pubkey]?.picture ?? ""}>
+            <Avatar sizes='small' aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? ""}>
             </Avatar>
           }
           title={moment.unix(event.created_at).fromNow()}
@@ -198,7 +196,7 @@ const Note: React.FC<NoteProps> = ({
           <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
           <IconButton aria-label="cart" onClick={showReplyThread}>
             <StyledBadge color="secondary">
-              {gettingThread ? <CircularProgress /> : <Badge badgeContent={notes.replyNotes[event.id]?.length ?? ""} color="primary"><ForumIcon color="primary"/></Badge> }
+              {gettingThread ? <CircularProgress /> : <Badge badgeContent={events.replyNotes[event.id]?.length ?? ""} color="primary"><ForumIcon color="primary"/></Badge> }
             </StyledBadge>
           </IconButton>
           </Box>
@@ -217,7 +215,7 @@ const Note: React.FC<NoteProps> = ({
               className={liked ? 'animateLike' : ''}
             >
             <Typography variant='caption' sx={{color: themeColors.textColor}}>
-              {(notes.reactions[event.id].filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
+              {(events.reactions[event.id].filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
             </Typography>
               <FavoriteIcon id={"favorite-icon-" + event.sig} />
             </FavoriteIconButton>
@@ -281,11 +279,11 @@ const Note: React.FC<NoteProps> = ({
     <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" src={notes.metaData[event.pubkey]?.picture ?? ""}>
+          <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? ""}>
           </Avatar>
         }
-        title={notes.metaData[event.pubkey]?.name ?? ""}
-        subheader={notes.metaData[event.pubkey]?.nip05 ?? ""}
+        title={events.metaData[event.pubkey]?.name ?? ""}
+        subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
@@ -346,10 +344,10 @@ const Note: React.FC<NoteProps> = ({
                     <Grid item xs={4}>
                         <CardHeader
                                 avatar={
-                                  <Avatar src={notes.metaData[previewEvent.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                                 }
-                                title={notes.metaData[previewEvent.pubkey]?.name ?? ""}
-                                subheader={notes.metaData[previewEvent.pubkey]?.nip05 ?? ""}
+                                title={events.metaData[previewEvent.pubkey]?.name ?? ""}
+                                subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
                                 subheaderTypographyProps={{color: themeColors.textColor}}
                                 style={{color: themeColors.textColor}}>
                         </CardHeader>
@@ -396,7 +394,7 @@ const Note: React.FC<NoteProps> = ({
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
         <IconButton aria-label="cart" onClick={showReplyThread}>
           <StyledBadge color="secondary">
-            {<Badge badgeContent={notes.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
+            {<Badge badgeContent={events.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
         </IconButton>
         </Box>
@@ -415,7 +413,7 @@ const Note: React.FC<NoteProps> = ({
             className={liked ? 'animateLike' : ''}
           >
           <Typography variant='caption' sx={{color: themeColors.textColor}}>
-            {(notes.reactions[event.id]?.filter(e => e.content !== "-")?.length ?? 0) + (liked ? 1 : 0)}
+            {(events.reactions[event.id]?.filter(e => e.content !== "-")?.length ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + event.sig} />
           </FavoriteIconButton>

@@ -27,7 +27,6 @@ const style = {
 interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  following: string[];
   updateFollowing: (pubkey: string) => void;
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
@@ -35,7 +34,6 @@ interface ReplyToNoteProps {
 export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
-  following,
   updateFollowing, 
   imagesOnlyMode
 }: ReplyToNoteProps) {
@@ -55,7 +53,6 @@ export default function ReplyToNote({
           event={note.replyToNoteEvent}
           fetchEvents={fetchEvents}
           setFetchEvents={setFetchEvents}
-          following={following} 
           updateFollowing={updateFollowing} 
           disableReplyIcon={true}
           imagesOnlyMode={imagesOnlyMode}

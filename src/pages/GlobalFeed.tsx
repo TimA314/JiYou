@@ -1,5 +1,4 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { Filter } from 'nostr-tools'
 import { MutableRefObject, useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
@@ -9,8 +8,9 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import { clearGlobalNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -27,7 +27,6 @@ const createNoteStyle = {
 type GlobalFeedProps = {
     updateFollowing: (pubkey: string) => void;
     setTabIndex: React.Dispatch<React.SetStateAction<number>>;
-    following: string[];
     fetchEvents: boolean;
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     fetchingEventsInProgress: MutableRefObject<boolean>;
@@ -37,7 +36,6 @@ type GlobalFeedProps = {
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
-    following,
     fetchEvents,
     setFetchEvents,
     fetchingEventsInProgress,
@@ -46,7 +44,8 @@ type GlobalFeedProps = {
     setTabIndex,
     imagesOnlyMode,
   }) => {
-    const notes = useSelector((state: RootState) => state.notes);
+    const events = useSelector((state: RootState) => state.events);
+    const dispatch = useDispatch();
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
 
@@ -54,7 +53,8 @@ type GlobalFeedProps = {
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
-        setFetchEvents(true);
+        dispatch(clearGlobalNotes());
+        dispatch(toggleRefreshFeedNotes())
     };
 
     const handleCreateNoteOpen = () => {
@@ -65,12 +65,8 @@ type GlobalFeedProps = {
         setCreateNoteOpen(false)
     }
 
-    const setPostedNote = () => {
-        setCreateNoteOpen(false);
-    }
-
     const renderFeed = () => {
-        if (notes.globalNotes.length === 0) {
+        if (events.globalNotes.length === 0) {
             return (
                 <Typography
                     variant="h6" 
@@ -81,14 +77,13 @@ type GlobalFeedProps = {
             )
         } else {
             return (
-                notes.globalNotes.map((event) => {
+                events.globalNotes.map((event) => {
                     return (
                         <Note 
                             fetchEvents={fetchEvents}
                             setFetchEvents={setFetchEvents}
                             event={event}
                             updateFollowing={updateFollowing} 
-                            following={following} 
                             key={event.sig}
                             imagesOnlyMode={imagesOnlyMode}
                         />

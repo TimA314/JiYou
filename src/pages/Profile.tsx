@@ -15,7 +15,6 @@ import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
 
 interface ProfileProps {
-    following: string[];
     followers: string[];
     fetchEvents: boolean;
     setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,19 +24,18 @@ interface ProfileProps {
 }
 
 export default function Profile({
-    following, 
     followers, 
     updateProfile, 
     hideExplicitContent,
 }: ProfileProps) {
 const pool = useContext(PoolContext);
-const notes = useSelector((state: RootState) => state.notes);
+const events = useSelector((state: RootState) => state.events);
 const nostr = useSelector((state: RootState) => state.nostr);
 const keys = useSelector((state: RootState) => state.keys);
-const [profileNameInput, setProfileNameInput] = useState(notes.metaData[keys.publicKey.decoded]?.name ?? "");
-const [profileAboutInput, setProfileAboutInput] = useState(notes.metaData[keys.publicKey.decoded]?.about ?? "");
-const [imageUrlInput, setImageUrlInput] = useState(notes.metaData[keys.publicKey.decoded]?.picture ?? "");
-const [bannerUrlInput, setBannerUrlInput] = useState(notes.metaData[keys.publicKey.decoded]?.banner ?? "");
+const [profileNameInput, setProfileNameInput] = useState(events.metaData[keys.publicKey.decoded]?.name ?? "");
+const [profileAboutInput, setProfileAboutInput] = useState(events.metaData[keys.publicKey.decoded]?.about ?? "");
+const [imageUrlInput, setImageUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.picture ?? "");
+const [bannerUrlInput, setBannerUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.banner ?? "");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
@@ -48,7 +46,7 @@ const dispatch = useDispatch();
 useEffect(() => {
     if (!pool || keys.publicKey.decoded === "") return;
 
-    const userMetaData = notes.metaData[keys.publicKey.decoded];
+    const userMetaData = events.metaData[keys.publicKey.decoded];
 
     const loadProfile = async () => {
         try {
@@ -131,7 +129,7 @@ const styles = {
                                             marginBottom: "3px",
                                         }}>
                                         <Chip 
-                                            label={"Following: " + following.length}
+                                            label={"Following: " + nostr.following.length}
                                             sx={{ margin: "1px", color: themeColors.textColor }}
                                             />
                                         <Chip
@@ -233,10 +231,7 @@ const styles = {
                     </Box>
                     
                     {tabIndex === 0 && (
-                        <UserNotes
-                            following={following} 
-                            hideExplicitContent={hideExplicitContent}
-                            />                    
+                        <UserNotes />                    
                     )}
 
                     {tabIndex === 1 && (

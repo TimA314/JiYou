@@ -58,7 +58,7 @@ export const eventsSlice = createSlice({
         toggleRefreshUserNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes;
         },
-        toogleRefreshFeedNotes: (state) => {
+        toggleRefreshFeedNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes
         }
     }
@@ -73,7 +73,8 @@ export const {
     addUserNotes, 
     addMetaData, 
     addReactions, 
-    toggleRefreshUserNotes
+    toggleRefreshUserNotes,
+    toggleRefreshFeedNotes
 } = eventsSlice.actions;
 
 export default eventsSlice.reducer;

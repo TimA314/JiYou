@@ -4,7 +4,8 @@ import { defaultRelays } from "../../nostr/DefaultRelays";
 
 
 const initialState: NostrSlice = {
-    relays: defaultRelays
+    relays: defaultRelays,
+    following: []
 }
 
 export const nostrSlice = createSlice({
@@ -13,14 +14,24 @@ export const nostrSlice = createSlice({
     reducers: {
         setRelays: (state, action) => {
             state.relays = action.payload;
+        },
+        setFollowing: (state, action) => {
+            state.following = action.payload
+        },
+        addFollowing: (state, action) => {
+            state.following = [...new Set([...state.following, action.payload])];
+        },
+        removeFollowing: (state, action) => {
+            state.following = state.following.filter((f) => f !== action.payload)
         }
     }
 });
 
 
-export const { setRelays } = nostrSlice.actions;
+export const { setRelays, setFollowing, addFollowing, removeFollowing } = nostrSlice.actions;
 export default nostrSlice.reducer;
 
 export type NostrSlice = {
-  relays: RelaySetting[]
+  relays: RelaySetting[],
+  following: string[]
 }

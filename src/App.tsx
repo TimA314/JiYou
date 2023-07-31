@@ -30,15 +30,13 @@ function App() {
   const fetchingEventsInProgress = useRef(false);
   const [tabIndex, setTabIndex] = useState(0);
   const { updateRelays } = useRelays({ setFetchEvents});
-  const { updateFollowing, following, followers } = useFollowing({});
+  const { updateFollowing, followers } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
   const hideExplicitContent = useRef<boolean>(true);
   const imagesOnlyMode = useRef<boolean>(false);
   useListEvents({ 
       tabIndex, 
-      following, 
       hideExplicitContent,
-      imagesOnlyMode,
       fetchEvents,
       setFetchEvents,
       fetchingEventsInProgress,
@@ -131,14 +129,12 @@ function App() {
       <ReplyToNote
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
-        following={following} 
         updateFollowing={updateFollowing} 
         imagesOnlyMode={imagesOnlyMode}
       />
       <NoteModal
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}
-        following={following}
         updateFollowing={updateFollowing}
         imagesOnlyMode={imagesOnlyMode}
       />
@@ -151,7 +147,6 @@ function App() {
             <Profile
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              following={following}
               followers={followers}
               updateProfile={updateProfile}
               imagesOnlyMode={imagesOnlyMode}
@@ -163,7 +158,6 @@ function App() {
             />} />
           <Route path="/" element={
             <GlobalFeed
-              following={following}
               updateFollowing={updateFollowing}
               hideExplicitContent={hideExplicitContent}
               imagesOnlyMode={imagesOnlyMode}

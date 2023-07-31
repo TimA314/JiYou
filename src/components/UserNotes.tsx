@@ -4,20 +4,15 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
-type Props = {
-    following: string[]; 
-    hideExplicitContent: React.MutableRefObject<boolean>;
-}
+type Props = {}
 
-export default function UserNotes({
-    following
-}: Props) {
-    const notes = useSelector((state: RootState) => state.notes);
+export default function UserNotes({}: Props) {
+    const events = useSelector((state: RootState) => state.events);
     const [fetchEvents, setFetchEvents] = useState(false);
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                        {notes.userNotes && notes.userNotes.map((event) => {
+                        {events.userNotes && events.userNotes.map((event) => {
                             
                             return (
                                 <Box key={event.sig}>
@@ -26,7 +21,6 @@ export default function UserNotes({
                                         fetchEvents={fetchEvents}
                                         setFetchEvents={setFetchEvents}
                                         updateFollowing={() => {}} 
-                                        following={following} 
                                         disableReplyIcon={false}
                                         />
                                 </Box>

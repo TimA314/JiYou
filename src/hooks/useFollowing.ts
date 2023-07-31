@@ -2,8 +2,9 @@ import { useContext, useEffect, useState } from 'react';
 import { Event, EventTemplate } from 'nostr-tools';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RootState } from '../redux/store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { PoolContext } from '../context/PoolContext';
+import { setFollowing } from '../redux/slices/nostrSlice';
 
 type UseFollowingProps = {};
 
@@ -11,15 +12,15 @@ export const useFollowing = ({}: UseFollowingProps) => {
   const pool = useContext(PoolContext);
   const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
-  const [following, setFollowing] = useState<string[]>([]);
   const [followers, setFollowers] = useState<string[]>([]);
   const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const dispatch = useDispatch();
 
 
   const getFollowing = async () => {
     if(keys.publicKey.decoded === ""){
-      setFollowing([]);
+      dispatch(setFollowing([]));
       return [];
     }
 
@@ -36,7 +37,7 @@ export const useFollowing = ({}: UseFollowingProps) => {
       }
     }
 
-    setFollowing(followingPks);
+    dispatch(setFollowing(followingPks));
     return followingPks;
   };
 
@@ -104,5 +105,5 @@ export const useFollowing = ({}: UseFollowingProps) => {
     }
 }
 
-  return { following, updateFollowing, followers };
+  return { updateFollowing, followers };
 };

@@ -1,15 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
 import keySlice from './slices/keySlice';
-import notesSlice from './slices/EventsSlice';
 import noteSlice from './slices/noteSlice';
 import nostrSlice from './slices/nostrSlice';
+import eventsSlice from './slices/eventsSlice';
 
 export const store = configureStore({
     reducer: {
         keys: keySlice,
-        notes: notesSlice,
         note: noteSlice,
-        nostr: nostrSlice
+        nostr: nostrSlice,
+        events: eventsSlice,
     },
   })
   

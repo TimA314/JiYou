@@ -26,7 +26,6 @@ const style = {
 interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  following: string[];
   updateFollowing: (pubkey: string) => void;
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
@@ -34,16 +33,15 @@ interface NoteModalProps {
 export default function NoteModal({
   fetchEvents,
   setFetchEvents,
-  following,
   updateFollowing,
   imagesOnlyMode
 }: NoteModalProps) {
   const note = useSelector((state: RootState) => state.note);  
   const dispatch = useDispatch();
   const { themeColors } = useContext(ThemeContext);
-  const notes = useSelector((state: RootState) => state.notes);
+  const events = useSelector((state: RootState) => state.events);
   const idsFromTags = note.noteModalEvent?.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
-  const rootNotes = idsFromTags?.length ?? 0 > 0 ? notes.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
+  const rootNotes = idsFromTags?.length ?? 0 > 0 ? events.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
 
   const handleClose = () => {
     dispatch(setNoteModalEvent(null));
@@ -71,7 +69,6 @@ export default function NoteModal({
                       event={rootEvent}
                       fetchEvents={fetchEvents}
                       setFetchEvents={setFetchEvents}
-                      following={following}
                       updateFollowing={updateFollowing}
                       disableReplyIcon={false}
                       imagesOnlyMode={imagesOnlyMode}
@@ -90,7 +87,6 @@ export default function NoteModal({
               event={note.noteModalEvent}
               fetchEvents={fetchEvents}
               setFetchEvents={setFetchEvents}
-              following={following}
               updateFollowing={updateFollowing}
               disableReplyIcon={false}
               key={note.noteModalEvent.sig + "modal"}
@@ -100,18 +96,17 @@ export default function NoteModal({
         </Box>
 
         <Box>
-          {(notes.replyNotes[note.noteModalEvent.id]?.length ?? 0) > 0 && (
+          {(events.replyNotes[note.noteModalEvent.id]?.length ?? 0) > 0 && (
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <SouthIcon />
                 </Box>
-                {notes.replyNotes[note.noteModalEvent.id].map((replyEvent) => {
+                {events.replyNotes[note.noteModalEvent.id].map((replyEvent) => {
                   return (
                     <Note 
                       event={replyEvent}
                       fetchEvents={fetchEvents}
                       setFetchEvents={setFetchEvents}
-                      following={following}
                       updateFollowing={updateFollowing}
                       key={replyEvent.sig + Math.random()}
                       disableReplyIcon={false}
