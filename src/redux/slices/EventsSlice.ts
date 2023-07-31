@@ -9,7 +9,8 @@ const initialState: EventsType = {
     userNotes: [],
     metaData: {},
     reactions: {},
-    refreshUserNotes: false
+    refreshUserNotes: false,
+    refreshFeedNotes: true
 }
 
 export const eventsSlice = createSlice({
@@ -56,6 +57,9 @@ export const eventsSlice = createSlice({
         },
         toggleRefreshUserNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes;
+        },
+        toogleRefreshFeedNotes: (state) => {
+            state.refreshUserNotes = !state.refreshUserNotes
         }
     }
 });
@@ -69,8 +73,9 @@ export const {
     addUserNotes, 
     addMetaData, 
     addReactions, 
-    toggleRefreshUserNotes 
+    toggleRefreshUserNotes
 } = eventsSlice.actions;
+
 export default eventsSlice.reducer;
 
 export type EventsType = {
@@ -79,6 +84,7 @@ export type EventsType = {
   replyNotes:  Record<string, Event[]>,
   userNotes: Event[],
   metaData:  Record<string, MetaData>,
-  reactions:  Record<string, Event[]>
-  refreshUserNotes: boolean
+  reactions:  Record<string, Event[]>,
+  refreshUserNotes: boolean,
+  refreshFeedNotes: boolean
 }
