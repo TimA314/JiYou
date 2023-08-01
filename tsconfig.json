@@ -11,6 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -21,5 +22,6 @@
     "strictNullChecks": true,
     "useDefineForClassFields": true,
   },
+  "include": ["src"]
   "include": ["src"]
 }

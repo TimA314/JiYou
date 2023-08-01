@@ -47,15 +47,18 @@ event: EventTemplate,
 export const signEventWithStoredSk = async (
 pool: SimplePool,
 keys: Keys,
+keys: Keys,
 relays: string[],
 event: EventTemplate,
 ) => {
 
     if (keys.privateKey.decoded === "") {
+    if (keys.privateKey.decoded === "") {
         alert('Invalid secret key, check settings or use a Nostr extension');
         return false;
     }
     
+    const signedEvent = finishEvent(event, keys.privateKey.decoded);
     const signedEvent = finishEvent(event, keys.privateKey.decoded);
     const validated = validateEvent(signedEvent);
 
