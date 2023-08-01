@@ -73,15 +73,12 @@ export default function StartingPage({setErrorMessage}: Props) {
             const publicKey = await window.nostr.getPublicKey();
             console.log(publicKey)
             if (publicKey) {
-                const encodedPk = nip19.npubEncode(publicKey);
-                if (encodedPk === "") throw new Error();
-
-                localStorage.setItem("sk", "");
-                localStorage.setItem("pk", publicKey);
-                const newKeys = generatePublicKeyOnlyObject(publicKey);
-                dispatch(setKeys(newKeys));
-                navigate("/");
-                return;
+                    const newKeys = generatePublicKeyOnlyObject(publicKey);
+                    localStorage.setItem("sk", "");
+                    localStorage.setItem("pk", publicKey);
+                    dispatch(setKeys(newKeys));
+                    navigate("/");
+                    return;
             }
           } catch {
             setErrorMessage("Something went wrong with the Nostr Extension");

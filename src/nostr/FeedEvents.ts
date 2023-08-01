@@ -1,4 +1,4 @@
-import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, nip19, validateEvent } from "nostr-tools";
+import { Event, EventTemplate, SimplePool, finishEvent, getEventHash, validateEvent } from "nostr-tools";
 import { Keys } from "./Types";
 
 
@@ -26,15 +26,17 @@ event: EventTemplate,
         console.log(validateEvent(newEvent))
         
         //Post the event to the relays
-        const pubs = pool.publish(relays, newEvent)
-        
-        pubs.on("ok", (r: any) => {
-            console.log(`Posted to ${r}`)
-        })
-        
-        pubs.on("failed", (error: string) => {
-            console.log("Failed to post to ", error)
-        })
+        const pubsPromises  = pool.publish(relays, newEvent);
+
+        const pubs = await Promise.all(pubsPromises);
+    
+        pubs.forEach((pub: void | Error) => {
+            if (!(pub instanceof Error)) {
+              console.log(`Posted to ${pub}`);
+            } else {
+              console.log("Failed to post:", pub.message);
+            }
+          });
         
         return true;
     } catch {
@@ -62,15 +64,17 @@ event: EventTemplate,
         return false;
     }
   
-    const pubs = pool.publish(relays, signedEvent);
+    const pubsPromises  = pool.publish(relays, signedEvent);
 
-    pubs.on('ok', (pub: string) => {
-    console.log('Posted to relay ' + pub);
-    });
+    const pubs = await Promise.all(pubsPromises);
 
-    pubs.on('failed', (error: string) => {
-    console.log('Failed to post to relay ' + error);
-    });
+    pubs.forEach((pub: void | Error) => {
+        if (!(pub instanceof Error)) {
+          console.log(`Posted to ${pub}`);
+        } else {
+          console.log("Failed to post:", pub.message);
+        }
+      });
 
-    return true;
+  return true;
 }
