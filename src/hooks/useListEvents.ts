@@ -1,4 +1,4 @@
-import { useEffect, MutableRefObject, useMemo, useRef, useContext } from 'react';
+import { useEffect, useMemo, useRef, useContext } from 'react';
 import { Event, Filter } from 'nostr-tools';
 import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
@@ -6,22 +6,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
+import { GetImageFromPost } from '../utils/miscUtils';
 
-type useListEventsProps = {
-  tabIndex: number;
-  hideExplicitContent: MutableRefObject<boolean>;
-  fetchEvents: boolean;
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  fetchingEventsInProgress: MutableRefObject<boolean>;
-};
+type useListEventsProps = {};
 
-export const useListEvents = ({ 
-  tabIndex, 
-  hideExplicitContent, 
-  fetchEvents,
-  setFetchEvents,
-  fetchingEventsInProgress,
-}: useListEventsProps) => {
+export const useListEvents = ({}: useListEventsProps) => {
   const pool = useContext(PoolContext);
   const keys = useSelector((state: RootState) => state.keys);
   const events = useSelector((state: RootState) => state.events);
@@ -31,10 +20,10 @@ export const useListEvents = ({
   const reactionsFetched = useRef<Record<string, boolean>>({});
   const repliesFetched = useRef<Record<string, boolean>>({});
   const rootsFetched = useRef<Record<string, boolean>>({});
-
   const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => nostr.relays.filter((r) => r.read).map((r) => r.relayUrl), [nostr.relays]);
   const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
+
 
   //Feed Notes
   useEffect(() => {
@@ -62,8 +51,11 @@ export const useListEvents = ({
       console.log("fetching feed with filter: " + JSON.stringify(filter))
       let sub = pool.sub(readableRelayUrls, [filter]);
 
-      sub.on("event", (event) => {
-          if (hideExplicitContent && eventContainsExplicitContent(event)) return;
+      sub.on("event", (event: Event) => {
+          if (note.hideExplicitContent && eventContainsExplicitContent(event)) return;
+          if (note.imageOnlyMode && GetImageFromPost(event.content)?.length === 0){
+            return;
+          }
           if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
           const sanitizedEvent = sanitizeEvent(event);
           dispatch(addGlobalNotes(sanitizedEvent))
@@ -115,7 +107,7 @@ export const useListEvents = ({
       fetchMetaData();
 
     return () => {};
-  }, [pool, events.globalNotes, events.reactions, events.replyNotes, events.rootNotes, keys.publicKey.decoded]);
+  }, [events.globalNotes, events.reactions, events.replyNotes, events.rootNotes, keys.publicKey.decoded]);
 
   
 
@@ -155,7 +147,7 @@ export const useListEvents = ({
     }
 
     fetchReactions();
-  }, [events]);
+  }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes]);
 
   
   //Reply Events
@@ -244,27 +236,6 @@ export const useListEvents = ({
     subRootEvents();
   }, [events.globalNotes, events.replyNotes, events.userNotes, events.rootNotes]);
 
- 
-  const fetchEventsFromRelays = async () => {
-    try {
-      if (!pool) return;
-      fetchingEventsInProgress.current = true;
-  
-      //If no followers and on the followers tab, don't fetch events
-      if (tabIndex === 1 && nostr.following.length === 0) {
-        setFetchEvents(false);
-        fetchingEventsInProgress.current = false;
-        return;
-      }
-  
-    } catch (error) {
-      console.error('Error fetching events:', error);
-    } finally {
-      setFetchEvents(false);
-      fetchingEventsInProgress.current = false;
-    }
-  };
-
   //User Notes
   useEffect(() => {
     
@@ -280,14 +251,4 @@ export const useListEvents = ({
 
     fetchUserNotes();
   }, [pool, keys.publicKey.decoded, events.refreshUserNotes])
-
-
-  useEffect(() => {
-
-    if (fetchEvents && !fetchingEventsInProgress.current)
-    {
-      fetchEventsFromRelays();
-    }
-
-  }, [fetchEvents, note.hashTags]);
 }

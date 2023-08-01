@@ -78,17 +78,16 @@ const Note: React.FC<NoteProps> = ({
     imagesOnlyMode,
     isInModal = false,
   }: NoteProps) => {
+  const { themeColors } = useContext(ThemeContext);
   const pool = useContext(PoolContext);
   const keys = useSelector((state: RootState) => state.keys);
   const events = useSelector((state: RootState) => state.events);
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
+
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [noteDetailsOpen, setNoteDetailsOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(nostr.following.includes(event.pubkey));
-  const { themeColors } = useContext(ThemeContext);
-  const [showImagesOnly ] = useState(imagesOnlyMode?.current ?? false);
 
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
@@ -156,7 +155,7 @@ const Note: React.FC<NoteProps> = ({
   }
 
   //Images Only Mode
-  if (imagesOnlyMode && imagesOnlyMode.current && showImagesOnly && !isInModal) {
+  if (note.imageOnlyMode && !isInModal) {
     return (
       <Card sx={{marginBottom: "15px"}}>
         <CardContent sx={{margin: "-16px"}}>

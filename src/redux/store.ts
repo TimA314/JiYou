@@ -10,7 +10,7 @@ export const store = configureStore({
         note: noteSlice,
         nostr: nostrSlice,
         events: eventsSlice,
-    },
+    }
   })
   
   // Define a type for your root state

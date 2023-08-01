@@ -1,6 +1,5 @@
+import { AnyAction, Middleware } from "@reduxjs/toolkit";
 import { Event } from "nostr-tools";
-
-
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(

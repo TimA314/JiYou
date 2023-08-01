@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
+import { clearUserEvents } from '../redux/slices/eventsSlice';
 
 interface ProfileProps {
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
@@ -71,6 +72,7 @@ const handleLogout = () => {
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
     dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
+    dispatch(clearUserEvents());
     console.log("Logged out");
     navigate("/start")
 }
