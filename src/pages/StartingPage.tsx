@@ -7,16 +7,11 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { useDispatch } from 'react-redux';
 import { setKeys } from '../redux/slices/keySlice';
 import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
-import { useDispatch } from 'react-redux';
-import { setKeys } from '../redux/slices/keySlice';
-import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
 
 type Props = {
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function StartingPage({setErrorMessage}: Props) {
-    const dispatch = useDispatch();
 export default function StartingPage({setErrorMessage}: Props) {
     const dispatch = useDispatch();
     const { themeColors } = useContext(ThemeContext);
@@ -33,11 +28,8 @@ export default function StartingPage({setErrorMessage}: Props) {
 
         if (isValidInput){
             decodedSk = nip19.decode(skInputEncoded.trim());
-        if (isValidInput){
-            decodedSk = nip19.decode(skInputEncoded.trim());
         }
         
-        if (!isValidInput || !decodedSk || decodedSk.type !== "nsec") {
         if (!isValidInput || !decodedSk || decodedSk.type !== "nsec") {
             setErrorMessage("Invalid Secret Key");
             return;
@@ -45,15 +37,11 @@ export default function StartingPage({setErrorMessage}: Props) {
         
         const newKeys = generateKeyObject(decodedSk.data.toString());
         
-        const newKeys = generateKeyObject(decodedSk.data.toString());
-        
-        if (newKeys === null || newKeys?.publicKey.decoded === "") {
         if (newKeys === null || newKeys?.publicKey.decoded === "") {
             setErrorMessage("Invalid Secret Key");
             return;
         }
 
-        localStorage.setItem("sk", newKeys.privateKey.decoded);
         localStorage.setItem("pk", newKeys.publicKey.decoded);
         dispatch(setKeys(newKeys));
         navigate("/");
@@ -61,14 +49,6 @@ export default function StartingPage({setErrorMessage}: Props) {
 
     const handleCreateNeyKeys = () => {
         const sk = generatePrivateKey();
-        const newKeys = generateKeyObject(sk);
-        if (newKeys === null) {
-            alert("something went wrong generating new keys")
-            return;
-        }
-        localStorage.setItem("sk", sk);
-        localStorage.setItem("pk", newKeys.publicKey.decoded);
-        dispatch(setKeys(newKeys))
         const newKeys = generateKeyObject(sk);
         if (newKeys === null) {
             alert("something went wrong generating new keys")
@@ -192,3 +172,4 @@ export default function StartingPage({setErrorMessage}: Props) {
         </Box>
     )
 }
+
