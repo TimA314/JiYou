@@ -26,27 +26,24 @@ export default function StartingPage({setErrorMessage}: Props) {
 
         let isValidInput = skInputEncoded.startsWith("nsec") && skInputEncoded.length > 60;
 
-        try{
-            decodedSk = nip19.decode(skInputEncoded);
-        }
-        catch(e) {
-            isValidInput = false;
+        if (isValidInput){
+            decodedSk = nip19.decode(skInputEncoded.trim());
         }
         
-        if (!isValidInput || !decodedSk || !decodedSk.data) {
+        if (!isValidInput || !decodedSk || decodedSk.type !== "nsec") {
             setErrorMessage("Invalid Secret Key");
             return;
         }
-        const publicKeyDecoded = getPublicKey(decodedSk.data.toString());
         
-        if (publicKeyDecoded === "") {
+        const newKeys = generateKeyObject(decodedSk.data.toString());
+        
+        if (newKeys === null || newKeys?.publicKey.decoded === "") {
             setErrorMessage("Invalid Secret Key");
             return;
         }
 
-        const newKeys = generateKeyObject(skInputEncoded);
-        localStorage.setItem("sk", skInputEncoded);
-        localStorage.setItem("pk", publicKeyDecoded);
+        localStorage.setItem("sk", newKeys.privateKey.decoded);
+        localStorage.setItem("pk", newKeys.publicKey.decoded);
         dispatch(setKeys(newKeys));
         navigate("/");
     };
@@ -54,7 +51,10 @@ export default function StartingPage({setErrorMessage}: Props) {
     const handleCreateNeyKeys = () => {
         const sk = generatePrivateKey();
         const newKeys = generateKeyObject(sk);
-    
+        if (newKeys === null) {
+            alert("something went wrong generating new keys")
+            return;
+        }
         localStorage.setItem("sk", sk);
         localStorage.setItem("pk", newKeys.publicKey.decoded);
         dispatch(setKeys(newKeys))

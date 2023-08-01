@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { MutableRefObject, useState } from 'react'
+import { useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
 import "./GlobalFeed.css";

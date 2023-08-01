@@ -21,16 +21,22 @@ export const uint8ArrayToHex = (buffer: Uint8Array) => {
 };
 
 export const generateKeyObject = (secretKeyDecoded: string) => {
-  const pk = getPublicKey(secretKeyDecoded);
-  return {
-    publicKey: {
-      decoded: pk,
-      encoded: nip19.npubEncode(pk)
-    },
-    privateKey: {
-      decoded: secretKeyDecoded,
-      encoded: nip19.nsecEncode(secretKeyDecoded)
+  try{
+
+    const pk = getPublicKey(secretKeyDecoded);
+    return {
+      publicKey: {
+        decoded: pk,
+        encoded: nip19.npubEncode(pk)
+      },
+      privateKey: {
+        decoded: secretKeyDecoded,
+        encoded: nip19.nsecEncode(secretKeyDecoded)
+      }
     }
+    
+  } catch {
+    return null;
   }
 } 
 
