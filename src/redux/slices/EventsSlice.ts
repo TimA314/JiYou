@@ -13,6 +13,7 @@ const initialState: EventsType = {
     refreshFeedNotes: true
 }
 
+
 export const eventsSlice = createSlice({
     name: "events",
     initialState,
