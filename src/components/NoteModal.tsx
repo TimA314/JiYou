@@ -1,13 +1,15 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { SimplePool } from 'nostr-tools';
-import { FullEventData, RelaySetting } from '../nostr/Types';
+import { Event } from 'nostr-tools';
 import Note from './Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
 import { useContext } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ThemeContext } from '../theme/ThemeContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { setNoteModalEvent } from '../redux/slices/noteSlice';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -24,51 +26,34 @@ const style = {
 interface NoteModalProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  eventData: FullEventData;
-  replyEvents: FullEventData[];
-  rootEvents: FullEventData[];
-  open: boolean;
-  setNoteDetailsOpen: (open: boolean) => void;
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  following: string[];
   updateFollowing: (pubkey: string) => void;
-  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-  pk: string;
-  sk_decoded: string;
-  hashTags: string[];
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
 export default function NoteModal({
-  pk,
-  sk_decoded,
-  eventData,
-  replyEvents,
-  rootEvents,
   fetchEvents,
   setFetchEvents,
-  open,
-  setNoteDetailsOpen,
-  pool,
-  relays,
-  following,
   updateFollowing,
-  setHashtags,
-  hashTags,
   imagesOnlyMode
 }: NoteModalProps) {
-
-  const handleClose = () => setNoteDetailsOpen(false);
+  const note = useSelector((state: RootState) => state.note);  
+  const dispatch = useDispatch();
   const { themeColors } = useContext(ThemeContext);
+  const events = useSelector((state: RootState) => state.events);
+  const idsFromTags = note.noteModalEvent?.tags.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const rootNotes = idsFromTags?.length ?? 0 > 0 ? events.rootNotes.filter((e) => idsFromTags!.includes(e.id)) : [];
 
+  const handleClose = () => {
+    dispatch(setNoteModalEvent(null));
+  }
 
   const getThread = () => {
+    if (note.noteModalEvent === null) return <></>;
     return (
       <Box>
         <Box>
-          {rootEvents && rootEvents.length > 0 && 
-            rootEvents.map((rootEvent: FullEventData) => {
+          {(rootNotes?.length ?? 0) > 0 && 
+            rootNotes.map((rootEvent: Event) => {
               return (
                 <Box 
                   key={rootEvent.sig + Math.random()}                                        
@@ -80,21 +65,10 @@ export default function NoteModal({
                   }}
                 >
                   <Note
-                      key={eventData.sig + Math.random()}
-                      eventData={rootEvent}
-                      replyEvents={replyEvents}
-                      rootEvents={rootEvents}
-                      pool={pool}
-                      relays={relays}
-                      fetchEvents={fetchEvents}
-                      setFetchEvents={setFetchEvents}
-                      following={following}
+                      key={rootEvent.sig + "NoteModal"}
+                      event={rootEvent}
                       updateFollowing={updateFollowing}
-                      setHashtags={setHashtags}
-                      pk={pk}
-                      sk_decoded={sk_decoded}
                       disableReplyIcon={false}
-                      hashTags={hashTags}
                       imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}
                   />
@@ -108,51 +82,30 @@ export default function NoteModal({
 
         <Box>
             <Note 
-              eventData={eventData}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              pool={pool} relays={relays}
-              following={following}
+              event={note.noteModalEvent}
               updateFollowing={updateFollowing}
-              setHashtags={setHashtags}
-              pk={pk}
-              sk_decoded={sk_decoded}
               disableReplyIcon={false}
-              hashTags={hashTags}
-              key={eventData.sig + Math.random()}
+              key={note.noteModalEvent.sig + "NoteModal"}
               imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
             />
         </Box>
 
         <Box>
-          {replyEvents.length > 0 && (
+          {(events.replyNotes[note.noteModalEvent.id]?.length ?? 0) > 0 && (
             <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                   <SouthIcon />
                 </Box>
-                {replyEvents.map((replyEvent) => {
+                {events.replyNotes[note.noteModalEvent.id].map((replyEvent) => {
                   return (
                     <Note 
-                    eventData={replyEvent}
-                    replyEvents={replyEvents}
-                    rootEvents={rootEvents}
-                    pool={pool}
-                    relays={relays}
-                    fetchEvents={fetchEvents}
-                    setFetchEvents={setFetchEvents}
-                    following={following}
-                    updateFollowing={updateFollowing}
-                    setHashtags={setHashtags}
-                    pk={pk}
-                    sk_decoded={sk_decoded}
-                    key={replyEvent.sig + Math.random()}
-                    disableReplyIcon={false}
-                    hashTags={hashTags}
-                    imagesOnlyMode={imagesOnlyMode}
-                    isInModal={true}
+                      event={replyEvent}
+                      updateFollowing={updateFollowing}
+                      key={replyEvent.sig + "NoteModal"}
+                      disableReplyIcon={false}
+                      imagesOnlyMode={imagesOnlyMode}
+                      isInModal={true}
                     />
                     );
                   })}
@@ -165,7 +118,7 @@ export default function NoteModal({
 
   return (
     <Modal
-        open={open}
+        open={note.noteModalEvent !== null}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"

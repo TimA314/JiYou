@@ -4,10 +4,11 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useCallback, useContext, useState } from "react";
-import { FullEventData, MetaData } from "../nostr/Types";
 import { DiceBears } from "../utils/miscUtils";
 import moment from "moment";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -26,16 +27,16 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 
 type Props = {
     event: Event;
-    metaData: MetaData;
-    userNote: FullEventData;
+    userNote: Event;
 }
 
-export default function UserNotificationNote({event, metaData, userNote}: Props) {
+export default function UserNotificationNote({event, userNote}: Props) {
     const { themeColors } = useContext(ThemeContext);
     const [expanded, setExpanded] = useState(false);
     const defaultAvatar = DiceBears();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const events = useSelector((state: RootState) => state.events);
 
 
     const handleExpandClick = useCallback(() => {
@@ -50,11 +51,11 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
                     <Grid item xs={4}>
                         <CardHeader
                             avatar={
-                            <Avatar aria-label="profile picture" src={metaData?.picture ?? defaultAvatar}>
+                            <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                             </Avatar>
                             }
-                            title={metaData?.name ?? event.pubkey.substring(0, 6) + "..."}
-                            subheader={metaData?.nip05 ?? ""}
+                            title={events.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                            subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
                             subheaderTypographyProps={{color: themeColors.textColor}}
                             style={{color: themeColors.textColor}}
                         />
@@ -123,7 +124,7 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
 
                         <Grid item xs={1}>
                             <CardContent>
-                                <Avatar src={userNote.user.picture} sx={{width: 24, height: 24}}/>
+                                <Avatar src={events.metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
                             </CardContent>
                         </Grid>
 
@@ -149,11 +150,11 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
             <Grid item xs={3}>
                 <CardHeader
                     avatar={
-                    <Avatar aria-label="profile picture" src={metaData?.picture ?? defaultAvatar}>
+                    <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                     </Avatar>
                     }
-                    title={metaData?.name ?? event.pubkey.substring(0, 6) + "..."}
-                    subheader={metaData?.nip05 ?? ""}
+                    title={events.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
+                    subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
                     subheaderTypographyProps={{color: themeColors.textColor}}
                     style={{color: themeColors.textColor}}
                 />
@@ -169,7 +170,7 @@ export default function UserNotificationNote({event, metaData, userNote}: Props)
             
             <Grid item xs={1}>
                 <CardContent>
-                    <Avatar src={userNote.user.picture} sx={{width: 24, height: 24}}/>
+                    <Avatar src={events.metaData[event.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                 </CardContent>
             </Grid>
 

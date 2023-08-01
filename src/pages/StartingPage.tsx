@@ -4,14 +4,16 @@ import { useContext, useState } from 'react';
 import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
 import { useNavigate } from 'react-router-dom';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import { useDispatch } from 'react-redux';
+import { setKeys } from '../redux/slices/keySlice';
+import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
 
 type Props = {
     setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-    setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
-    setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMessage}: Props) {
+export default function StartingPage({setErrorMessage}: Props) {
+    const dispatch = useDispatch();
     const { themeColors } = useContext(ThemeContext);
     const [skInputEncoded, setSkInputEncoded] = useState<string>("");
     const navigate = useNavigate();
@@ -24,42 +26,38 @@ export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMess
 
         let isValidInput = skInputEncoded.startsWith("nsec") && skInputEncoded.length > 60;
 
-        try{
-            decodedSk = nip19.decode(skInputEncoded);
-        }
-        catch(e) {
-            isValidInput = false;
+        if (isValidInput){
+            decodedSk = nip19.decode(skInputEncoded.trim());
         }
         
-        if (!isValidInput || !decodedSk || !decodedSk.data) {
+        if (!isValidInput || !decodedSk || decodedSk.type !== "nsec") {
             setErrorMessage("Invalid Secret Key");
             return;
         }
-        const publicKeyDecoded = getPublicKey(decodedSk.data.toString());
         
-        if (publicKeyDecoded === "") {
+        const newKeys = generateKeyObject(decodedSk.data.toString());
+        
+        if (newKeys === null || newKeys?.publicKey.decoded === "") {
             setErrorMessage("Invalid Secret Key");
             return;
         }
 
-        localStorage.setItem("sk", skInputEncoded);
-        localStorage.setItem("pk", nip19.npubEncode(publicKeyDecoded));
-        
-        setPk_decoded(publicKeyDecoded);
-        setSk_decoded(decodedSk.data.toString());
+        localStorage.setItem("sk", newKeys.privateKey.decoded);
+        localStorage.setItem("pk", newKeys.publicKey.decoded);
+        dispatch(setKeys(newKeys));
         navigate("/");
     };
 
     const handleCreateNeyKeys = () => {
         const sk = generatePrivateKey();
-        const encodedSk = nip19.nsecEncode(sk);
-        localStorage.setItem("sk", encodedSk);
-        setSk_decoded(sk);
-
-        const publicKey = getPublicKey(sk);
-        const encodedPk = nip19.npubEncode(publicKey);
-        localStorage.setItem("pk", encodedPk);
-        setPk_decoded(publicKey);
+        const newKeys = generateKeyObject(sk);
+        if (newKeys === null) {
+            alert("something went wrong generating new keys")
+            return;
+        }
+        localStorage.setItem("sk", sk);
+        localStorage.setItem("pk", newKeys.publicKey.decoded);
+        dispatch(setKeys(newKeys))
         navigate("/");
     };
 
@@ -79,10 +77,9 @@ export default function StartingPage({setSk_decoded, setPk_decoded, setErrorMess
                 if (encodedPk === "") throw new Error();
 
                 localStorage.setItem("sk", "");
-                localStorage.setItem("pk", encodedPk);
-                setPk_decoded(publicKey);
-                setSk_decoded("");
-                console.log("Logged in with Nostr Extension");
+                localStorage.setItem("pk", publicKey);
+                const newKeys = generatePublicKeyOnlyObject(publicKey);
+                dispatch(setKeys(newKeys));
                 navigate("/");
                 return;
             }

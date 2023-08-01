@@ -1,89 +1,54 @@
 import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
-import { Event, SimplePool } from 'nostr-tools';
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import "./Profile.css";
-import { FullEventData, MetaData, RelaySetting } from '../nostr/Types';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import UserNotes from '../components/UserNotes';
 import Notifications from '../components/Notifications';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { setKeys } from '../redux/slices/keySlice';
+import { PoolContext } from '../context/PoolContext';
+import { clearUserEvents } from '../redux/slices/eventsSlice';
 
 interface ProfileProps {
-    setPk_decoded: React.Dispatch<React.SetStateAction<string>>;
-    setSk_decoded: React.Dispatch<React.SetStateAction<string>>;
-    relays: RelaySetting[];
-    pool: SimplePool | null;
-    pk_decoded: string;
-    sk_decoded: string;
-    profile: ProfileContent;
-    following: string[];
-    followers: string[];
-    fetchEvents: boolean;
-    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
-    getProfile: () => Promise<void>;
-    imagesOnlyMode: React.MutableRefObject<boolean>;
-    userNotes: FullEventData[];
-    likedNotificationEvents: Event[];
-    likedNotificationMetaData: Record<string, MetaData>;
-    hideExplicitContent: React.MutableRefObject<boolean>;
-}
-
-interface ProfileContent {
-    name: string;
-    picture: string;
-    about: string;
-    banner: string;
 }
 
 export default function Profile({
-    setPk_decoded,
-    setSk_decoded,
-    relays, 
-    pool, 
-    pk_decoded,
-    sk_decoded,
-    profile, 
-    following, 
-    followers, 
-    fetchEvents, 
-    setFetchEvents, 
     updateProfile, 
-    getProfile, 
-    hideExplicitContent,
-    userNotes,
-    likedNotificationEvents,
-    likedNotificationMetaData
 }: ProfileProps) {
-const [profileNameInput, setProfileNameInput] = useState("");
-const [profileAboutInput, setProfileAboutInput] = useState("");
-const [imageUrlInput, setImageUrlInput] = useState("");
-const [bannerUrlInput, setBannerUrlInput] = useState("");
+const pool = useContext(PoolContext);
+const events = useSelector((state: RootState) => state.events);
+const nostr = useSelector((state: RootState) => state.nostr);
+const keys = useSelector((state: RootState) => state.keys);
+const [profileNameInput, setProfileNameInput] = useState(events.metaData[keys.publicKey.decoded]?.name ?? "");
+const [profileAboutInput, setProfileAboutInput] = useState(events.metaData[keys.publicKey.decoded]?.about ?? "");
+const [imageUrlInput, setImageUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.picture ?? "");
+const [bannerUrlInput, setBannerUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.banner ?? "");
 const { themeColors } = useContext(ThemeContext);
-const [tabIndex, setTabIndex] = useState(0);
 const navigate = useNavigate();
+const [tabIndex, setTabIndex] = useState(0);
+const dispatch = useDispatch();
+
 
 
 useEffect(() => {
-    if (!pool || pk_decoded === "") return;
+    if (!pool || keys.publicKey.decoded === "") return;
+
+    const userMetaData = events.metaData[keys.publicKey.decoded];
 
     const loadProfile = async () => {
         try {
-            const profileContent = {
-                name: profile.name,
-                picture: profile.picture,
-                about: profile.about,
-                banner: profile.banner
-            }
 
-            setProfileNameInput(profileContent.name);
-            setProfileAboutInput(profileContent.about);
-            setImageUrlInput(profileContent.picture);
-            setBannerUrlInput(profileContent.banner);
+            setProfileNameInput(userMetaData?.name ?? "");
+            setProfileAboutInput(userMetaData?.about ?? "");
+            setImageUrlInput(userMetaData?.picture ?? "");
+            setBannerUrlInput(userMetaData?.banner ?? "");
 
         } catch (error) {
             console.log(error);
@@ -91,11 +56,7 @@ useEffect(() => {
     }
 
     loadProfile();
-}, [profile])
-
-useEffect(() => {
-    getProfile();
-}, [pk_decoded])
+}, [])
 
 const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -110,8 +71,8 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
 const handleLogout = () => {
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
-    setPk_decoded("");
-    setSk_decoded("");
+    dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
+    dispatch(clearUserEvents());
     console.log("Logged out");
     navigate("/start")
 }
@@ -121,7 +82,7 @@ const handleLogout = () => {
 const styles = {
     banner: {
         height: 350,
-        backgroundImage: `url(${profile.banner})`,
+        backgroundImage: `url(${bannerUrlInput})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         margin: -24,
@@ -129,10 +90,9 @@ const styles = {
     }
 };
 
-
     return (
         <Box justifyContent="center" >
-            {pk_decoded !== "" && (
+            {keys.publicKey.decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
                     <Paper  style={styles.banner}>
                         <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
@@ -148,7 +108,7 @@ const styles = {
                         </Toolbar>
                         <div className="avatarContainer">
                             <Avatar
-                                src={profile.picture}
+                                src={imageUrlInput}
                                 sx={{ width: 200, height: 200 }}
                                 />
                         </div>
@@ -164,11 +124,11 @@ const styles = {
                                             marginBottom: "3px",
                                         }}>
                                         <Chip 
-                                            label={"Following: " + following.length}
+                                            label={"Following: " + nostr.following.length}
                                             sx={{ margin: "1px", color: themeColors.textColor }}
                                             />
                                         <Chip
-                                            label={"Followers: " + followers.length}
+                                            label={"Followers: " + nostr.followers.length}
                                             sx={{ margin: "1px", color: themeColors.textColor }}
                                             />
                                     </Box>
@@ -266,25 +226,11 @@ const styles = {
                     </Box>
                     
                     {tabIndex === 0 && (
-                        <UserNotes 
-                            pool={pool}
-                            relays={relays} 
-                            pk={pk_decoded}
-                            sk_decoded={sk_decoded}
-                            fetchEvents={fetchEvents} 
-                            following={following} 
-                            setFetchEvents={setFetchEvents}
-                            userNotes={userNotes}
-                            hideExplicitContent={hideExplicitContent}
-                            />                    
+                        <UserNotes />                    
                     )}
 
                     {tabIndex === 1 && (
-                        <Notifications
-                            userNotes={userNotes}
-                            likedNotificationEvents={likedNotificationEvents} 
-                            likedNotificationMetaData={likedNotificationMetaData}  
-                        />
+                        <Notifications />
                     )}
 
                 </Box>)

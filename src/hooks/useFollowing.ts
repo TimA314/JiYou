@@ -1,31 +1,32 @@
-import { useEffect, useState } from 'react';
-import { Event, EventTemplate, SimplePool } from 'nostr-tools';
+import { useContext, useEffect, useState } from 'react';
+import { Event, EventTemplate } from 'nostr-tools';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
-import { RelaySetting } from '../nostr/Types';
+import { RootState } from '../redux/store';
+import { useDispatch, useSelector } from 'react-redux';
+import { PoolContext } from '../context/PoolContext';
+import { setFollowing } from '../redux/slices/nostrSlice';
 
-type UseFollowingProps = {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  pk_decoded: string;
-  sk_decoded: string;
-};
+type UseFollowingProps = {};
 
-export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollowingProps) => {
-  const [following, setFollowing] = useState<string[]>([]);
+export const useFollowing = ({}: UseFollowingProps) => {
+  const pool = useContext(PoolContext);
+  const nostr = useSelector((state: RootState) => state.nostr);
+  const keys = useSelector((state: RootState) => state.keys);
   const [followers, setFollowers] = useState<string[]>([]);
-  const allRelayUrls = relays.map((r) => r.relayUrl);
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const dispatch = useDispatch();
 
 
   const getFollowing = async () => {
-    if(pk_decoded === ""){
-      setFollowing([]);
+    if(keys.publicKey.decoded === ""){
+      dispatch(setFollowing([]));
       return [];
     }
 
     if (!pool) return [];
     let followingPks: string[] = [];
-    const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [pk_decoded], limit: 1 }])
+    const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [keys.publicKey.decoded], limit: 1 }])
     
     if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return [];
 
@@ -36,18 +37,18 @@ export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollow
       }
     }
 
-    setFollowing(followingPks);
+    dispatch(setFollowing(followingPks));
     return followingPks;
   };
 
   const getFollowers = async () => {
-    if(pk_decoded === ""){
+    if(keys.publicKey.decoded === ""){
       setFollowers([]);
       return;
     }
     if (!pool) return;
 
-    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pk_decoded] }])
+    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [keys.publicKey.decoded] }])
 
     if (!followerEvents || followerEvents.length === 0) return;
 
@@ -58,7 +59,7 @@ export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollow
   useEffect(() => {
     getFollowing();
     getFollowers();
-  }, [relays, pk_decoded, sk_decoded]);
+  }, [pool, nostr.relays, keys.publicKey.decoded]);
 
   
   const updateFollowing = async (followPubkey: string) => {
@@ -85,7 +86,7 @@ export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollow
       } as EventTemplate
       
       //sign with Nostr Extension
-      if (window.nostr && sk_decoded === "") {
+      if (window.nostr && keys.privateKey.decoded === "") {
         const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signed) {
           setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
@@ -94,7 +95,7 @@ export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollow
       }
 
       //sign with sk
-      const signedWithSk = await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent); 
+      const signedWithSk = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent); 
       if (signedWithSk) {      
         setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
       }
@@ -104,5 +105,5 @@ export const useFollowing = ({ pool, relays, pk_decoded, sk_decoded }: UseFollow
     }
 }
 
-  return { following, updateFollowing, followers };
+  return { updateFollowing, followers };
 };

@@ -1,25 +1,35 @@
 import { Stack } from "@mui/material";
 import { Event } from "nostr-tools";
 import UserNotificationNote from "./UserNotificationNote";
-import { FullEventData, MetaData } from "../nostr/Types";
+import { RootState } from "../redux/store";
+import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
-type Props = {
-  likedNotificationEvents: Event[];
-  likedNotificationMetaData: Record<string, MetaData>;
-  userNotes: FullEventData[];
-}
+type Props = {}
 
-export default function Notifications({likedNotificationEvents, likedNotificationMetaData, userNotes}: Props) {
-  const uniqueEvents = likedNotificationEvents.filter((value, index, self) => 
-    self.findIndex(m => m.id === value.id) === index
-  );
+export default function Notifications({}: Props) {
+  const events = useSelector((state: RootState) => state.events);
+  const [userReactionNotes, setReactionNotes] = useState<Event[]>([]);
+
+  useEffect(() => {
+    const reactionEvents: Event[] = []
+    events.userNotes.forEach((e: Event) => {
+      if (events.reactions[e.id]){
+        events.reactions[e.id].forEach((e) =>{
+          reactionEvents.push(e)
+        })
+      }
+    })
+    
+    setReactionNotes((prev: Event[]) => [...new Set([...prev, ...reactionEvents])])
+  },[events.userNotes])
 
   return (
     <Stack>
-      {uniqueEvents.map((event) => {
+      {userReactionNotes.map((event) => {
         const likedNoteEventId = event.tags.find((tag) => tag[0] === "e") || "";
         
-        const likedNote = userNotes.find((note) => note.eventId === likedNoteEventId[1])
+        const likedNote = events.userNotes.find((note) => note.id === likedNoteEventId[1])
 
         if (!likedNote) return (<></>)
 
@@ -27,7 +37,6 @@ export default function Notifications({likedNotificationEvents, likedNotificatio
           <UserNotificationNote 
             key={event.sig} 
             event={event} 
-            metaData={likedNotificationMetaData[event.pubkey]} 
             userNote={likedNote}
             />
         )

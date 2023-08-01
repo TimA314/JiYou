@@ -5,32 +5,29 @@ export type EventWithProfile = Event & {
     isFollowing?: boolean;
 };
 
-export type ReactionCounts = {
-    upvotes: number;
-    downvotes: number;
-};
-
-export interface FullEventData {
-    content: string;
-    user: {
-      name: string;
-      picture: string;
-      about: string;
-      nip05: string;
-    }
-    pubkey: string;
-    hashtags: string[];
-    eventId: string;
-    sig: string;
-    created_at: number;
-    tags: string[][];
-    reaction: ReactionCounts;
-    images: string[];
+export type Notes = {
+  globalNotes: Event[],
+  rootNotes: Event[],
+  replyNotes:  Record<string, Event[]>,
+  userNotes: Event[],
+  metaData:  Record<string, MetaData>,
+  reactions:  Record<string, Event[]>
 }
 
 declare global {
   interface Window {
     nostr: Nostr;
+  }
+}
+
+export type Keys = {
+  publicKey: {
+    decoded: string,
+    encoded: string
+  },
+  privateKey: {
+    decoded: string,
+    encoded: string
   }
 }
 

@@ -1,12 +1,13 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
-import { SimplePool } from 'nostr-tools';
-import { FullEventData, RelaySetting } from '../nostr/Types';
 import Note from './Note';
 import { IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CreateNote from './CreateNote';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -26,50 +27,46 @@ const style = {
 interface ReplyToNoteProps {
   fetchEvents: boolean;
   setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-  eventData: FullEventData;
-  replyEvents: FullEventData[];
-  rootEvents: FullEventData[];
-  open: boolean;
-  setReplyToNoteOpen: (open: boolean) => void;
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  pk: string;
-  sk_decoded: string;
-  following: string[];
-  hashTags: string[];
   updateFollowing: (pubkey: string) => void;
-  setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
   imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
 export default function ReplyToNote({
   fetchEvents,
   setFetchEvents,
-  eventData,
-  replyEvents,
-  rootEvents,
-  open, 
-  setReplyToNoteOpen, 
-  pool, 
-  relays, 
-  pk,
-  sk_decoded,
-  following,
-  hashTags,
   updateFollowing, 
-  setHashtags,
   imagesOnlyMode
 }: ReplyToNoteProps) {
-  const handleClose = () => setReplyToNoteOpen(false);
+  const note = useSelector((state: RootState) => state.note);
+  const dispatch = useDispatch();
 
-  const setPostedNote = () => {
-    handleClose();
+  const handleClose = () => {
+    dispatch(setReplyToNoteEvent(null));
+  }
+
+  const getNote = () => {
+
+    if (note.replyToNoteEvent){
+      return (
+        <Box>
+          <Note 
+          event={note.replyToNoteEvent}
+          updateFollowing={updateFollowing} 
+          disableReplyIcon={true}
+          imagesOnlyMode={imagesOnlyMode}
+          />
+          <CreateNote />
+      </Box>
+      )
+    } else {
+      return <></>
+    }
   }
 
   return (
     <div>
       <Modal
-        open={open}
+        open={note.replyToNoteEvent ? true : false}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
@@ -86,31 +83,7 @@ export default function ReplyToNote({
           >
             <CloseIcon />
           </IconButton>
-            <Note 
-              eventData={eventData}
-              replyEvents={replyEvents}
-              rootEvents={rootEvents}
-              pool={pool} 
-              relays={relays}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              pk={pk}
-              sk_decoded={sk_decoded}
-              following={following} 
-              updateFollowing={updateFollowing} 
-              setHashtags={setHashtags} 
-              disableReplyIcon={true}
-              hashTags={hashTags}
-              imagesOnlyMode={imagesOnlyMode}
-              />
-            <CreateNote 
-              pool={pool} 
-              relays={relays} 
-              pk={pk}
-              sk_decoded={sk_decoded}
-              replyEventData={eventData} 
-              setPostedNote={setPostedNote} 
-              />
+            {getNote()}
         </Box>
       </Modal>
     </div>

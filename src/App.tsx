@@ -6,7 +6,6 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { SimplePool, nip19 } from 'nostr-tools';
 import { Alert, Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
@@ -15,68 +14,72 @@ import { useFollowing } from './hooks/useFollowing';
 import Settings from './pages/Settings';
 import { useListEvents } from './hooks/useListEvents';
 import About from './pages/About';
-import { useUserNotes } from './hooks/useUserNotes';
 import ScrollToTop from './components/ScrollToTop';
 import StartingPage from './pages/StartingPage';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, store } from './redux/store';
+import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtils';
+import { setKeys } from './redux/slices/keySlice';
+import ReplyToNote from './components/ReplyToNote';
+import NoteModal from './components/NoteModal';
 
 function App() {
-  const [sk_decoded, setSk_decoded] = useState<string>("");
-  const [pk_decoded, setPk_decoded] = useState<string>("");
+  const keys = useSelector((state: RootState) => state.keys);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
-  const [pool, setPool] = useState<SimplePool>(() => new SimplePool());
-  const { relays, setRelays, updateRelays } = useRelays({ pool, pk_decoded, sk_decoded, setFetchEvents});
-  const { profile, updateProfile, getProfile} = useProfile({ pool, relays, pk_decoded, sk_decoded });
-  const { updateFollowing, following, followers } = useFollowing({ pool, relays, pk_decoded, sk_decoded });
-  const hideExplicitContent = useRef<boolean>(true);
-  const imagesOnlyMode = useRef<boolean>(false);
-  const [hashtags, setHashtags] = useState<string[]>([]);
   const [tabIndex, setTabIndex] = useState(0);
-  const { userNotes, likedNotificationEvents, likedNotificationMetaData } = useUserNotes({ pool, pk_decoded, relays, following });
-  const { threadEvents, filter} = useListEvents({ 
-      pool,
-      setPool, 
-      relays, 
+  const { updateRelays } = useRelays({ setFetchEvents});
+  const { updateFollowing, followers } = useFollowing({});
+  const { profile, updateProfile} = useProfile({});
+  const hideExplicitContent = useRef<boolean>(true);
+  useListEvents({ 
       tabIndex, 
-      following, 
-      hashtags,
       hideExplicitContent,
-      imagesOnlyMode,
       fetchEvents,
       setFetchEvents,
-      fetchingEventsInProgress
+      fetchingEventsInProgress,
     });
+    const dispatch = useDispatch();
 
     const navigate = useNavigate();
 
     useEffect(() => {
-      if (pk_decoded === "") {
+      if (keys.publicKey.decoded === "") {
+
+        const getKeyFromNostrExtension = async () => {
+          const pkFromNostr = await window.nostr.getPublicKey();
+          if (pkFromNostr && pkFromNostr !== "")
+          {
+            const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
+            dispatch(setKeys(newKeys));
+            return true;
+          }
+          return false;
+        }
+
+
+        if (window.nostr){
+          try {
+            const retrieved = getKeyFromNostrExtension();
+          } catch {}
+        }
+
 
         //check if sk is in local storage
         const skFromStorage = localStorage.getItem("sk");
 
         if (skFromStorage && skFromStorage !== ""){
-          const decodedSkFromStorage = nip19.decode(skFromStorage);
-          if (decodedSkFromStorage && decodedSkFromStorage.data.toString() !== ""){
-            setPk_decoded(decodedSkFromStorage.data.toString());
-          }
-        }
-
-        //check if pk is in local storage
-        const pkFromStorage = localStorage.getItem("pk");
-        
-        if (pkFromStorage && pkFromStorage !== ""){
-          const decodedPkFromStorage = nip19.decode(pkFromStorage);
-          if (decodedPkFromStorage && decodedPkFromStorage.data.toString() !== ""){
-            setPk_decoded(decodedPkFromStorage.data.toString());
-            return;
+            const newKeys = generateKeyObject(skFromStorage);
+            if (newKeys){
+              store.dispatch(setKeys(newKeys));
+              return;
           }
         }
 
         navigate("/start");
       }
-    }, [pk_decoded]);
+    }, [keys.publicKey.decoded]);
 
   //Get Feed Events
   useEffect(() => {
@@ -98,7 +101,6 @@ function App() {
     if (settings) {
       const parsedSettings = JSON.parse(settings);
       hideExplicitContent.current = parsedSettings?.feedSettings?.hideExplicitContent ?? true
-      imagesOnlyMode.current = parsedSettings?.feedSettings?.imagesOnlyMode ?? false;
     }
   }, []);
 
@@ -122,78 +124,44 @@ function App() {
             {errorMessage}
         </Alert>
     </Fade>
-        <Routes>
+      <ReplyToNote
+        fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
+        updateFollowing={updateFollowing} 
+      />
+      <NoteModal
+        fetchEvents={fetchEvents}
+        setFetchEvents={setFetchEvents}
+        updateFollowing={updateFollowing}
+      />
+      <Routes>
           <Route path="/start" element={
             <StartingPage
               setErrorMessage={setErrorMessage}
-              setSk_decoded={setSk_decoded}
-              setPk_decoded={setPk_decoded}
             />} />
           <Route path="/profile" element={
             <Profile
-              setPk_decoded={setPk_decoded}
-              setSk_decoded={setSk_decoded}
-              pk_decoded={pk_decoded}
-              sk_decoded={sk_decoded}
-              relays={relays}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              pool={pool}
-              following={following}
-              followers={followers}
-              profile={profile}
               updateProfile={updateProfile}
-              getProfile={getProfile}
-              imagesOnlyMode={imagesOnlyMode}
-              userNotes={userNotes}
-              likedNotificationEvents={likedNotificationEvents}
-              likedNotificationMetaData={likedNotificationMetaData}
-              hideExplicitContent={hideExplicitContent}
             />} />
           <Route path="/relays" element={
             <Relays
-              relays={relays}
               updateRelays={updateRelays}
-              relaysAndSetting={relays}
-              setRelaysAndSetting={setRelays}
             />} />
           <Route path="/" element={
             <GlobalFeed
-              pool={pool}
-              relays={relays}
-              pk={pk_decoded}
-              sk_decoded={sk_decoded}
-              following={following}
               updateFollowing={updateFollowing}
-              hideExplicitContent={hideExplicitContent}
-              imagesOnlyMode={imagesOnlyMode}
-              threadEvents={threadEvents}
-              fetchEvents={fetchEvents}
-              setFetchEvents={setFetchEvents}
-              filter={filter}
-              fetchingEventsInProgress={fetchingEventsInProgress}
-              setTabIndex={setTabIndex}
-              hashtags={hashtags}
-              setHashtags={setHashtags}
-              tabIndex={tabIndex}
             />} />
           <Route path="/keys" element={
             <Keys
-              pk={pk_decoded}
-              sk={sk_decoded}
             />} />
           <Route path="/settings" element={
-            <Settings
-              imagesOnlyMode={imagesOnlyMode}
-              hideExplicitContent={hideExplicitContent}
-              setFetchEvents={setFetchEvents}
-            />
+            <Settings />
           } />
           <Route path="/about" element={
             <About />
           } />
         </Routes>
-        {pk_decoded !== "" && 
+        {keys.publicKey.decoded !== "" && 
         <NavBar profile={profile} />
         }
       </Container>

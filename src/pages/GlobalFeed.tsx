@@ -1,6 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { Filter, SimplePool } from 'nostr-tools'
-import { MutableRefObject, useState } from 'react'
+import { useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
@@ -9,8 +8,10 @@ import CreateNote from '../components/CreateNote';
 import CloseIcon from '@mui/icons-material/Close';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
-import { FullEventData, RelaySetting } from '../nostr/Types';
-import Loading from '../components/Loading';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { clearGlobalNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
+import { setTabIndex } from '../redux/slices/noteSlice';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -25,56 +26,24 @@ const createNoteStyle = {
 
 
 type GlobalFeedProps = {
-    pool: SimplePool | null;
-    relays: RelaySetting[];
-    pk: string;
-    sk_decoded: string;
     updateFollowing: (pubkey: string) => void;
-    setTabIndex: React.Dispatch<React.SetStateAction<number>>;
-    setHashtags: React.Dispatch<React.SetStateAction<string[]>>;
-    following: string[];
-    fetchEvents: boolean;
-    filter: MutableRefObject<Filter | null>;
-    setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-    fetchingEventsInProgress: MutableRefObject<boolean>;
-    hideExplicitContent: MutableRefObject<boolean>;
-    imagesOnlyMode: MutableRefObject<boolean>;
-    threadEvents: {
-        feedEvents: Map<string, FullEventData>, 
-        replyEvents: Map<string, FullEventData>, 
-        rootEvents: Map<string, FullEventData>
-      };
-    hashtags: string[];
-    tabIndex: number;
   };
   
   const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
-    pool, 
-    relays, 
-    pk,
-    sk_decoded,
-    following,
-    fetchEvents,
-    setFetchEvents,
-    filter,
-    fetchingEventsInProgress,
-    threadEvents,
-    hashtags,
-    tabIndex,
-    updateFollowing,
-    setTabIndex,
-    setHashtags,
-    imagesOnlyMode,
+    updateFollowing
   }) => {
-
+    const events = useSelector((state: RootState) => state.events);
+    const note = useSelector((state: RootState) => state.note);
+    const dispatch = useDispatch();
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
 
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTabIndex(newValue);
-        setFetchEvents(true);
+        dispatch(setTabIndex(newValue));
+        dispatch(clearGlobalNotes());
+        dispatch(toggleRefreshFeedNotes())
     };
 
     const handleCreateNoteOpen = () => {
@@ -85,59 +54,24 @@ type GlobalFeedProps = {
         setCreateNoteOpen(false)
     }
 
-    const setPostedNote = () => {
-        setCreateNoteOpen(false);
-    }
-
     const renderFeed = () => {
-        if (fetchingEventsInProgress.current) {
+        if (events.globalNotes.length === 0) {
             return (
-                <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    height: '100vh',
-                    width: '100vw',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                }} >
-                    <Loading />
-                </Box>
-            )
-        } else if (threadEvents.feedEvents.size === 0 && !fetchingEventsInProgress.current) {
-            return (
-                <Typography 
+                <Typography
                     variant="h6" 
                     color={themeColors.textColor} 
                     sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
-                        No Notes Found
+                        No Notes
                 </Typography>
             )
         } else {
             return (
-                Array.from(threadEvents.feedEvents.values()).map((fullEventData) => {
-                    const rootEventIds = fullEventData.tags.filter((t) => t[0] === "e" && t[1] && t[1] !== fullEventData.eventId).map((t) => t[1]);
-                    const eventRootNotes: FullEventData[] = rootEventIds.map((id) => threadEvents.rootEvents.get(id)).filter((event): event is FullEventData => Boolean(event));
-                    const eventReplyNotes: FullEventData[] = Array.from(threadEvents.replyEvents.values()).filter((r) => r.tags.some((t) => t[0] === "e" && t[1] && t[1] === fullEventData.eventId));
-            
+                events.globalNotes.map((event) => {
                     return (
-                        <Note 
-                            pool={pool} 
-                            relays={relays}
-                            fetchEvents={fetchEvents}
-                            setFetchEvents={setFetchEvents}
-                            eventData={fullEventData}
-                            replyEvents={eventReplyNotes}
-                            rootEvents={eventRootNotes}
+                        <Note
+                            event={event}
                             updateFollowing={updateFollowing} 
-                            following={following} 
-                            setHashtags={setHashtags} 
-                            key={fullEventData.sig} 
-                            pk={pk}
-                            hashTags={hashtags}
-                            imagesOnlyMode={imagesOnlyMode}
-                            sk_decoded={sk_decoded}
+                            key={event.sig}
                         />
                     )
                 })
@@ -146,18 +80,11 @@ type GlobalFeedProps = {
     }
 
 
-
-
     //render
     return (
         <Box sx={{marginTop: "52px"}}>
 
-            <SearchFilter 
-                hashtags={hashtags} 
-                setHashtags={setHashtags} 
-                setFetchEvents={setFetchEvents}
-                filter={filter}
-                />
+            <SearchFilter />
             
             {renderFeed()}
 
@@ -179,14 +106,7 @@ type GlobalFeedProps = {
                         >
                         <CloseIcon />
                     </IconButton>
-                    <CreateNote 
-                        replyEventData={null} 
-                        pool={pool} 
-                        relays={relays} 
-                        pk={pk}
-                        sk_decoded={sk_decoded}
-                        setPostedNote={setPostedNote} 
-                    />
+                    <CreateNote />
                 </Box>
             </Modal>
 
@@ -209,7 +129,7 @@ type GlobalFeedProps = {
                 </Fab>
 
                 <Tabs 
-                    value={tabIndex} 
+                    value={note.tabIndex} 
                     onChange={handleTabChange}
                     textColor='inherit'
                     indicatorColor='secondary'

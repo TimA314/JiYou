@@ -2,33 +2,30 @@ import { useContext, useState } from 'react';
 import { Box, FormGroup, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
-import { EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeString } from '../utils/sanitizeUtils';
-import { FullEventData, RelaySetting } from '../nostr/Types';
 import { extractHashtags } from '../utils/eventUtils';
 import { ThemeContext } from '../theme/ThemeContext';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
+import { PoolContext } from '../context/PoolContext';
 
-interface Props {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  pk: string;
-  sk_decoded: string;
-  replyEventData: FullEventData | null;
-  setPostedNote: () => void;
-}
+interface Props {}
 
-function CreateNote({
-  pool, 
-  relays, 
-  pk,
-  sk_decoded,
-  replyEventData, 
-  setPostedNote, 
-}: Props) {
+function CreateNote({}: Props) {
+  const pool = useContext(PoolContext);
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const keys = useSelector((state: RootState) => state.keys);
+  const note = useSelector((state: RootState) => state.note);
+  const nostr = useSelector((state: RootState) => state.nostr);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+
+  const dispatch = useDispatch();
+
 
   const handlePostToRelaysClick = async () => {
     if (!pool) {
@@ -37,14 +34,14 @@ function CreateNote({
 
     const tags = [];
     //push reply event id and pk
-    if (replyEventData) {
-      tags.push(["e", replyEventData.eventId, "", ""]);
-      tags.push(["p", pk]);
+    if (note.replyToNoteEvent) {
+      tags.push(["e", note.replyToNoteEvent.id, "", ""]);
+      tags.push(["p", keys.publicKey.decoded]);
     }
     
     //push other replies in chain
-    const replyEventTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "e") : [];
-    const replyPubKeyTags = replyEventData ? replyEventData.tags.filter((t) => t[0] === "p") : [];
+    const replyEventTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "e") : [];
+    const replyPubKeyTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "p") : [];
 
     if (replyEventTags.length > 0) {
       replyEventTags.forEach((tag) => {
@@ -75,19 +72,20 @@ function CreateNote({
     } as EventTemplate
 
     //Sign the event with nostr if possible
-    if (window.nostr && sk_decoded === ""){
+    if (window.nostr && keys.privateKey.decoded === ""){
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signedWithNostr) {
-          setPostedNote();
+          dispatch(setReplyToNoteEvent(null));
           return;
         }
       } catch {}
     }
 
     //Manually sign the event
-    signEventWithStoredSk(pool, writableRelayUrls, _baseEvent)
-    setPostedNote();
+    signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
+    dispatch(toggleRefreshUserNotes())
+    dispatch(setReplyToNoteEvent(null));
   }
 
   return (
@@ -111,7 +109,7 @@ function CreateNote({
           color='secondary' 
           onClick={handlePostToRelaysClick}
           >
-            Post {replyEventData ? "Reply" : "Note"} To Relays
+            Post {note.replyToNoteEvent ? "Reply" : "Note"} To Relays
         </Button>
       </FormGroup>
     </Box>

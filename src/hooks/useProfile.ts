@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Event, EventTemplate, Kind, SimplePool } from 'nostr-tools';
+import { useContext, useEffect, useState } from 'react';
+import { Event, EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { ProfileContent, RelaySetting } from '../nostr/Types';
+import { ProfileContent } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { PoolContext } from '../context/PoolContext';
 
-type UseProfileProps = {
-  pool: SimplePool | null;
-  relays: RelaySetting[];
-  pk_decoded: string;
-  sk_decoded: string;
-};
+type UseProfileProps = {};
 
-export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileProps) => {
+export const useProfile = ({}: UseProfileProps) => {
+  const pool = useContext(PoolContext);
+  const nostr = useSelector((state: RootState) => state.nostr);
+  const keys = useSelector((state: RootState) => state.keys);
+  
   const [profile, setProfile] = useState<ProfileContent>({
     name: "",
     picture: "",
@@ -20,15 +22,15 @@ export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileP
     banner: ""
   });
 
-  const writableRelayUrls = relays.filter((r) => r.write).map((r) => r.relayUrl);
-  const allRelayUrls = relays.map((r) => r.relayUrl);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+  const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
 
   
   const getProfile = async () => {
-    if (!pool || pk_decoded === "") return;
+    if (!pool || keys.publicKey.decoded === "") return;
 
     // Fetch user profile
-    const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [pk_decoded], limit: 1 }])
+    const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
 
     if (!profileEvent || profileEvent.length < 1) return;
     
@@ -46,7 +48,7 @@ export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileP
   };
 
   useEffect(() => {
-    if (pk_decoded === "") {
+    if (keys.publicKey.decoded === "") {
       setProfile({
         name: "",
         picture: "",
@@ -57,7 +59,7 @@ export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileP
     }
 
     getProfile();
-  }, [pk_decoded]);
+  }, [keys.publicKey.decoded]);
 
   
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
@@ -83,14 +85,14 @@ export const useProfile = ({ pool, relays, pk_decoded, sk_decoded }: UseProfileP
         } as EventTemplate
 
          
-      if (window.nostr && sk_decoded === "") {
+      if (window.nostr && keys.privateKey.decoded === "") {
         const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
         if (signed) {
           return;
         }
       }
 
-      await signEventWithStoredSk(pool, writableRelayUrls, _baseEvent);
+      await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
 
     } catch (error) {
         alert(error);

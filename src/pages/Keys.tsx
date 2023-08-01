@@ -1,22 +1,19 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { TextField, Grid, Stack, Paper } from '@mui/material';
+import { Grid, Stack, Paper } from '@mui/material';
 import { useContext } from 'react';
 import WarningIcon from '@mui/icons-material/Warning';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import { ThemeContext } from '../theme/ThemeContext';
-import { nip19 } from 'nostr-tools';
+import { RootState } from '../redux/store';
+import { useSelector } from 'react-redux';
 
 
-interface KeysProps {
-    pk: string;
-    sk: string;
-}
+interface KeysProps {}
 
-export default function Keys({ sk, pk }: KeysProps) {
+export default function Keys({}: KeysProps) {
+  const keys = useSelector((state: RootState) => state.keys);
   const { themeColors } = useContext(ThemeContext);
-  const encodedSk = nip19.nsecEncode(sk);
-  const encodedPk = nip19.npubEncode(pk);
 
   return (
     <Grid
@@ -27,7 +24,7 @@ export default function Keys({ sk, pk }: KeysProps) {
     style={{ minHeight: '100vh' }}
     >
         <Box >
-          {sk === "" ?
+          {keys.privateKey.decoded === "" ?
             <Paper sx={{padding: "10px"}}>
               <Stack flexDirection="row" direction='row' spacing="2" justifyContent="center">
                 <CelebrationIcon color='success'/>
@@ -72,7 +69,7 @@ export default function Keys({ sk, pk }: KeysProps) {
                         variant='body1' 
                         color={themeColors.textColor}
                       > 
-                        {encodedSk}
+                        {keys.privateKey.encoded}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -95,7 +92,7 @@ export default function Keys({ sk, pk }: KeysProps) {
                     style={{ overflowWrap: 'break-word', wordBreak: 'break-all' }} 
                     variant='body1' 
                     color={themeColors.primary} >
-                    {encodedPk}
+                    {keys.publicKey.encoded}
                   </Typography>
                 </Paper>
               </Grid>

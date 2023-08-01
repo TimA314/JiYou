@@ -6,41 +6,40 @@ import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { RelaySetting } from "../nostr/Types";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../redux/store";
+import { setRelays } from "../redux/slices/nostrSlice";
 
 interface RelayProps {
-    relays: RelaySetting[];
     updateRelays: (relays: RelaySetting[]) => void;
-    relaysAndSetting: RelaySetting[];
-    setRelaysAndSetting: React.Dispatch<React.SetStateAction<RelaySetting[]>>;
 }
 
-export default function Relays({relays, updateRelays, relaysAndSetting, setRelaysAndSetting}: RelayProps) {
+export default function Relays({updateRelays}: RelayProps) {
+    const nostr = useSelector((state: RootState) => state.nostr);
+    const dispatch = useDispatch();
     const [relayInput, setRelayInput] = useState("");
     const { themeColors } = useContext(ThemeContext);
     
-    useEffect(() => {
-        setRelaysAndSetting(relays);
-    }, [relays])
 
     const handleToggleRead = (toggledRelay: RelaySetting) => {
         const readValue = toggledRelay.read === true && toggledRelay.write === false ? true : !toggledRelay.read;
         const writeValue = readValue === false && toggledRelay.write === false ? true : toggledRelay.write;
   
 
-        const updatedRelays = relaysAndSetting.map(r =>
+        const updatedRelays = nostr.relays.map(r =>
             r.relayUrl === toggledRelay.relayUrl ? { ...r, read: readValue, write: writeValue } : r
         );
-        setRelaysAndSetting(updatedRelays);
+        dispatch(setRelays(updatedRelays));
     };
     
     const handleToggleWrite = (toggledRelay: RelaySetting) => {
         const writeValue = toggledRelay.write === true  && toggledRelay.read === false ? true : !toggledRelay.write;
         const readValue = writeValue === false && toggledRelay.read === false ? true : toggledRelay.read;
 
-        const updatedRelays = relaysAndSetting.map(r =>
+        const updatedRelays = nostr.relays.map(r =>
             r.relayUrl === toggledRelay.relayUrl ? { ...r, read: readValue, write: writeValue } : r
         );
-        setRelaysAndSetting(updatedRelays);
+        dispatch(setRelays(updatedRelays));
     };
 
     const handleAddRelay = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -50,13 +49,13 @@ export default function Relays({relays, updateRelays, relaysAndSetting, setRelay
         try{
             const relayFormatted = relayInput.startsWith("wss://") ? relayInput : "wss://" + relayInput;
 
-            if (relaysAndSetting.find((relayToMatch) => relayToMatch.relayUrl === relayFormatted)){
+            if (nostr.relays.find((relayToMatch) => relayToMatch.relayUrl === relayFormatted)){
                 setRelayInput("");
                 alert("Relay already exists.");
                 return;
             }
-            const newRelaysToUpdate = [...relaysAndSetting, {relayUrl: relayFormatted, read: true, write: true}];
-            setRelaysAndSetting(newRelaysToUpdate);
+            const newRelaysToUpdate = [...nostr.relays, {relayUrl: relayFormatted, read: true, write: true}];
+            dispatch(setRelays(newRelaysToUpdate));
             updateRelays(newRelaysToUpdate);
             setRelayInput("");
 
@@ -72,14 +71,14 @@ export default function Relays({relays, updateRelays, relaysAndSetting, setRelay
             
             const relayTags: string[][] = [];
 
-            relays.forEach((r) => {
-                if (relays.find((relayToMatch) => relayToMatch.relayUrl === r.relayUrl)) return;
+            nostr.relays.forEach((r) => {
+                if (nostr.relays.find((relayToMatch) => relayToMatch.relayUrl === r.relayUrl)) return;
                 const readAndWrite = r.read && r.write ? "" : r.read && !r.write ? "read" : !r.read && r.write ? "write" : "";
                 relayTags.push(["r", r.relayUrl, readAndWrite])
             })
 
-            const relaysWithRemovedRelay = relays.filter((r) => r.relayUrl !== updatingRelay.relayUrl);
-            setRelaysAndSetting(relaysWithRemovedRelay);
+            const relaysWithRemovedRelay = nostr.relays.filter((r) => r.relayUrl !== updatingRelay.relayUrl);
+            dispatch(setRelays(relaysWithRemovedRelay));
             updateRelays(relaysWithRemovedRelay);
         } catch (error) {
             console.log("Error adding relay" + error);
@@ -113,13 +112,13 @@ export default function Relays({relays, updateRelays, relaysAndSetting, setRelay
                     variant='outlined' 
                     color='primary'
                     sx={{float: "right", margin: "10px"}}
-                    onClick={() => updateRelays(relaysAndSetting)}
+                    onClick={() => updateRelays(nostr.relays)}
                     >
                     Save Settings
                 </Button>
             </Box>
             <List>
-                {relaysAndSetting.map(r => {
+                {nostr.relays.map(r => {
                     return (
                         <Paper key={r.relayUrl} className="relayItem">
                             <ListItem >
