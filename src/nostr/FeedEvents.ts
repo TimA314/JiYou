@@ -41,12 +41,17 @@ dispatch: Dispatch<AnyAction>
             eventKindMessage = "Published Note"
             break;
           }
-          case 10002: {
-            eventKindMessage = "Published Relay Settings"
+          case 3: {
+            eventKindMessage = "Published Following"
             break
           }
           case 7: {
             eventKindMessage = "Published Like"
+            break;
+          }
+          case 10002: {
+            eventKindMessage = "Published Relay Settings"
+            break
           }
 
         }

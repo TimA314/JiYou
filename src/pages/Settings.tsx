@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useContext, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { ThemeColors, ThemeContext } from '../theme/ThemeContext';
 import { Card, CardContent, Typography, Grid, Button, Slider, Box, Divider, Checkbox, FormGroup, FormControlLabel } from '@mui/material';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';

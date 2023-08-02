@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Note from './Note';
@@ -25,18 +24,10 @@ const style = {
 };
 
 interface ReplyToNoteProps {
-  fetchEvents: boolean;
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   updateFollowing: (pubkey: string) => void;
-  imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
-export default function ReplyToNote({
-  fetchEvents,
-  setFetchEvents,
-  updateFollowing, 
-  imagesOnlyMode
-}: ReplyToNoteProps) {
+export default function ReplyToNote({updateFollowing}: ReplyToNoteProps) {
   const note = useSelector((state: RootState) => state.note);
   const dispatch = useDispatch();
 
@@ -53,7 +44,6 @@ export default function ReplyToNote({
           event={note.replyToNoteEvent}
           updateFollowing={updateFollowing} 
           disableReplyIcon={true}
-          imagesOnlyMode={imagesOnlyMode}
           />
           <CreateNote />
       </Box>
