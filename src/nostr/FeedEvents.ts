@@ -1,11 +1,15 @@
 import { Event, EventTemplate, Filter, SimplePool, finishEvent, getEventHash, nip19, validateEvent } from "nostr-tools";
 import { Keys } from "./Types";
+import { addMessage } from "../redux/slices/noteSlice";
+import { Dispatch } from "react";
+import { AnyAction } from "@reduxjs/toolkit";
 
 
 export const signEventWithNostr = async (
 pool: SimplePool,
 relays: string[], 
 event: EventTemplate,
+dispatch: Dispatch<AnyAction>
 ) => {
 
     if (!window.nostr){
@@ -23,21 +27,32 @@ event: EventTemplate,
             pubkey,
         }
         
-        console.log(validateEvent(newEvent))
-        
-        //Post the event to the relays
-        const pubsPromises  = pool.publish(relays, newEvent);
 
-        const pubs = await Promise.all(pubsPromises);
+        pool.publish(relays, newEvent);
 
-        pubs.forEach((pub: void | Error) => {
-            if (!(pub instanceof Error)) {
-              console.log(`Posted to ${pub}`);
-            } else {
-              console.log("Failed to post:", pub.message);
-            }
-          });
-        
+        let eventKindMessage = ""
+
+        switch (newEvent.kind){
+          case 0: {
+            eventKindMessage = "Published Profile MetaData"
+            break;
+          }
+          case 1: {
+            eventKindMessage = "Published Note"
+            break;
+          }
+          case 10002: {
+            eventKindMessage = "Published Relay Settings"
+            break
+          }
+          case 7: {
+            eventKindMessage = "Published Like"
+          }
+
+        }
+        console.log("eventKindMessage: " + eventKindMessage)
+        if (eventKindMessage === "") return true;
+        dispatch(addMessage({message: eventKindMessage, isError: false}))
         return true;
     } catch {
         return false;
@@ -49,10 +64,11 @@ pool: SimplePool,
 keys: Keys,
 relays: string[],
 event: EventTemplate,
+dispatch: Dispatch<AnyAction>
 ) => {
 
     if (keys.privateKey.decoded === "") {
-        alert('Invalid secret key, check settings or use a Nostr extension');
+        dispatch(addMessage({ message: "Invalid secret key, check settings or use a Nostr extension", isError: true }));
         return false;
     }
     
@@ -60,20 +76,33 @@ event: EventTemplate,
     const validated = validateEvent(signedEvent);
 
     if (!validated) {
-        alert('Invalid event');
+        dispatch(addMessage({ message: 'Invalid event', isError: true }));
         return false;
     }
   
-    const pubsPromises  = pool.publish(relays, signedEvent);
-    const pubs = await Promise.all(pubsPromises);
+    pool.publish(relays, signedEvent);
+    let eventKindMessage = ""
 
-    pubs.forEach((pub: void | Error) => {
-        if (!(pub instanceof Error)) {
-          console.log(`Posted to ${pub}`);
-        } else {
-          console.log("Failed to post:", pub.message);
-        }
-      });
+    switch (signedEvent.kind){
+      case 0: {
+        eventKindMessage = "Published Profile MetaData"
+        break;
+      }
+      case 1: {
+        eventKindMessage = "Published Note"
+        break;
+      }
+      case 10002: {
+        eventKindMessage = "Published Relay Settings"
+        break
+      }
+      case 7: {
+        eventKindMessage = "Published Like"
+      }
 
+    }
+    console.log("eventKindMessage: " + eventKindMessage)
+    if (eventKindMessage === "") return true;
+    dispatch(addMessage({message: eventKindMessage, isError: false}))
     return true;
 }

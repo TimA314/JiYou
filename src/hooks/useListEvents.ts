@@ -7,6 +7,7 @@ import { RootState } from '../redux/store';
 import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost } from '../utils/miscUtils';
+import { addMessage } from '../redux/slices/noteSlice';
 
 type useListEventsProps = {};
 
@@ -31,6 +32,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     const subFeedEvents = async () => {
       if (!pool) return;
       dispatch(clearGlobalNotes());
+      dispatch(addMessage({ message: "Requesting Notes", isError: false }));
 
       let filter: Filter = {kinds: [1], limit: 200};
 

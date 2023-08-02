@@ -6,7 +6,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { Alert, Box, Container, Fade } from '@mui/material';
+import { Box, Container, Fade } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -22,9 +22,11 @@ import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtil
 import { setKeys } from './redux/slices/keySlice';
 import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
+import { AlertMessages } from './components/AlertMessages';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
+  const note = useSelector((state: RootState) => state.note);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [fetchEvents, setFetchEvents] = useState(false);
   const fetchingEventsInProgress = useRef(false);
@@ -91,6 +93,7 @@ function App() {
     if (errorMessage === "") return;
     const timeoutId = setTimeout(() => setErrorMessage(""), 3000);
 
+
     return () => clearTimeout(timeoutId);
   }, [errorMessage]);
 
@@ -109,21 +112,7 @@ function App() {
       <CssBaseline />
       <ScrollToTop />
       <Container>
-      <Fade in={errorMessage !== ""}>
-        <Alert 
-            sx={{
-                position: 'fixed',
-                top: '10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1500,
-                maxWidth: '90%',
-            }}
-            severity="error"
-        >
-            {errorMessage}
-        </Alert>
-    </Fade>
+      <AlertMessages messages={note.alertMessages} />
       <ReplyToNote
         fetchEvents={fetchEvents}
         setFetchEvents={setFetchEvents}

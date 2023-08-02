@@ -5,7 +5,7 @@ import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import { MuiColorInput } from 'mui-color-input';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
+import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -66,7 +66,7 @@ export default function Settings ({}: SettingsProps) {
       theme: themeColors, 
       feedSettings: {hideExplicitContent: note.hideExplicitContent, imagesOnlyMode: note.imageOnlyMode}
   }));
-    alert('Settings Saved');
+    dispatch(addMessage({message: 'Settings Saved', isError: false}))
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {

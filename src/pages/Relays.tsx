@@ -9,6 +9,7 @@ import { RelaySetting } from "../nostr/Types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { setRelays } from "../redux/slices/nostrSlice";
+import { addMessage } from "../redux/slices/noteSlice";
 
 interface RelayProps {
     updateRelays: (relays: RelaySetting[]) => void;
@@ -51,7 +52,7 @@ export default function Relays({updateRelays}: RelayProps) {
 
             if (nostr.relays.find((relayToMatch) => relayToMatch.relayUrl === relayFormatted)){
                 setRelayInput("");
-                alert("Relay already exists.");
+                dispatch(addMessage({message: "Relay already exists.", isError: true}))
                 return;
             }
             const newRelaysToUpdate = [...nostr.relays, {relayUrl: relayFormatted, read: true, write: true}];
@@ -92,8 +93,20 @@ export default function Relays({updateRelays}: RelayProps) {
                 Relays
             </Typography>
 
+            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
+                <Button 
+                    variant='outlined' 
+                    color='primary'
+                    sx={{float: "right", margin: "10px"}}
+                    onClick={() => updateRelays(nostr.relays)}
+                    >
+                    Save Settings
+                </Button>
+            </Box>
+            
             <Box id="relayform">
                 <form onSubmit={handleAddRelay}>
+                    <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                     <TextField
                         id="addRelayInput"
                         label="New Relay"
@@ -104,18 +117,7 @@ export default function Relays({updateRelays}: RelayProps) {
                         inputProps={{style: {color: themeColors.textColor}}}
                         InputLabelProps={{style: {color: themeColors.textColor}}} 
                     />
-                    <Button sx={{margin: "10px"}} variant='outlined' color='secondary' type="submit">Add Relay</Button>
                 </form>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'end' }}>
-                <Button 
-                    variant='outlined' 
-                    color='primary'
-                    sx={{float: "right", margin: "10px"}}
-                    onClick={() => updateRelays(nostr.relays)}
-                    >
-                    Save Settings
-                </Button>
             </Box>
             <List>
                 {nostr.relays.map(r => {
