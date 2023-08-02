@@ -4,13 +4,11 @@ import { useContext, useState } from 'react'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-
 type Props = {}
 
 export default function About({}: Props) {
 const { themeColors } = useContext(ThemeContext);
 const [copied, setCopied] = useState(false);
-
 
 const handleCopy = () => {
     navigator.clipboard.writeText('lnurl1dp68gurn8ghj7ampd3kx2ar0veekzar0wd5xjtnrdakj7tnhv4kxctttdehhwm30d3h82unvwqhh2mnjd9cx2mt9v9eh2un9xccqeus5uj');
