@@ -4,6 +4,7 @@ import noteSlice from './slices/noteSlice';
 import nostrSlice from './slices/nostrSlice';
 import eventsSlice from './slices/eventsSlice';
 
+
 export const store = configureStore({
     reducer: {
         keys: keySlice,

@@ -1,7 +1,7 @@
 import { Box, Button, Card, InputAdornment, Stack, TextField } from '@mui/material';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useContext, useState } from 'react';
-import { generatePrivateKey, getPublicKey, nip19 } from 'nostr-tools';
+import { generatePrivateKey, nip19 } from 'nostr-tools';
 import { useNavigate } from 'react-router-dom';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { useDispatch } from 'react-redux';
@@ -73,12 +73,9 @@ export default function StartingPage({setErrorMessage}: Props) {
             const publicKey = await window.nostr.getPublicKey();
             console.log(publicKey)
             if (publicKey) {
-                const encodedPk = nip19.npubEncode(publicKey);
-                if (encodedPk === "") throw new Error();
-
+                const newKeys = generatePublicKeyOnlyObject(publicKey);
                 localStorage.setItem("sk", "");
                 localStorage.setItem("pk", publicKey);
-                const newKeys = generatePublicKeyOnlyObject(publicKey);
                 dispatch(setKeys(newKeys));
                 navigate("/");
                 return;

@@ -26,15 +26,17 @@ event: EventTemplate,
         console.log(validateEvent(newEvent))
         
         //Post the event to the relays
-        const pubs = pool.publish(relays, newEvent)
-        
-        pubs.on("ok", (r: any) => {
-            console.log(`Posted to ${r}`)
-        })
-        
-        pubs.on("failed", (error: string) => {
-            console.log("Failed to post to ", error)
-        })
+        const pubsPromises  = pool.publish(relays, newEvent);
+
+        const pubs = await Promise.all(pubsPromises);
+
+        pubs.forEach((pub: void | Error) => {
+            if (!(pub instanceof Error)) {
+              console.log(`Posted to ${pub}`);
+            } else {
+              console.log("Failed to post:", pub.message);
+            }
+          });
         
         return true;
     } catch {
@@ -62,15 +64,16 @@ event: EventTemplate,
         return false;
     }
   
-    const pubs = pool.publish(relays, signedEvent);
+    const pubsPromises  = pool.publish(relays, signedEvent);
+    const pubs = await Promise.all(pubsPromises);
 
-    pubs.on('ok', (pub: string) => {
-    console.log('Posted to relay ' + pub);
-    });
-
-    pubs.on('failed', (error: string) => {
-    console.log('Failed to post to relay ' + error);
-    });
+    pubs.forEach((pub: void | Error) => {
+        if (!(pub instanceof Error)) {
+          console.log(`Posted to ${pub}`);
+        } else {
+          console.log("Failed to post:", pub.message);
+        }
+      });
 
     return true;
 }
