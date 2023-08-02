@@ -6,7 +6,7 @@ import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
 import { useEffect, useState, useRef } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
-import { Alert, Box, Container, Fade } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import Keys from './pages/Keys';
 import { useProfile } from './hooks/useProfile';
 import { useRelays } from './hooks/useRelays';
@@ -22,24 +22,18 @@ import { generateKeyObject, generatePublicKeyOnlyObject } from './utils/miscUtil
 import { setKeys } from './redux/slices/keySlice';
 import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
+import { AlertMessages } from './components/AlertMessages';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [fetchEvents, setFetchEvents] = useState(false);
-  const fetchingEventsInProgress = useRef(false);
-  const [tabIndex, setTabIndex] = useState(0);
-  const { updateRelays } = useRelays({ setFetchEvents});
-  const { updateFollowing, followers } = useFollowing({});
+  const note = useSelector((state: RootState) => state.note);
+  const { updateRelays } = useRelays({});
+  const { updateFollowing } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
   const hideExplicitContent = useRef<boolean>(true);
-  useListEvents({ 
-      tabIndex, 
-      hideExplicitContent,
-      fetchEvents,
-      setFetchEvents,
-      fetchingEventsInProgress,
-    });
+
+  useListEvents({});
+  
     const dispatch = useDispatch();
 
     const navigate = useNavigate();
@@ -81,18 +75,6 @@ function App() {
       }
     }, [keys.publicKey.decoded]);
 
-  //Get Feed Events
-  useEffect(() => {
-    setFetchEvents(true);
-  }, []);
-
-  //Clear Alert (error message)
-  useEffect(() => {
-    if (errorMessage === "") return;
-    const timeoutId = setTimeout(() => setErrorMessage(""), 3000);
-
-    return () => clearTimeout(timeoutId);
-  }, [errorMessage]);
 
   //Set Settings
   useEffect(() => {
@@ -109,35 +91,16 @@ function App() {
       <CssBaseline />
       <ScrollToTop />
       <Container>
-      <Fade in={errorMessage !== ""}>
-        <Alert 
-            sx={{
-                position: 'fixed',
-                top: '10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 1500,
-                maxWidth: '90%',
-            }}
-            severity="error"
-        >
-            {errorMessage}
-        </Alert>
-    </Fade>
+      <AlertMessages messages={note.alertMessages} />
       <ReplyToNote
-        fetchEvents={fetchEvents}
-        setFetchEvents={setFetchEvents}
         updateFollowing={updateFollowing} 
       />
       <NoteModal
-        fetchEvents={fetchEvents}
-        setFetchEvents={setFetchEvents}
         updateFollowing={updateFollowing}
       />
       <Routes>
           <Route path="/start" element={
             <StartingPage
-              setErrorMessage={setErrorMessage}
             />} />
           <Route path="/profile" element={
             <Profile

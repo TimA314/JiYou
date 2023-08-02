@@ -87,7 +87,7 @@ export const useFollowing = ({}: UseFollowingProps) => {
       
       //sign with Nostr Extension
       if (window.nostr && keys.privateKey.decoded === "") {
-        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
         if (signed) {
           setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
           return
@@ -95,7 +95,7 @@ export const useFollowing = ({}: UseFollowingProps) => {
       }
 
       //sign with sk
-      const signedWithSk = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent); 
+      const signedWithSk = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch); 
       if (signedWithSk) {      
         setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
       }

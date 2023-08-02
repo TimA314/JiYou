@@ -7,12 +7,11 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { useDispatch } from 'react-redux';
 import { setKeys } from '../redux/slices/keySlice';
 import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
+import { addMessage } from '../redux/slices/noteSlice';
 
-type Props = {
-    setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
-}
+type Props = {}
 
-export default function StartingPage({setErrorMessage}: Props) {
+export default function StartingPage({}: Props) {
     const dispatch = useDispatch();
     const { themeColors } = useContext(ThemeContext);
     const [skInputEncoded, setSkInputEncoded] = useState<string>("");
@@ -31,14 +30,14 @@ export default function StartingPage({setErrorMessage}: Props) {
         }
         
         if (!isValidInput || !decodedSk || decodedSk.type !== "nsec") {
-            setErrorMessage("Invalid Secret Key");
+            dispatch(addMessage({message: "Invalid Secret Key", isError: true}));
             return;
         }
         
         const newKeys = generateKeyObject(decodedSk.data.toString());
         
         if (newKeys === null || newKeys?.publicKey.decoded === "") {
-            setErrorMessage("Invalid Secret Key");
+            dispatch(addMessage({message: "Invalid Secret Key", isError: true}));
             return;
         }
 
@@ -52,7 +51,7 @@ export default function StartingPage({setErrorMessage}: Props) {
         const sk = generatePrivateKey();
         const newKeys = generateKeyObject(sk);
         if (newKeys === null) {
-            alert("something went wrong generating new keys")
+            dispatch(addMessage({message: "something went wrong generating new keys", isError: true}))
             return;
         }
         localStorage.setItem("sk", sk);
@@ -63,7 +62,7 @@ export default function StartingPage({setErrorMessage}: Props) {
 
     const handleLogInWithNostrExtension = async () => {
         if (!window.nostr) {
-            setErrorMessage("Nostr Extension not found");
+            dispatch(addMessage({message: "Nostr Extension not found", isError: true}))
             return;
         }
 
@@ -81,7 +80,7 @@ export default function StartingPage({setErrorMessage}: Props) {
                 return;
             }
           } catch {
-            setErrorMessage("Something went wrong with the Nostr Extension");
+            dispatch(addMessage({message: "Something went wrong with the Nostr Extension", isError: true}))
             return;
           }
     };

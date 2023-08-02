@@ -17,7 +17,6 @@ import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
 import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
-import NoteModal from './NoteModal';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
@@ -66,7 +65,6 @@ interface NoteProps {
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
   gettingThread?: boolean;
-  imagesOnlyMode?: React.MutableRefObject<boolean>;
   isInModal?: boolean;
 }
 
@@ -75,7 +73,6 @@ const Note: React.FC<NoteProps> = ({
     disableReplyIcon, 
     gettingThread,
     updateFollowing,
-    imagesOnlyMode,
     isInModal = false,
   }: NoteProps) => {
   const { themeColors } = useContext(ThemeContext);
@@ -127,14 +124,14 @@ const Note: React.FC<NoteProps> = ({
 
     const shouldSignWithNostr = window.nostr && keys.privateKey.decoded === "";
     if (shouldSignWithNostr){
-      const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+      const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
       if (signedWithNostr) {
         setLiked(signedWithNostr)
         return;
       }
     }
 
-    const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
+    const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
     setLiked(signedManually);
 
   }, [pool, nostr.relays, event]);

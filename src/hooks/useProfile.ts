@@ -4,7 +4,7 @@ import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { ProfileContent } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { PoolContext } from '../context/PoolContext';
 
@@ -14,7 +14,7 @@ export const useProfile = ({}: UseProfileProps) => {
   const pool = useContext(PoolContext);
   const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
-  
+  const dispatch = useDispatch();
   const [profile, setProfile] = useState<ProfileContent>({
     name: "",
     picture: "",
@@ -86,13 +86,13 @@ export const useProfile = ({}: UseProfileProps) => {
 
          
       if (window.nostr && keys.privateKey.decoded === "") {
-        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
         if (signed) {
           return;
         }
       }
 
-      await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
+      await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
 
     } catch (error) {
         alert(error);

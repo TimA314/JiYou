@@ -74,7 +74,7 @@ function CreateNote({}: Props) {
     //Sign the event with nostr if possible
     if (window.nostr && keys.privateKey.decoded === ""){
       try {
-        const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+        const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
         if (signedWithNostr) {
           dispatch(setReplyToNoteEvent(null));
           return;
@@ -83,7 +83,7 @@ function CreateNote({}: Props) {
     }
 
     //Manually sign the event
-    signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent)
+    signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch)
     dispatch(toggleRefreshUserNotes())
     dispatch(setReplyToNoteEvent(null));
   }

@@ -24,17 +24,11 @@ const style = {
 };
 
 interface NoteModalProps {
-  fetchEvents: boolean;
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
   updateFollowing: (pubkey: string) => void;
-  imagesOnlyMode?: React.MutableRefObject<boolean>;
 }
 
 export default function NoteModal({
-  fetchEvents,
-  setFetchEvents,
   updateFollowing,
-  imagesOnlyMode
 }: NoteModalProps) {
   const note = useSelector((state: RootState) => state.note);  
   const dispatch = useDispatch();
@@ -69,7 +63,6 @@ export default function NoteModal({
                       event={rootEvent}
                       updateFollowing={updateFollowing}
                       disableReplyIcon={false}
-                      imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}
                   />
                   <Box sx={{ display: 'flex', justifyContent: 'center'}}>
@@ -86,7 +79,6 @@ export default function NoteModal({
               updateFollowing={updateFollowing}
               disableReplyIcon={false}
               key={note.noteModalEvent.sig + "NoteModal"}
-              imagesOnlyMode={imagesOnlyMode}
               isInModal={true}
             />
         </Box>
@@ -104,7 +96,6 @@ export default function NoteModal({
                       updateFollowing={updateFollowing}
                       key={replyEvent.sig + "NoteModal"}
                       disableReplyIcon={false}
-                      imagesOnlyMode={imagesOnlyMode}
                       isInModal={true}
                     />
                     );

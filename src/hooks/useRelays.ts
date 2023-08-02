@@ -10,11 +10,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setRelays } from '../redux/slices/nostrSlice';
 import { PoolContext } from '../context/PoolContext';
 
-type UseRelaysProps = {
-  setFetchEvents: React.Dispatch<React.SetStateAction<boolean>>;
-};
+type UseRelaysProps = {};
 
-export const useRelays = ({ setFetchEvents }: UseRelaysProps) => {
+export const useRelays = ({}: UseRelaysProps) => {
     const pool = useContext(PoolContext);
     const nostr = useSelector((state: RootState) => state.nostr);
     const keys = useSelector((state: RootState) => state.keys);
@@ -81,7 +79,7 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
 
 
         if (window.nostr && keys.privateKey.decoded === "") {
-           const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent);
+           const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
            if (signedWithNostr) {
                 dispatch(setRelays(nostr.relays));
                 return;
@@ -89,8 +87,7 @@ const updateRelays = async (relaysToUpdate: RelaySetting[]) => {
         }
 
         dispatch(setRelays(relaysToUpdate));
-        setFetchEvents(true);
-        await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent);
+        await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
 
     } catch (error) {
         console.error("Error adding relay" + error);

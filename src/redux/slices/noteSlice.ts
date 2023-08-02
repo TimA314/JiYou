@@ -1,5 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { Event } from "nostr-tools";
+import { AlertMessage } from "../../components/AlertMessages";
 
 
 const initialState: NoteSlice = {
@@ -9,7 +10,8 @@ const initialState: NoteSlice = {
     hashTags: [],
     tabIndex: 0,
     imageOnlyMode: (JSON.parse(localStorage.getItem("JiYouSettings") ?? ""))?.feedSettings?.imagesOnlyMode == true ?? false,
-    hideExplicitContent: true
+    hideExplicitContent: true,
+    alertMessages: []
 }
 
 export const noteSlice = createSlice({
@@ -36,7 +38,13 @@ export const noteSlice = createSlice({
         },
         setHideExplicitContent: (state, action) => {
             state.hideExplicitContent = action.payload;
-        }
+        },
+        removeMessage: (state, action: PayloadAction<AlertMessage>) => {
+            state.alertMessages = state.alertMessages.filter(msg => msg.message !== action.payload.message);
+        },      
+        addMessage: (state, action: PayloadAction<AlertMessage>) => {
+            state.alertMessages.push(action.payload);
+        },    
     }
 });
 
@@ -48,7 +56,9 @@ export const {
     setHashTags, 
     setTabIndex, 
     setImageOnlyMode,
-    setHideExplicitContent
+    setHideExplicitContent,
+    removeMessage,
+    addMessage
 } = noteSlice.actions;
 export default noteSlice.reducer;
 
@@ -60,4 +70,5 @@ export type NoteSlice = {
   tabIndex: number;
   imageOnlyMode: boolean;
   hideExplicitContent: boolean;
+  alertMessages: AlertMessage[]
 }
