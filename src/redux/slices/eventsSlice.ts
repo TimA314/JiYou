@@ -50,12 +50,23 @@ export const eventsSlice = createSlice({
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
         },
         addReactions: (state, action) => {
-            const likedEventId = action.payload.tags.find((t: string[]) => t[0] === "e")?.[1];
+            // Get the last 'e' tag, which should be the event ID.
+            const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e")?.[1];
+            console.log("likedEventId " + likedEventId)
             if (!likedEventId) return;
+        
             const prevReactionEvents = state.reactions[likedEventId] ? [...state.reactions[likedEventId]] : [];
-
-            state.reactions[likedEventId] = [...new Set([...prevReactionEvents, action.payload])];
+        
+            // Remove duplicates based on ID
+            state.reactions[likedEventId] = prevReactionEvents.filter((event, index, self) =>
+                index === self.findIndex((t) => (
+                    t.id === event.id
+                ))
+            );
+        
+            state.reactions[likedEventId].push(action.payload);
         },
+        
         toggleRefreshUserNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes;
         },

@@ -207,7 +207,7 @@ const Note: React.FC<NoteProps> = ({
               className={liked ? 'animateLike' : ''}
             >
             <Typography variant='caption' sx={{color: themeColors.textColor}}>
-              {(events.reactions[event.id]?.filter(e => e.content !== '-')?.length ?? 0) + (liked ? 1 : 0)}
+              {events.reactions[event.id]?.filter(e => e.content !== '-')?.length ?? 0}
             </Typography>
               <FavoriteIcon id={"favorite-icon-" + event.sig} />
             </FavoriteIconButton>
@@ -405,7 +405,7 @@ const Note: React.FC<NoteProps> = ({
             className={liked ? 'animateLike' : ''}
           >
           <Typography variant='caption' sx={{color: themeColors.textColor}}>
-            {(events.reactions[event.id]?.filter(e => e.content !== "-")?.length ?? 0) + (liked ? 1 : 0)}
+            {(events.reactions[event.id]?.length ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + event.sig} />
           </FavoriteIconButton>
