@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useContext } from 'react';
 import { Event, Filter } from 'nostr-tools';
 import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { useDispatch, useSelector } from 'react-redux';
+import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
+import { defaultRelays } from '../nostr/DefaultRelays';
 
 type useListEventsProps = {};
 
@@ -23,7 +24,7 @@ export const useListEvents = ({}: useListEventsProps) => {
   const rootsFetched = useRef<Record<string, boolean>>({});
   const dispatch = useDispatch();
   const readableRelayUrls = useMemo(() => nostr.relays.filter((r) => r.read).map((r) => r.relayUrl), [nostr.relays]);
-  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), "wss://purplepag.es"])];
+  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
 
 
   //Feed Notes
@@ -54,13 +55,15 @@ export const useListEvents = ({}: useListEventsProps) => {
       let sub = pool.sub(readableRelayUrls, [filter]);
 
       sub.on("event", (event: Event) => {
-          if (note.hideExplicitContent && eventContainsExplicitContent(event)) return;
-          if (note.imageOnlyMode && GetImageFromPost(event.content)?.length === 0){
-            return;
-          }
-          if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
-          const sanitizedEvent = sanitizeEvent(event);
-          dispatch(addGlobalNotes(sanitizedEvent))
+        if (note.hideExplicitContent && eventContainsExplicitContent(event)) return;
+        if (note.imageOnlyMode && GetImageFromPost(event.content)?.length === 0){
+          return;
+        }
+        if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
+        const sanitizedEvent = sanitizeEvent(event);
+        batch(() => {
+          dispatch(addGlobalNotes(sanitizedEvent));
+        });
       });
     }
 
@@ -101,7 +104,9 @@ export const useListEvents = ({}: useListEventsProps) => {
 
         sub.on("event", (event: Event) => {
           const sanitizedEvent = sanitizeEvent(event);
-          dispatch(addMetaData(sanitizedEvent))
+          batch(() => {
+            dispatch(addMetaData(sanitizedEvent))
+          })
         });
       }
     };
@@ -117,7 +122,6 @@ export const useListEvents = ({}: useListEventsProps) => {
   //Reactions
   useEffect(() => {
 
-    
     const fetchReactions = async () => {
       if (!pool) return;
       const allPubkeysToFetch: string[] = []
@@ -125,8 +129,8 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       const feedEventsToFetch = events.globalNotes.filter((e) => reactionsFetched.current[e.id] !== true);
       const rootEventsToFetch = events.rootNotes.filter((e) => reactionsFetched.current[e.id] !== true);
-      const userEventsToFetch =  events.userNotes.filter((e) => reactionsFetched.current[e.id] !== true);
       const replyEventsToFetch = Object.values(events.replyNotes).flat().filter((e) => reactionsFetched.current[e.id] !== true);
+      const userEventsToFetch =  events.userNotes.filter((e) => reactionsFetched.current[e.id] !== true);
 
       const uniqueEvents = [...new Set([...feedEventsToFetch, ...rootEventsToFetch, ...userEventsToFetch, ...replyEventsToFetch])];
 
@@ -144,7 +148,9 @@ export const useListEvents = ({}: useListEventsProps) => {
       let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
 
       sub.on("event", (event) => {
-        dispatch(addReactions(event))
+        batch(() => {
+          dispatch(addReactions(event))
+        })
       });
     }
 
@@ -180,7 +186,9 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        dispatch(addReplyNotes(sanitizedEvent))
+        batch(() => {
+          dispatch(addReplyNotes(sanitizedEvent))
+        })
       });
     }
 
@@ -231,7 +239,9 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        dispatch(addRootNotes(sanitizedEvent))
+        batch(() => {
+          dispatch(addRootNotes(sanitizedEvent))
+        })
       });
     }
 
@@ -247,7 +257,9 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        dispatch(addUserNotes(sanitizedEvent));
+        batch(() => {
+          dispatch(addUserNotes(sanitizedEvent));
+        })
       })
     }
 

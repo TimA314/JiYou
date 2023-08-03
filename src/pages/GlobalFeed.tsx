@@ -57,12 +57,7 @@ type GlobalFeedProps = {
     const renderFeed = () => {
         if (events.globalNotes.length === 0) {
             return (
-                <Typography
-                    variant="h6" 
-                    color={themeColors.textColor} 
-                    sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
-                        No Notes
-                </Typography>
+                    <></>
             )
         } else {
             return (

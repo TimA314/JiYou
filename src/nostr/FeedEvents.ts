@@ -3,6 +3,7 @@ import { Keys } from "./Types";
 import { addMessage } from "../redux/slices/noteSlice";
 import { Dispatch } from "react";
 import { AnyAction } from "@reduxjs/toolkit";
+import { addReactions } from "../redux/slices/eventsSlice";
 
 
 export const signEventWithNostr = async (
@@ -47,6 +48,7 @@ dispatch: Dispatch<AnyAction>
           }
           case 7: {
             eventKindMessage = "Published Like"
+            dispatch(addReactions(newEvent))
             break;
           }
           case 10002: {
