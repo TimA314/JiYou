@@ -52,7 +52,6 @@ export const eventsSlice = createSlice({
         addReactions: (state, action) => {
             // Get the last 'e' tag, which should be the event ID.
             const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e")?.[1];
-            console.log("likedEventId " + likedEventId)
             if (!likedEventId) return;
         
             const prevReactionEvents = state.reactions[likedEventId] ? [...state.reactions[likedEventId]] : [];
