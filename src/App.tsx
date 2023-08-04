@@ -31,7 +31,6 @@ function App() {
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
-  const hideExplicitContent = useRef<boolean>(true);
 
   useListEvents({});
   
@@ -80,15 +79,16 @@ function App() {
   //Set Settings
   useEffect(() => {
     const settings = localStorage.getItem("JiYouSettings");
-
     if (settings) {
       const parsedSettings = JSON.parse(settings);
+      console.log(parsedSettings)
       if (parsedSettings){
-        dispatch(setHideExplicitContent(parsedSettings.hideExplicitContent))
-        dispatch(setImageOnlyMode(parsedSettings.setImageOnlyMode))
+        dispatch(setHideExplicitContent(parsedSettings.feedSettings.hideExplicitContent))
+        dispatch(setImageOnlyMode(parsedSettings.feedSettings.imagesOnlyMode))
       }
     }
   }, []);
+
 
   return (
     <Box>

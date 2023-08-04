@@ -70,7 +70,7 @@ export const eventsSlice = createSlice({
             state.refreshUserNotes = !state.refreshUserNotes;
         },
         toggleRefreshFeedNotes: (state) => {
-            state.refreshUserNotes = !state.refreshUserNotes
+            state.refreshFeedNotes = !state.refreshFeedNotes
         },
         clearUserEvents: (state) => {
             state.userNotes = [];

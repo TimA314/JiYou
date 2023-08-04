@@ -6,6 +6,8 @@ import { MuiColorInput } from 'mui-color-input';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
+import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { useNavigate } from 'react-router';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -31,13 +33,15 @@ export default function Settings ({}: SettingsProps) {
   const dispatch = useDispatch();
   const note = useSelector((state: RootState) => state.note);
   const { themeColors, setThemeColors } = useContext(ThemeContext);
-
+  const navigate = useNavigate();
 
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked === note.imageOnlyMode) return;
     dispatch(setImageOnlyMode(event.target.checked))
   };
 
   const handleHideExplicitContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked === note.hideExplicitContent) return;
     dispatch(setHideExplicitContent(event.target.checked))
   };
   
@@ -67,6 +71,9 @@ export default function Settings ({}: SettingsProps) {
       feedSettings: {hideExplicitContent: note.hideExplicitContent, imagesOnlyMode: note.imageOnlyMode}
   }));
     dispatch(addMessage({message: 'Settings Saved', isError: false}))
+    dispatch(toggleRefreshFeedNotes())
+    dispatch(toggleRefreshUserNotes())
+    navigate("/");
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {
@@ -100,12 +107,12 @@ export default function Settings ({}: SettingsProps) {
         <Grid>
           <FormGroup>
             <FormControlLabel
-              control={<Checkbox checked={note.hideExplicitContent} onChange={handleHideExplicitContentChange}/>} 
+              control={<Checkbox checked={note?.hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
               label="Hide Sensetive Content"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
             <FormControlLabel
-              control={<Checkbox checked={note.imageOnlyMode} onChange={handleImagesOnlyChange} />} 
+              control={<Checkbox checked={note?.imageOnlyMode ?? false} onChange={handleImagesOnlyChange} />} 
               label="Images Only"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />

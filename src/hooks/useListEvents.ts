@@ -30,10 +30,20 @@ export const useListEvents = ({}: useListEventsProps) => {
   //Feed Notes
   useEffect(() => {
 
+    dispatch(clearGlobalNotes());
     const subFeedEvents = async () => {
       if (!pool) return;
-      dispatch(clearGlobalNotes());
       dispatch(addMessage({ message: "Requesting Notes", isError: false }));
+      
+      let imageOnly = note.imageOnlyMode;
+      let hideExplicitContent = note.hideExplicitContent;
+      
+      const unParsedSettings = localStorage.getItem("JiYouSettings");
+      if (unParsedSettings){
+        const settings = JSON.parse(unParsedSettings);
+        imageOnly = settings.feedSettings.imagesOnlyMode;
+        hideExplicitContent = settings.feedSettings.hideExplicitContent
+      }
 
       let filter: Filter = {kinds: [1], limit: 200};
 
@@ -55,8 +65,8 @@ export const useListEvents = ({}: useListEventsProps) => {
       let sub = pool.sub(readableRelayUrls, [filter]);
 
       sub.on("event", (event: Event) => {
-        if (note.hideExplicitContent && eventContainsExplicitContent(event)) return;
-        if (note.imageOnlyMode && GetImageFromPost(event.content)?.length === 0){
+        if (hideExplicitContent && eventContainsExplicitContent(event)) return;
+        if (imageOnly && GetImageFromPost(event.content)?.length === 0){
           return;
         }
         if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
@@ -68,7 +78,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     }
 
     subFeedEvents();
-  }, [note.hashTags, note.searchEventIds, events.refreshFeedNotes, note.tabIndex, note.hideExplicitContent, note.imageOnlyMode]);
+  }, [note.hashTags, note.searchEventIds, events.refreshFeedNotes, note.tabIndex, note.hideExplicitContent, note.imageOnlyMode, nostr.relays]);
 
 
   //MetaData

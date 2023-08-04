@@ -18,7 +18,8 @@ const style = {
   transform: 'translate(-50%, -50%)',
   bgcolor: 'background.paper',
   width: "95%",
-  maxWidth: "1000px",
+  maxHeight: "95%",
+  maxWidth: "95%",
   boxShadow: 24,
   overflowY: 'auto' as 'auto', //scrollable
 };
@@ -44,18 +45,17 @@ export default function NoteModal({
   const getThread = () => {
     if (note.noteModalEvent === null) return <></>;
     return (
-      <Box>
+      <Box sx={{ 
+        maxWidth: "95%"
+      }}>
         <Box>
           {(rootNotes?.length ?? 0) > 0 && 
             rootNotes.map((rootEvent: Event) => {
               return (
                 <Box 
-                  key={rootEvent.sig + Math.random()}                                        
+                  key={(rootEvent.sig + "RootEventInModal")}                                        
                   sx={{ 
-                    marginBottom: "10px", 
-                    justifyContent: "center", 
-                    flexDirection: "row", 
-                    alignItems: "center" 
+                    maxWidth: "95%"
                   }}
                 >
                   <Note
@@ -121,7 +121,7 @@ export default function NoteModal({
               onClick={handleClose} />
         </Box>
 
-        <Box sx={{overflowY: 'auto', width: '98%', maxHeight: "80vh"}}>
+        <Box sx={{overflowY: 'auto', width: '98%', maxHeight: "85%", maxWidth: "95%"}}>
             <Stack direction="row" spacing={0} flexDirection="column">
 
                 {getThread()}

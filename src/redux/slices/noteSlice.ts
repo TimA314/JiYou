@@ -24,11 +24,17 @@ export const noteSlice = createSlice({
         setReplyToNoteEvent: (state, action) => {
             state.replyToNoteEvent = action.payload;
         },
-        setSearchEventIds: (state, action) => {
-            state.searchEventIds = action.payload.trim();
+        addSearchEventId: (state, action) => {
+            state.searchEventIds = [...new Set([...state.searchEventIds, action.payload.trim()])];
         },
-        setHashTags: (state, action) => {
-            state.hashTags = action.payload;
+        removeSearchEventId: (state, action) => {
+            state.searchEventIds = state.searchEventIds.filter((id) => id !== action.payload)
+        },
+        addHashTag: (state, action) => {
+            state.hashTags = [...new Set([...state.hashTags, action.payload])];
+        },
+        removeHashTag: (state, action) => {
+            state.hashTags = state.hashTags.filter((t) => t !== action.payload);
         },
         setTabIndex: (state, action) => {
             state.tabIndex = action.payload;
@@ -52,8 +58,10 @@ export const noteSlice = createSlice({
 export const { 
     setNoteModalEvent, 
     setReplyToNoteEvent, 
-    setSearchEventIds, 
-    setHashTags, 
+    addSearchEventId,
+    removeSearchEventId,
+    addHashTag,
+    removeHashTag,
     setTabIndex, 
     setImageOnlyMode,
     setHideExplicitContent,
