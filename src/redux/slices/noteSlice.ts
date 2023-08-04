@@ -9,7 +9,7 @@ const initialState: NoteSlice = {
     searchEventIds: [],
     hashTags: [],
     tabIndex: 0,
-    imageOnlyMode: (JSON.parse(localStorage.getItem("JiYouSettings") ?? ""))?.feedSettings?.imagesOnlyMode == true ?? false,
+    imageOnlyMode: false,
     hideExplicitContent: true,
     alertMessages: []
 }

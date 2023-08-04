@@ -23,6 +23,7 @@ import { setKeys } from './redux/slices/keySlice';
 import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
 import { AlertMessages } from './components/AlertMessages';
+import { setHideExplicitContent, setImageOnlyMode } from './redux/slices/noteSlice';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
@@ -82,7 +83,10 @@ function App() {
 
     if (settings) {
       const parsedSettings = JSON.parse(settings);
-      hideExplicitContent.current = parsedSettings?.feedSettings?.hideExplicitContent ?? true
+      if (parsedSettings){
+        dispatch(setHideExplicitContent(parsedSettings.hideExplicitContent))
+        dispatch(setImageOnlyMode(parsedSettings.setImageOnlyMode))
+      }
     }
   }, []);
 
