@@ -11,10 +11,10 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { Badge, BadgeProps, Box, Button, CircularProgress, Grid } from '@mui/material';
-import { useCallback, useContext, useState } from 'react';
+import { Badge, BadgeProps, Box, Button, CircularProgress, Grid, Paper } from '@mui/material';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
-import { GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
+import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -22,9 +22,14 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { setHashTags, setNoteModalEvent, setReplyToNoteEvent } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, addSearchEventId } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 
+
+//Expand Note
+interface ExpandMoreProps extends IconButtonProps {
+  expand: boolean;
+}
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
   return <IconButton {...other} />;
@@ -36,6 +41,7 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
+//Styles
 const FavoriteIconButton = styled(IconButton)(({ theme }) => ({
   '&.animateLike': {
     animation: '$scaleAnimation 0.3s ease-in-out',
@@ -57,9 +63,7 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   },
 }));
 
-interface ExpandMoreProps extends IconButtonProps {
-  expand: boolean;
-}
+
 interface NoteProps {
   event: Event;
   updateFollowing: (pubkey: string) => void;
@@ -84,7 +88,7 @@ const Note: React.FC<NoteProps> = ({
 
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(nostr.following.includes(event.pubkey));
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
@@ -96,7 +100,7 @@ const Note: React.FC<NoteProps> = ({
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
-
+  const dicebear = DiceBears();
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
@@ -136,14 +140,19 @@ const Note: React.FC<NoteProps> = ({
 
   }, [pool, nostr.relays, event]);
 
+  useEffect(() => {
+    const checkFollowing = nostr.following.includes(event.pubkey);
+    if (checkFollowing){
+      setIsFollowing(checkFollowing);
+    }
+  }, [nostr.following])
+
   const showReplyThread = useCallback(() => {
     dispatch(setNoteModalEvent(event));
   }, []);
 
   const addHashtag = (tag: string) => {
-    console.log("add hashtag", tag)
-    const newTags = [...new Set([...note.hashTags, tag])]
-    dispatch(setHashTags(newTags));
+    dispatch(addHashTag(tag));
   }
 
   const handleReplyToNote = () => {
@@ -151,127 +160,11 @@ const Note: React.FC<NoteProps> = ({
     dispatch(setReplyToNoteEvent(event));
   }
 
-  //Images Only Mode
-  if (note.imageOnlyMode && !isInModal) {
-    return (
-      <Card sx={{marginBottom: "15px"}}>
-        <CardContent sx={{margin: "-16px"}}>
-          {(images?.length ?? 0) > 0 && (
-            images.map((img) => (
-            <CardMedia
-              component="img"
-              image={img}
-              alt="picture"
-              key={img + "imageOnlyModeImage" + isInModal}
-              sx={{maxHeight: "500px", objectFit: "contain", color: themeColors.textColor}}
-            />
-            ))
-          )}
-          {youtubeFromPost && (
-            <iframe 
-            src={youtubeFromPost} 
-            title="YouTube video player" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            style={{ width: '100%', height: '315px' }}
-          />
-          )}
-        </CardContent>
-        <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <CardHeader
-          avatar={
-            <Avatar sizes='small' aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? ""}>
-            </Avatar>
-          }
-          title={moment.unix(event.created_at).fromNow()}
-          titleTypographyProps={{color: themeColors.textColor}}
-        />
-          <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
-          <IconButton aria-label="cart" onClick={showReplyThread}>
-            <StyledBadge color="secondary">
-              {gettingThread ? <CircularProgress /> : <Badge badgeContent={events.replyNotes[event.id]?.length ?? ""} color="primary"><ForumIcon color="primary"/></Badge> }
-            </StyledBadge>
-          </IconButton>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <IconButton 
-              onClick={() => disableReplyIcon === true ? () => {} : handleReplyToNote()}
-              color="secondary"
-            >
-              <RateReviewIcon />
-            </IconButton>
-            <FavoriteIconButton 
-              aria-label="Upvote note" 
-              onClick={likeNote} 
-              disabled={liked} 
-              sx={{ color: liked ? themeColors.primary : themeColors.textColor }}
-              className={liked ? 'animateLike' : ''}
-            >
-            <Typography variant='caption' sx={{color: themeColors.textColor}}>
-              {events.reactions[event.id]?.filter(e => e.content !== '-')?.length ?? 0}
-            </Typography>
-              <FavoriteIcon id={"favorite-icon-" + event.sig} />
-            </FavoriteIconButton>
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-              sx={{color: themeColors.textColor}}
-            >
-              <ExpandMoreIcon />
-            </ExpandMore>
-          </Box>
-        </CardActions>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent>
-          <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
-            <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
-              {isFollowing ? "UnFollow" : "Follow"}
-            </Button>
-          </Box>
-          <Typography variant="h6" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
-            Content:
-          </Typography>
-          <Box sx={{marginBottom: "20px", margin: "10px"}}>
-            <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize}}>
-              {event.content}
-            </Typography>
-          </Box>
-          <Typography paragraph display="h6" color={themeColors.textColor}>MetaData:</Typography>
-          <Typography variant="caption" display="block" color={themeColors.textColor}>
-            Event Id: {event.id}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            PubKey: {nip19.npubEncode(event.pubkey)}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            PubKey hex: {event.pubkey}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Created: {moment.unix(event.created_at).format("LLLL")}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            UnixTime: {event.created_at}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Sig: {event.sig}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Tags: <ul >{event.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
-          </Typography>
-        </CardContent>
-      </Collapse>
-      </Card>
-    )
-  }
-
-
-  //Normal Mode
   return (
-    <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+    <Paper elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
-          <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? ""}>
+          <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
           </Avatar>
         }
         title={events.metaData[event.pubkey]?.name ?? ""}
@@ -280,9 +173,12 @@ const Note: React.FC<NoteProps> = ({
         style={{color: themeColors.textColor}}
       />
       <CardContent >
-        <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
-        {event.content}
-        </Typography>
+        {!note.imageOnlyMode &&
+          <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
+          {event.content}
+          </Typography>
+         }
+        
         <Box>
           {(images?.length ?? 0) > 0 && (
             images.map((img) => (
@@ -291,7 +187,7 @@ const Note: React.FC<NoteProps> = ({
               image={img}
               alt="picture"
               key={img + "normalModeImage" + isInModal}
-              sx={{maxHeight: "300px", objectFit: "contain", color: themeColors.textColor}}
+              sx={{maxHeight: "400px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
           )}
@@ -300,7 +196,7 @@ const Note: React.FC<NoteProps> = ({
             src={youtubeFromPost} 
             title="YouTube video player" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            style={{ width: '100%', height: '315px' }}
+            style={{ width: '100%', height: '350px' }}
           />
           )}
         </Box>
@@ -328,15 +224,23 @@ const Note: React.FC<NoteProps> = ({
         ))}
       </CardContent>
 
-      {previewEvent && (
-        <CardContent sx={{margin: "5%"}}>
-          <Card elevation={4} sx={{ marginBottom: "10px", color: themeColors.textColor, fontSize: themeColors.textSize}}>
+      {previewEvent && !note.imageOnlyMode && (
+        <CardContent sx={{margin: "2%"}}>
+          <Card 
+            elevation={4}
+            onClick={() => dispatch(addSearchEventId(previewEvent?.id))}
+            sx={{ 
+              marginBottom: "10px", 
+              color: themeColors.textColor, 
+              backgroundColor: themeColors.background, 
+              fontSize: themeColors.textSize
+              }}>
                 <Grid container direction="column" > 
 
                     <Grid item xs={4}>
                         <CardHeader
                                 avatar={
-                                  <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }
                                 title={events.metaData[previewEvent.pubkey]?.name ?? ""}
                                 subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
@@ -422,6 +326,11 @@ const Note: React.FC<NoteProps> = ({
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
+        {note.imageOnlyMode &&
+          <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
+          {event.content}
+          </Typography>
+         }
           <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
             <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
               {isFollowing ? "UnFollow" : "Follow"}
@@ -451,7 +360,7 @@ const Note: React.FC<NoteProps> = ({
           </Typography>
         </CardContent>
       </Collapse>
-    </Card>
+    </Paper>
   );
 }
 

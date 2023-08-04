@@ -6,6 +6,7 @@ import { MuiColorInput } from 'mui-color-input';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
+import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -67,6 +68,8 @@ export default function Settings ({}: SettingsProps) {
       feedSettings: {hideExplicitContent: note.hideExplicitContent, imagesOnlyMode: note.imageOnlyMode}
   }));
     dispatch(addMessage({message: 'Settings Saved', isError: false}))
+    dispatch(toggleRefreshFeedNotes())
+    dispatch(toggleRefreshUserNotes())
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {

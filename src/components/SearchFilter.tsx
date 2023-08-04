@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import { Close } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { setHashTags, setSearchEventIds } from "../redux/slices/noteSlice";
+import { addHashTag, addSearchEventId, removeHashTag } from "../redux/slices/noteSlice";
 import { toggleRefreshFeedNotes } from "../redux/slices/eventsSlice";
 
 interface Props {}
@@ -24,28 +24,26 @@ export default function SearchFilter({}: Props) {
     const eventIDRegex = /^[0-9a-fA-F]{64}$/; // Regex pattern for event IDs
 
     if (eventIDRegex.test(input)) {
-      const newEventIds = [...note.searchEventIds, input];
-      dispatch(setSearchEventIds(newEventIds))
-      dispatch(toggleRefreshFeedNotes())
+      dispatch(addSearchEventId(input))
+      dispatch(toggleRefreshFeedNotes());
       setInput("");
       return;
     }
 
-  const hashtag = sanitizeString(input).trim();
+    const hashtag = sanitizeString(input).trim();
     if (hashtag === "" || note.hashTags.includes(hashtag)) return;
     setInput("");
-    dispatch(setHashTags([...note.hashTags, hashtag]));
+    dispatch(addHashTag(hashtag));
     dispatch(toggleRefreshFeedNotes())
   };
 
-  const removeSearchedEventId = (id: string) => {
-    const newSearchEventIds = note.searchEventIds.filter((e) => e !== id);
-    dispatch(setSearchEventIds(newSearchEventIds));
+  const handleRemoveSearchedEventId = (id: string) => {
+    dispatch(addSearchEventId(id));
     dispatch(toggleRefreshFeedNotes())
   }
 
-  const removeHashtag = (hashtag: string) => {
-    dispatch(setHashTags(note.hashTags.filter((h) => h !== hashtag)));
+  const handleRemoveHashtag = (hashtag: string) => {
+    dispatch(removeHashTag(hashtag));
     dispatch(toggleRefreshFeedNotes())
   };
 
@@ -70,7 +68,7 @@ export default function SearchFilter({}: Props) {
                   </IconButton>
                 }
                 label={tag}  
-                onDelete={() => removeHashtag(tag)} 
+                onDelete={() => handleRemoveHashtag(tag)} 
                 />
           ))}
           {note.searchEventIds.map((id) => (
@@ -84,7 +82,7 @@ export default function SearchFilter({}: Props) {
                 </IconButton>
               }
               label={id}
-              onDelete={() => removeSearchedEventId(id)}
+              onDelete={() => handleRemoveSearchedEventId(id)}
             />
           ))}
         </Stack>

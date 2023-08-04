@@ -57,7 +57,7 @@ dispatch: Dispatch<AnyAction>
           }
 
         }
-        console.log("eventKindMessage: " + eventKindMessage)
+
         if (eventKindMessage === "") return true;
         dispatch(addMessage({message: eventKindMessage, isError: false}))
         return true;
@@ -108,7 +108,7 @@ dispatch: Dispatch<AnyAction>
       }
 
     }
-    console.log("eventKindMessage: " + eventKindMessage)
+    
     if (eventKindMessage === "") return true;
     dispatch(addMessage({message: eventKindMessage, isError: false}))
     return true;

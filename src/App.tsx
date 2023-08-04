@@ -31,7 +31,6 @@ function App() {
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
-  const hideExplicitContent = useRef<boolean>(true);
 
   useListEvents({});
   
@@ -90,6 +89,7 @@ function App() {
     }
   }, []);
 
+  
   return (
     <Box>
       <CssBaseline />

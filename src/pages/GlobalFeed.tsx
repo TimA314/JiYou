@@ -27,11 +27,11 @@ const createNoteStyle = {
 
 type GlobalFeedProps = {
     updateFollowing: (pubkey: string) => void;
-  };
+};
   
-  const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
+const GlobalFeed: React.FC<GlobalFeedProps> = ({ 
     updateFollowing
-  }) => {
+}) => {
     const events = useSelector((state: RootState) => state.events);
     const note = useSelector((state: RootState) => state.note);
     const dispatch = useDispatch();
