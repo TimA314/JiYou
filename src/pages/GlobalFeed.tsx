@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { clearGlobalNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
 import { setTabIndex } from '../redux/slices/noteSlice';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -80,6 +81,10 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
         <Box sx={{marginTop: "52px"}}>
 
             <SearchFilter />
+
+            <IconButton onClick={() => dispatch(toggleRefreshFeedNotes())} sx={{ color: themeColors.secondary, position: 'fixed', top: 60, right: 10, zIndex: 1000 }}>
+                <RefreshIcon />
+            </IconButton>
             
             {renderFeed()}
 

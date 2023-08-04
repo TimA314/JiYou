@@ -35,10 +35,12 @@ export default function Settings ({}: SettingsProps) {
 
 
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked === note.imageOnlyMode) return;
     dispatch(setImageOnlyMode(event.target.checked))
   };
 
   const handleHideExplicitContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked === note.hideExplicitContent) return;
     dispatch(setHideExplicitContent(event.target.checked))
   };
   
@@ -103,12 +105,12 @@ export default function Settings ({}: SettingsProps) {
         <Grid>
           <FormGroup>
             <FormControlLabel
-              control={<Checkbox checked={note.hideExplicitContent} onChange={handleHideExplicitContentChange}/>} 
+              control={<Checkbox checked={note?.hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
               label="Hide Sensetive Content"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
             <FormControlLabel
-              control={<Checkbox checked={note.imageOnlyMode} onChange={handleImagesOnlyChange} />} 
+              control={<Checkbox checked={note?.imageOnlyMode ?? false} onChange={handleImagesOnlyChange} />} 
               label="Images Only"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />

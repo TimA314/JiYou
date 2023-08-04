@@ -68,14 +68,12 @@ interface NoteProps {
   event: Event;
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
-  gettingThread?: boolean;
   isInModal?: boolean;
 }
 
 const Note: React.FC<NoteProps> = ({
     event,
     disableReplyIcon, 
-    gettingThread,
     updateFollowing,
     isInModal = false,
   }: NoteProps) => {
@@ -161,7 +159,7 @@ const Note: React.FC<NoteProps> = ({
   }
 
   return (
-    <Paper elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+    <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
@@ -186,7 +184,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
-              key={img + "normalModeImage" + isInModal}
+              key={img + event.sig}
               sx={{maxHeight: "400px", objectFit: "contain", color: themeColors.textColor}}
             />
             ))
@@ -208,7 +206,7 @@ const Note: React.FC<NoteProps> = ({
             <Typography
             variant="caption"
             color="primary"
-            key={tag}
+            key={tag + event.sig}
             onClick={() => addHashtag(tag)}
             sx={{
               cursor: 'pointer',
@@ -265,7 +263,7 @@ const Note: React.FC<NoteProps> = ({
                       component="img"
                       image={img}
                       alt="picture"
-                      key={img + "previewEventImage" + isInModal}
+                      key={img + event.sig + "previewEventImage" + isInModal}
                       sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
                     />
                     ))
@@ -317,7 +315,7 @@ const Note: React.FC<NoteProps> = ({
             expand={expanded}
             onClick={handleExpandClick}
             aria-expanded={expanded}
-            aria-label="show more"
+            aria-label="show metadata"
             sx={{color: themeColors.textColor}}
           >
             <ExpandMoreIcon />
@@ -360,7 +358,7 @@ const Note: React.FC<NoteProps> = ({
           </Typography>
         </CardContent>
       </Collapse>
-    </Paper>
+    </Card>
   );
 }
 
