@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
 import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { useNavigate } from 'react-router';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -32,7 +33,7 @@ export default function Settings ({}: SettingsProps) {
   const dispatch = useDispatch();
   const note = useSelector((state: RootState) => state.note);
   const { themeColors, setThemeColors } = useContext(ThemeContext);
-
+  const navigate = useNavigate();
 
   const handleImagesOnlyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked === note.imageOnlyMode) return;
@@ -72,6 +73,7 @@ export default function Settings ({}: SettingsProps) {
     dispatch(addMessage({message: 'Settings Saved', isError: false}))
     dispatch(toggleRefreshFeedNotes())
     dispatch(toggleRefreshUserNotes())
+    navigate("/");
   };
 
   const handleTextSizeChange = (event: Event, value: number | number[], activeThumb: number) => {
