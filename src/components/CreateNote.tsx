@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useRef, useState } from 'react';
 import { Box, FormGroup, TextField } from '@mui/material';
 import './CreateNote.css';
 import Button from '@mui/material/Button';
@@ -13,9 +13,11 @@ import { toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 
-interface Props {}
+interface Props {
+  setCreateNoteOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
 
-function CreateNote({}: Props) {
+function CreateNote({setCreateNoteOpen}: Props) {
   const pool = useContext(PoolContext);
   const [input, setInput] = useState("");
   const { themeColors } = useContext(ThemeContext);
@@ -23,15 +25,18 @@ function CreateNote({}: Props) {
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
-
+  const creatingNote = useRef(false);
   const dispatch = useDispatch();
-
-
+  
+  
   const handlePostToRelaysClick = async () => {
     if (!pool) {
       return;
     }
-
+    if (creatingNote.current) return;
+    creatingNote.current = true;
+    setCreateNoteOpen(false);
+    
     const tags = [];
     //push reply event id and pk
     if (note.replyToNoteEvent) {
@@ -42,13 +47,14 @@ function CreateNote({}: Props) {
     //push other replies in chain
     const replyEventTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "e") : [];
     const replyPubKeyTags = note.replyToNoteEvent ? note.replyToNoteEvent.tags.filter((t) => t[0] === "p") : [];
-
+    dispatch(setReplyToNoteEvent(null));
+    
     if (replyEventTags.length > 0) {
       replyEventTags.forEach((tag) => {
         tags.push(tag);
       })
     }
-
+    
     if (replyPubKeyTags.length > 0) {
       replyPubKeyTags.forEach((tag) => {
         tags.push(tag);
@@ -76,7 +82,6 @@ function CreateNote({}: Props) {
       try {
         const signedWithNostr = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
         if (signedWithNostr) {
-          dispatch(setReplyToNoteEvent(null));
           return;
         }
       } catch {}
@@ -84,8 +89,13 @@ function CreateNote({}: Props) {
 
     //Manually sign the event
     signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch)
-    dispatch(toggleRefreshUserNotes())
-    dispatch(setReplyToNoteEvent(null));
+
+    setTimeout(() => completeCreateNote(), 5000);
+  }
+
+  const completeCreateNote = () => {
+    dispatch(toggleRefreshUserNotes());
+    creatingNote.current = false;
   }
 
   return (

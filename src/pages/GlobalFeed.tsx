@@ -106,7 +106,7 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
                         >
                         <CloseIcon />
                     </IconButton>
-                    <CreateNote />
+                    <CreateNote setCreateNoteOpen={setCreateNoteOpen} />
                 </Box>
             </Modal>
 
