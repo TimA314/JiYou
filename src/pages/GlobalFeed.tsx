@@ -10,7 +10,7 @@ import { ThemeContext } from '../theme/ThemeContext';
 import { useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { clearGlobalNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
+import { clearGlobalNotes, setIsRefreshingFeedNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
 import { setTabIndex } from '../redux/slices/noteSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
@@ -82,7 +82,22 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
 
             <SearchFilter />
 
-            <IconButton onClick={() => dispatch(toggleRefreshFeedNotes())} sx={{ color: themeColors.secondary, position: 'fixed', top: 60, right: 10, zIndex: 1000 }}>
+            <IconButton 
+                onClick={() => {
+                    dispatch(toggleRefreshFeedNotes())
+                    dispatch(setIsRefreshingFeedNotes(true))
+                }} 
+                disabled={events.refreshingFeedNotes}
+                sx={{ 
+                    color: themeColors.secondary, 
+                    position: 'fixed', 
+                    top: 60, 
+                    right: 10, 
+                    zIndex: 1000,
+                    ...(events.refreshingFeedNotes && {
+                        animation: 'spin 1s linear infinite'
+                    })
+                }}>
                 <RefreshIcon />
             </IconButton>
             

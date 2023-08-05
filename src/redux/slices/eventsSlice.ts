@@ -10,7 +10,9 @@ const initialState: EventsType = {
     metaData: {},
     reactions: {},
     refreshUserNotes: false,
-    refreshFeedNotes: true
+    refreshFeedNotes: true,
+    refreshingUserNotes: false,
+    refreshingFeedNotes: false
 }
 
 
@@ -74,6 +76,12 @@ export const eventsSlice = createSlice({
         },
         clearUserEvents: (state) => {
             state.userNotes = [];
+        },
+        setIsRefreshingUserEvents: (state, action) => {
+            state.refreshingUserNotes = action.payload;
+        },
+        setIsRefreshingFeedNotes: (state, action) => {
+            state.refreshingFeedNotes = action.payload;
         }
     }
 });
@@ -89,7 +97,9 @@ export const {
     addReactions, 
     toggleRefreshUserNotes,
     toggleRefreshFeedNotes,
-    clearUserEvents
+    clearUserEvents,
+    setIsRefreshingUserEvents,
+    setIsRefreshingFeedNotes
 } = eventsSlice.actions;
 
 export default eventsSlice.reducer;
@@ -102,5 +112,7 @@ export type EventsType = {
   metaData:  Record<string, MetaData>,
   reactions:  Record<string, Event[]>,
   refreshUserNotes: boolean,
-  refreshFeedNotes: boolean
+  refreshFeedNotes: boolean,
+  refreshingUserNotes: boolean,
+  refreshingFeedNotes: boolean
 }

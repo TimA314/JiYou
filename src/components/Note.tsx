@@ -94,6 +94,8 @@ const Note: React.FC<NoteProps> = ({
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
 
   const images = GetImageFromPost(event.content);
+  if(note.imageOnlyMode && images.length === 0) return <></>
+  
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);

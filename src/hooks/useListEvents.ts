@@ -4,7 +4,7 @@ import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes } from '../redux/slices/eventsSlice';
+import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
@@ -75,6 +75,10 @@ export const useListEvents = ({}: useListEventsProps) => {
           dispatch(addGlobalNotes(sanitizedEvent));
         });
       });
+
+      sub.on("eose", () => {
+        dispatch(setIsRefreshingFeedNotes(false));
+      })
     }
 
     subFeedEvents();
@@ -263,13 +267,19 @@ export const useListEvents = ({}: useListEventsProps) => {
     
     const fetchUserNotes = () => {
       if (!pool) return;
+      dispatch(clearUserEvents());
+      console.log("Requesting User Notes")
       const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
 
       sub.on("event", (event: Event) => {
         const sanitizedEvent = sanitizeEvent(event);
-        batch(() => {
           dispatch(addUserNotes(sanitizedEvent));
-        })
+          console.log("Recieved User Note")
+      })
+
+      sub.on("eose", () =>{
+        console.log("eose")
+        dispatch(setIsRefreshingUserEvents(false))
       })
     }
 
