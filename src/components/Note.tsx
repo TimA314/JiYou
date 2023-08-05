@@ -163,7 +163,7 @@ const Note: React.FC<NoteProps> = ({
   }
 
   return (
-    <Card elevation={3}  sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start", borderRadius: "15px"}} >
+    <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
