@@ -47,6 +47,7 @@ export default function Keys({}: KeysProps) {
   return (
     <Grid
     container
+    padding={1}
     direction="column"
 
     alignItems="center"

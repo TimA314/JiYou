@@ -10,18 +10,19 @@ export default function UserNotes({}: Props) {
 
   return (
     <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                        {events.userNotes && events.userNotes.map((event) => {
-                            
-                            return (
-                                <Box key={event.sig}>
-                                    <Note 
-                                        event={event}
-                                        updateFollowing={() => {}} 
-                                        disableReplyIcon={false}
-                                        />
-                                </Box>
-                            )
-                        })}
-                    </Box>
+        {events.userNotes && events.userNotes.map((event) => {
+            
+            return (
+                <Box key={event.sig}>
+                    <Note
+                        event={event}
+                        updateFollowing={() => {}} 
+                        disableReplyIcon={false}
+                        disableImagesOnly={true}
+                        />
+                </Box>
+            )
+        })}
+    </Box>
   )
 }

@@ -69,6 +69,7 @@ interface NoteProps {
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
   isInModal?: boolean;
+  disableImagesOnly?: Boolean;
 }
 
 const Note: React.FC<NoteProps> = ({
@@ -76,6 +77,7 @@ const Note: React.FC<NoteProps> = ({
     disableReplyIcon, 
     updateFollowing,
     isInModal = false,
+    disableImagesOnly
   }: NoteProps) => {
   const { themeColors } = useContext(ThemeContext);
   const pool = useContext(PoolContext);
@@ -93,8 +95,10 @@ const Note: React.FC<NoteProps> = ({
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
 
-  const images = GetImageFromPost(event.content);
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
+  const images = GetImageFromPost(event.content);
+  if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
+  
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
@@ -159,7 +163,7 @@ const Note: React.FC<NoteProps> = ({
   }
 
   return (
-    <Card elevation={3} sx={{ width: "100%", marginTop: "10px", alignItems: "flex-start"}}>
+    <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
         avatar={
           <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
@@ -170,11 +174,13 @@ const Note: React.FC<NoteProps> = ({
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
-      <CardContent >
-        {!note.imageOnlyMode &&
-          <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
-          {event.content}
-          </Typography>
+      <CardContent sx={{padding: "2px"}}>
+        {(!note.imageOnlyMode || disableImagesOnly) && 
+          <Box sx={{padding: 2}}>
+            <Typography variant="body2" sx={{ color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
+            {event.content}
+            </Typography>
+          </Box>
          }
         
         <Box>
@@ -185,7 +191,8 @@ const Note: React.FC<NoteProps> = ({
               image={img}
               alt="picture"
               key={img + event.sig}
-              sx={{maxHeight: "400px", objectFit: "contain", color: themeColors.textColor}}
+              sx={{maxHeight: "600px", padding: 0, marginTop: "2px", width: "100%", objectFit: "contain", color: themeColors.textColor,
+            }}
             />
             ))
           )}
@@ -222,8 +229,8 @@ const Note: React.FC<NoteProps> = ({
         ))}
       </CardContent>
 
-      {previewEvent && !note.imageOnlyMode && (
-        <CardContent sx={{margin: "2%"}}>
+      {previewEvent && (!note.imageOnlyMode || disableImagesOnly) && (
+        <CardContent sx={{padding: 2}}>
           <Card 
             elevation={4}
             onClick={() => dispatch(addSearchEventId(previewEvent?.id))}
@@ -231,7 +238,8 @@ const Note: React.FC<NoteProps> = ({
               marginBottom: "10px", 
               color: themeColors.textColor, 
               backgroundColor: themeColors.background, 
-              fontSize: themeColors.textSize
+              fontSize: themeColors.textSize,
+              borderRadius: "20px"
               }}>
                 <Grid container direction="column" > 
 

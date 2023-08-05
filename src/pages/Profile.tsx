@@ -13,7 +13,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { clearUserEvents } from '../redux/slices/eventsSlice';
+import { clearUserEvents, setIsRefreshingUserEvents, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import RefreshIcon from '@mui/icons-material/Refresh';
+
 
 interface ProfileProps {
     updateProfile: (name: string, about: string, picture: string, banner: string) => void;
@@ -34,7 +36,6 @@ const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
 const dispatch = useDispatch();
-
 
 
 useEffect(() => {
@@ -89,6 +90,7 @@ const styles = {
         padding: 24,
     }
 };
+
 
     return (
         <Box justifyContent="center" >
@@ -223,6 +225,23 @@ const styles = {
                             <Tab label="User Notes" />
                             <Tab label="Notifications" />   
                         </Tabs>
+                        <IconButton
+                            onClick={() => {
+                                dispatch(toggleRefreshUserNotes());
+                                dispatch(setIsRefreshingUserEvents(true));
+                            }}
+                            disabled={events.refreshingUserNotes}
+                            sx={{
+                                color: themeColors.secondary, 
+                                position: 'absolute', 
+                                top: 765, 
+                                right: 30,
+                                ...(events.refreshingUserNotes && {
+                                    animation: 'spin 1s linear infinite'
+                                })
+                            }}>
+                            <RefreshIcon />
+                        </IconButton>
                     </Box>
                     
                     {tabIndex === 0 && (

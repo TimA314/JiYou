@@ -7,6 +7,7 @@ import CreateNote from './CreateNote';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setReplyToNoteEvent } from '../redux/slices/noteSlice';
+import { useState } from 'react';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -30,6 +31,7 @@ interface ReplyToNoteProps {
 export default function ReplyToNote({updateFollowing}: ReplyToNoteProps) {
   const note = useSelector((state: RootState) => state.note);
   const dispatch = useDispatch();
+  const [createNoteOpen, setCreateNoteOpen] = useState(false);
 
   const handleClose = () => {
     dispatch(setReplyToNoteEvent(null));
@@ -45,7 +47,7 @@ export default function ReplyToNote({updateFollowing}: ReplyToNoteProps) {
           updateFollowing={updateFollowing} 
           disableReplyIcon={true}
           />
-          <CreateNote />
+          <CreateNote setCreateNoteOpen={setCreateNoteOpen}  />
       </Box>
       )
     } else {

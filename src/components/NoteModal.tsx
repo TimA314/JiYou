@@ -63,6 +63,7 @@ export default function NoteModal({
                       event={rootEvent}
                       updateFollowing={updateFollowing}
                       disableReplyIcon={false}
+                      disableImagesOnly={true}
                       isInModal={true}
                   />
                   <Box sx={{ display: 'flex', justifyContent: 'center'}}>
@@ -80,6 +81,7 @@ export default function NoteModal({
               disableReplyIcon={false}
               key={note.noteModalEvent.sig + "NoteModal"}
               isInModal={true}
+              disableImagesOnly={true}
             />
         </Box>
 
@@ -97,6 +99,7 @@ export default function NoteModal({
                       key={replyEvent.sig + "NoteModal"}
                       disableReplyIcon={false}
                       isInModal={true}
+                      disableImagesOnly={true}
                     />
                     );
                   })}

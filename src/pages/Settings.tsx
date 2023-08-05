@@ -84,7 +84,7 @@ export default function Settings ({}: SettingsProps) {
   };
 
   return (
-    <Grid container spacing={3}>
+    <Grid padding={1} container spacing={3} >
       <Grid item xs={12}>
         <Typography variant="h4" style={{color: themeColors.textColor}}><SettingsSuggestIcon color="primary" /> Settings</Typography>
       </Grid>
@@ -125,7 +125,8 @@ export default function Settings ({}: SettingsProps) {
           Apearance
         </Typography>
       </Grid>
-      <Grid container spacing={3}>
+      <Grid margin={1} container spacing={3}>
+
         {Object.keys(themeColors).map((colorKey) => {
           const key = colorKey as keyof ThemeColors;
 
