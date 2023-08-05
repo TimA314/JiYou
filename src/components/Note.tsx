@@ -172,11 +172,13 @@ const Note: React.FC<NoteProps> = ({
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
       />
-      <CardContent >
+      <CardContent sx={{padding: "2px"}}>
         {!note.imageOnlyMode &&
-          <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
-          {event.content}
-          </Typography>
+          <Box sx={{padding: 2}}>
+            <Typography variant="body2" sx={{ color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
+            {event.content}
+            </Typography>
+          </Box>
          }
         
         <Box>
@@ -187,7 +189,8 @@ const Note: React.FC<NoteProps> = ({
               image={img}
               alt="picture"
               key={img + event.sig}
-              sx={{maxHeight: "400px", objectFit: "contain", color: themeColors.textColor}}
+              sx={{maxHeight: "600px", padding: 0, marginTop: "2px", width: "100%", objectFit: "contain", color: themeColors.textColor,
+            }}
             />
             ))
           )}
@@ -225,7 +228,7 @@ const Note: React.FC<NoteProps> = ({
       </CardContent>
 
       {previewEvent && !note.imageOnlyMode && (
-        <CardContent sx={{margin: "2%"}}>
+        <CardContent sx={{padding: 2}}>
           <Card 
             elevation={4}
             onClick={() => dispatch(addSearchEventId(previewEvent?.id))}

@@ -94,43 +94,43 @@ function App() {
     <Box>
       <CssBaseline />
       <ScrollToTop />
-      <Container>
-      <AlertMessages messages={note.alertMessages} />
-      <ReplyToNote
-        updateFollowing={updateFollowing} 
-      />
-      <NoteModal
-        updateFollowing={updateFollowing}
-      />
-      <Routes>
-          <Route path="/start" element={
-            <StartingPage
-            />} />
-          <Route path="/profile" element={
-            <Profile
-              updateProfile={updateProfile}
-            />} />
-          <Route path="/relays" element={
-            <Relays
-              updateRelays={updateRelays}
-            />} />
-          <Route path="/" element={
-            <GlobalFeed
-              updateFollowing={updateFollowing}
-            />} />
-          <Route path="/keys" element={
-            <Keys
-            />} />
-          <Route path="/settings" element={
-            <Settings />
-          } />
-          <Route path="/about" element={
-            <About />
-          } />
-        </Routes>
-        {keys.publicKey.decoded !== "" && 
-        <NavBar profile={profile} />
-        }
+      <Container maxWidth="xl" sx={{ padding: 1 }}>
+        <AlertMessages messages={note.alertMessages} />
+        <ReplyToNote
+          updateFollowing={updateFollowing} 
+        />
+        <NoteModal
+          updateFollowing={updateFollowing}
+        />
+        <Routes>
+            <Route path="/start" element={
+              <StartingPage
+              />} />
+            <Route path="/profile" element={
+              <Profile
+                updateProfile={updateProfile}
+              />} />
+            <Route path="/relays" element={
+              <Relays
+                updateRelays={updateRelays}
+              />} />
+            <Route path="/" element={
+              <GlobalFeed
+                updateFollowing={updateFollowing}
+              />} />
+            <Route path="/keys" element={
+              <Keys
+              />} />
+            <Route path="/settings" element={
+              <Settings />
+            } />
+            <Route path="/about" element={
+              <About />
+            } />
+          </Routes>
+          {keys.publicKey.decoded !== "" && 
+          <NavBar profile={profile} />
+          }
       </Container>
     </Box>
   );

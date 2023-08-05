@@ -78,7 +78,7 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
 
     //render
     return (
-        <Box sx={{marginTop: "52px"}}>
+        <Box sx={{width: '100%', marginTop: "52px"}}>
 
             <SearchFilter />
 

@@ -64,19 +64,32 @@ export const useListEvents = ({}: useListEventsProps) => {
       console.log("fetching feed with filter: " + JSON.stringify(filter))
       let sub = pool.sub(readableRelayUrls, [filter]);
 
+      let eventsBatch: Event[] = [];
+
       sub.on("event", (event: Event) => {
         if (hideExplicitContent && eventContainsExplicitContent(event)) return;
         if (imageOnly && GetImageFromPost(event.content)?.length === 0){
           return;
         }
         if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
-        const sanitizedEvent = sanitizeEvent(event);
-        batch(() => {
-          dispatch(addGlobalNotes(sanitizedEvent));
-        });
+
+        eventsBatch.push(sanitizeEvent(event));
+
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addGlobalNotes(ev)));
+          });
+          eventsBatch = [];
+        }
       });
 
       sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addGlobalNotes(ev)));
+          });
+          eventsBatch = [];
+        }
         dispatch(setIsRefreshingFeedNotes(false));
       })
     }
@@ -108,21 +121,36 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = true));
 
-      if (pubkeysToFetch.length > 0) {
-        const sub = pool.sub([...allRelayUrls, "wss://purplepag.es"], [
-          {
-            kinds: [0],
-            authors: pubkeysToFetch,
-          },
-        ]);
+      if (pubkeysToFetch.length === 0) return;
+      
+      const sub = pool.sub([...allRelayUrls, "wss://purplepag.es"], [
+        {
+          kinds: [0],
+          authors: pubkeysToFetch,
+        },
+      ]);
 
-        sub.on("event", (event: Event) => {
-          const sanitizedEvent = sanitizeEvent(event);
+      let eventsBatch: Event[] = [];
+
+      sub.on("event", (event: Event) => {
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
           batch(() => {
-            dispatch(addMetaData(sanitizedEvent))
-          })
-        });
-      }
+            eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
+          });
+          eventsBatch = [];
+        }
+      });
+
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
+          });
+          eventsBatch = [];
+        }
+      })
+
     };
 
       fetchMetaData();
@@ -160,12 +188,27 @@ export const useListEvents = ({}: useListEventsProps) => {
       }
 
       let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
+      
+      let eventsBatch: Event[] = [];
 
-      sub.on("event", (event) => {
-        batch(() => {
-          dispatch(addReactions(event))
-        })
+      sub.on("event", (event: Event) => {
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addReactions(ev)));
+          });
+          eventsBatch = [];
+        }
       });
+
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addReactions(ev)));
+          });
+          eventsBatch = [];
+        }
+      })
     }
 
     fetchReactions();
@@ -197,13 +240,27 @@ export const useListEvents = ({}: useListEventsProps) => {
       if (replyEventIdsToFetch.length === 0) return;
 
       let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
+      
+      let eventsBatch: Event[] = [];
 
       sub.on("event", (event: Event) => {
-        const sanitizedEvent = sanitizeEvent(event);
-        batch(() => {
-          dispatch(addReplyNotes(sanitizedEvent))
-        })
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
+          });
+          eventsBatch = [];
+        }
       });
+
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
+          });
+          eventsBatch = [];
+        }
+      })
     }
 
     subReplyEvents();
@@ -250,13 +307,26 @@ export const useListEvents = ({}: useListEventsProps) => {
       }
 
       let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
-
+      
+      let eventsBatch: Event[] = [];
+      
       sub.on("event", (event: Event) => {
-        const sanitizedEvent = sanitizeEvent(event);
-        batch(() => {
-          dispatch(addRootNotes(sanitizedEvent))
-        })
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
+          })
+        }
       });
+
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
+          });
+          eventsBatch = [];
+        }
+      })
     }
 
     subRootEvents();
@@ -270,16 +340,27 @@ export const useListEvents = ({}: useListEventsProps) => {
       dispatch(clearUserEvents());
       console.log("Requesting User Notes")
       const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
+      let eventsBatch: Event[] = [];
 
       sub.on("event", (event: Event) => {
-        const sanitizedEvent = sanitizeEvent(event);
-          dispatch(addUserNotes(sanitizedEvent));
-          console.log("Recieved User Note")
-      })
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addUserNotes(ev)));
+          });
+          eventsBatch = [];
+        }
+      });
 
-      sub.on("eose", () =>{
-        console.log("eose")
+      sub.on("eose", () => {
         dispatch(setIsRefreshingUserEvents(false))
+        
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
+          });
+          eventsBatch = [];
+        }
       })
     }
 
