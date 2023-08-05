@@ -43,10 +43,7 @@ export const eventsSlice = createSlice({
             })
         },
         addUserNotes: (state, action) => {
-            const existingNote = state.userNotes.find(event => event.id === action.payload.id);
-            if (!existingNote) {
-                state.userNotes.push(action.payload);
-            }
+            state.userNotes = [...new Set([...state.userNotes, action.payload])]
         },
         addMetaData: (state, action) => {
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;

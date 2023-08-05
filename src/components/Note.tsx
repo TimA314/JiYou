@@ -69,6 +69,7 @@ interface NoteProps {
   updateFollowing: (pubkey: string) => void;
   disableReplyIcon?: boolean;
   isInModal?: boolean;
+  disableImagesOnly?: Boolean;
 }
 
 const Note: React.FC<NoteProps> = ({
@@ -76,6 +77,7 @@ const Note: React.FC<NoteProps> = ({
     disableReplyIcon, 
     updateFollowing,
     isInModal = false,
+    disableImagesOnly
   }: NoteProps) => {
   const { themeColors } = useContext(ThemeContext);
   const pool = useContext(PoolContext);
@@ -93,10 +95,10 @@ const Note: React.FC<NoteProps> = ({
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
 
-  const images = GetImageFromPost(event.content);
-  if(note.imageOnlyMode && images.length === 0) return <></>
-  
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
+  const images = GetImageFromPost(event.content);
+  if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
+  
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
@@ -173,7 +175,7 @@ const Note: React.FC<NoteProps> = ({
         style={{color: themeColors.textColor}}
       />
       <CardContent sx={{padding: "2px"}}>
-        {!note.imageOnlyMode &&
+        {(!note.imageOnlyMode || disableImagesOnly) && 
           <Box sx={{padding: 2}}>
             <Typography variant="body2" sx={{ color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
             {event.content}
@@ -227,7 +229,7 @@ const Note: React.FC<NoteProps> = ({
         ))}
       </CardContent>
 
-      {previewEvent && !note.imageOnlyMode && (
+      {previewEvent && (!note.imageOnlyMode || disableImagesOnly) && (
         <CardContent sx={{padding: 2}}>
           <Card 
             elevation={4}

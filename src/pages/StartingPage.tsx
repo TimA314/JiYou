@@ -1,23 +1,29 @@
 import { Box, Button, Card, InputAdornment, Stack, TextField } from '@mui/material';
 import { ThemeContext } from '../theme/ThemeContext';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { generatePrivateKey, nip19 } from 'nostr-tools';
 import { useNavigate } from 'react-router-dom';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setKeys } from '../redux/slices/keySlice';
 import { generateKeyObject, generatePublicKeyOnlyObject } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
+import { RootState } from '../redux/store';
 
 type Props = {}
 
 export default function StartingPage({}: Props) {
+    const keys = useSelector((state: RootState) => state.keys);
     const dispatch = useDispatch();
     const { themeColors } = useContext(ThemeContext);
     const [skInputEncoded, setSkInputEncoded] = useState<string>("");
     const navigate = useNavigate();
 
-
+    useEffect(() => {
+        if(keys.publicKey.decoded !== ""){
+            navigate("/");
+        }
+    }, [keys.publicKey.decoded])
 
     const handleSignInWithSk = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();

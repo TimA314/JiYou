@@ -344,7 +344,8 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("event", (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
-        if (eventsBatch.length > 10) {
+        console.log("userEvent")
+        if (eventsBatch.length > 3) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addUserNotes(ev)));
           });
@@ -354,7 +355,7 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("eose", () => {
         dispatch(setIsRefreshingUserEvents(false))
-        
+
         if (eventsBatch.length > 0) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
