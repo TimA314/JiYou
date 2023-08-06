@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, Chip, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Chip, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -15,6 +15,7 @@ import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
 import { clearUserEvents, setIsRefreshingUserEvents, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { setProfileEventToShow } from '../redux/slices/noteSlice';
 
 
 interface ProfileProps {
@@ -28,18 +29,36 @@ const pool = useContext(PoolContext);
 const events = useSelector((state: RootState) => state.events);
 const nostr = useSelector((state: RootState) => state.nostr);
 const keys = useSelector((state: RootState) => state.keys);
-const [profileNameInput, setProfileNameInput] = useState(events.metaData[keys.publicKey.decoded]?.name ?? "");
-const [profileAboutInput, setProfileAboutInput] = useState(events.metaData[keys.publicKey.decoded]?.about ?? "");
-const [imageUrlInput, setImageUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.picture ?? "");
-const [bannerUrlInput, setBannerUrlInput] = useState(events.metaData[keys.publicKey.decoded]?.banner ?? "");
+const note = useSelector((state: RootState) => state.note);
+const [profileNameInput, setProfileNameInput] = useState("");
+const [profileAboutInput, setProfileAboutInput] = useState("");
+const [imageUrlInput, setImageUrlInput] = useState("");
+const [bannerUrlInput, setBannerUrlInput] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
 const dispatch = useDispatch();
+const [showEditProfile, setShowEditProfile] = useState(false);
+
+useEffect(() => {
+    if (note.profileEventToShow === null) {
+        setProfileNameInput(events.metaData[keys.publicKey.decoded]?.name ?? "");
+        setProfileAboutInput(events.metaData[keys.publicKey.decoded]?.about ?? "");
+        setImageUrlInput(events.metaData[keys.publicKey.decoded]?.picture ?? "");
+        setBannerUrlInput(events.metaData[keys.publicKey.decoded]?.banner ?? "");
+        return;
+    }
+
+    setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
+    setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
+    setImageUrlInput(events.metaData[note.profileEventToShow.pubkey]?.picture ?? "");
+    setBannerUrlInput(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "");
+
+}, [note.profileEventToShow])
 
 
 useEffect(() => {
-    if (!pool || keys.publicKey.decoded === "") return;
+    if (!pool || keys.publicKey.decoded === "" || note.profileEventToShow !== null) return;
 
     const userMetaData = events.metaData[keys.publicKey.decoded];
 
@@ -70,6 +89,11 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
 }
 
 const handleLogout = () => {
+    if (note.profileEventToShow !== null) {
+        dispatch(setProfileEventToShow(null));
+        navigate("/");
+        return;
+    }
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
     dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
@@ -77,6 +101,14 @@ const handleLogout = () => {
     console.log("Logged out");
     navigate("/start")
 }
+
+const handleEditOrSaveClick = () => {
+    setShowEditProfile(!showEditProfile);
+    if (showEditProfile) {
+        handleFormSubmit({preventDefault: () => {}});
+    }
+}
+
     
 // ----------------------------------------------------------------------
     
@@ -96,122 +128,136 @@ const styles = {
         <Box justifyContent="center" >
             {keys.publicKey.decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
-                    <Paper  style={styles.banner}>
-                        <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
-                            <Button variant='contained' color="secondary" onClick={handleLogout}>
-                                Logout
-                            </Button>
-                        </Box>
-                        <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
-                        <Toolbar >
-                            <IconButton edge="start" color="inherit" aria-label="menu">
-                            <MenuItem />
-                            </IconButton>
-                        </Toolbar>
-                        <div className="avatarContainer">
-                            <Avatar
-                                src={imageUrlInput}
-                                sx={{ width: 200, height: 200 }}
-                                />
-                        </div>
-                        </AppBar>
-                    </Paper>
 
-                    <Box sx={{marginTop: "5px", marginBottom: "5px"}}>
-                            <Stack direction="column" spacing={3} marginTop="35px">
-                                <Box>
-                                    <Box sx={{ 
-                                            color: themeColors.textColor,
-                                            textAlign: 'center',
-                                            marginBottom: "3px",
-                                        }}>
-                                        <Chip 
-                                            label={"Following: " + nostr.following.length}
-                                            sx={{ margin: "1px", color: themeColors.textColor }}
-                                            />
-                                        <Chip
-                                            label={"Followers: " + nostr.followers.length}
-                                            sx={{ margin: "1px", color: themeColors.textColor }}
-                                            />
-                                    </Box>
-                                    <Paper>
-                                        <TextField 
-                                        id="profileNameInput"
-                                        label="Name"
-                                        InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                        color='primary'
-                                        value={profileNameInput}
-                                        onChange={e => setProfileNameInput(e.target.value)}
-                                        fullWidth
-                                        InputProps={{
-                                            style: { color: themeColors.textColor},
-                                            startAdornment: 
-                                            <InputAdornment position="start">
-                                                <BadgeIcon sx={{ color: themeColors.textColor }}/>
-                                            </InputAdornment>
-                                        }}
+                        <Paper  style={styles.banner}>
+                            <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
+                                <Button variant='contained' color="secondary" onClick={handleLogout}>
+                                    {note.profileEventToShow !== null ? "Back" : "Logout"}
+                                </Button>
+                            </Box>
+                            <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
+                            <Toolbar >
+                                <IconButton edge="start" color="inherit" aria-label="menu">
+                                <MenuItem />
+                                </IconButton>
+                            </Toolbar>
+                            <div className="avatarContainer">
+                                <Avatar
+                                    src={imageUrlInput}
+                                    sx={{ width: 200, height: 200 }}
+                                    />
+                            </div>
+                            </AppBar>
+                        </Paper>
+
+                    <Box sx={{marginTop: "1rem", marginBottom: "1rem"}}>
+                        <Stack direction="column" spacing={3} marginTop="1rem">
+                            <Box>
+                                <Box sx={{ 
+                                        color: themeColors.textColor,
+                                        textAlign: 'center',
+                                        marginBottom: "0.5rem",
+                                    }}>
+                                    <Chip 
+                                        label={"Following: " + nostr.following.length}
+                                        sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
-                                    </Paper>
-                                        <Paper sx={{marginTop: "10px"}}>
-                                            <TextField 
-                                            id="profileAboutInput"
-                                            label="About"
-                                            InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                            color='primary'
-                                            value={profileAboutInput}
-                                            onChange={e => setProfileAboutInput(e.target.value)}
-                                            fullWidth
-                                            multiline
-                                            rows={4}
-                                            InputProps={{
-                                                style: { color: themeColors.textColor},
-                                                startAdornment: 
-                                                <InputAdornment position="start">
-                                                    <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
-                                                </InputAdornment>
-                                            }}
-                                            />  
-                                        </Paper>
-                                        <Paper sx={{marginTop: "10px"}}>   
-                                            <TextField 
-                                            id="profileImageUrlInput"
-                                            label="Profile Image URL"
-                                            InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                            color='primary'
-                                            value={imageUrlInput}
-                                            onChange={e => setImageUrlInput(e.target.value)}
-                                            fullWidth
-                                            InputProps={{
-                                                style: { color: themeColors.textColor},
-                                                startAdornment: 
-                                                <InputAdornment position="start">
-                                                    <ImageIcon sx={{ color: themeColors.textColor }}/>
-                                                </InputAdornment>
-                                            }}
-                                            />
-                                        </Paper>
-                                        <Paper sx={{marginTop: "10px"}}>
-                                            <TextField
-                                                id="bannerImageUrlInput"
-                                                label="Banner Image URL"
-                                                InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                    <Chip
+                                        label={"Followers: " + nostr.followers.length}
+                                        sx={{ margin: "0.5rem", color: themeColors.textColor }}
+                                        />
+                                </Box>
+                                
+                                {note.profileEventToShow === null && (
+                                    <Box>
+                                        <Button 
+                                        variant="contained" 
+                                        color="primary" 
+                                        onClick={() => handleEditOrSaveClick()}
+                                        sx={{width: "100%", marginBottom: "1rem"}}
+                                        >
+                                        {showEditProfile ? "Save" : "Edit Profile"}
+                                        </Button>
+
+                                        <Collapse in={showEditProfile} timeout="auto" unmountOnExit>
+                                            <Paper>
+                                                <TextField 
+                                                id="profileNameInput"
+                                                label="Name"
+                                                InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                color='primary'
+                                                value={profileNameInput}
+                                                onChange={e => setProfileNameInput(e.target.value)}
                                                 fullWidth
-                                                color="primary"
-                                                value={bannerUrlInput}
-                                                onChange={e => setBannerUrlInput(e.target.value)} 
                                                 InputProps={{
                                                     style: { color: themeColors.textColor},
                                                     startAdornment: 
                                                     <InputAdornment position="start">
-                                                        <ImageIcon sx={{ color: themeColors.textColor }} />
+                                                        <BadgeIcon sx={{ color: themeColors.textColor }}/>
                                                     </InputAdornment>
                                                 }}
                                                 />
-                                        </Paper>
-                                    </Box>
-                                    <Button variant="contained" type='submit' color='success' onClick={handleFormSubmit}>
-                                        SAVE
-                                    </Button>
+                                            </Paper>
+                                                <Paper sx={{marginTop: "1rem"}}>
+                                                    <TextField 
+                                                    id="profileAboutInput"
+                                                    label="About"
+                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                    color='primary'
+                                                    value={profileAboutInput}
+                                                    onChange={e => setProfileAboutInput(e.target.value)}
+                                                    fullWidth
+                                                    multiline
+                                                    rows={4}
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
+                                                        </InputAdornment>
+                                                    }}
+                                                    />  
+                                                </Paper>
+                                                <Paper sx={{marginTop: "1rem"}}>   
+                                                    <TextField 
+                                                    id="profileImageUrlInput"
+                                                    label="Profile Image URL"
+                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                    color='primary'
+                                                    value={imageUrlInput}
+                                                    onChange={e => setImageUrlInput(e.target.value)}
+                                                    fullWidth
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <ImageIcon sx={{ color: themeColors.textColor }}/>
+                                                        </InputAdornment>
+                                                    }}
+                                                    />
+                                                </Paper>
+                                                <Paper sx={{marginTop: "1rem"}}>
+                                                    <TextField
+                                                        id="bannerImageUrlInput"
+                                                        label="Banner Image URL"
+                                                        InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                        fullWidth
+                                                        color="primary"
+                                                        value={bannerUrlInput}
+                                                        onChange={e => setBannerUrlInput(e.target.value)} 
+                                                        InputProps={{
+                                                            style: { color: themeColors.textColor},
+                                                            startAdornment: 
+                                                            <InputAdornment position="start">
+                                                                <ImageIcon sx={{ color: themeColors.textColor }} />
+                                                            </InputAdornment>
+                                                        }}
+                                                        />
+                                                </Paper>
+                                            </Collapse>
+                                        </Box>
+                                    )}
+                                </Box>
                             </Stack>
                     </Box>
                     
@@ -224,24 +270,22 @@ const styles = {
                             >
                             <Tab label="User Notes" />
                             <Tab label="Notifications" />   
+                            <IconButton
+                                onClick={() => {
+                                    dispatch(toggleRefreshUserNotes());
+                                    dispatch(setIsRefreshingUserEvents(true));
+                                }}
+                                disabled={events.refreshingUserNotes}
+                                sx={{
+                                    color: themeColors.secondary, 
+                                    marginLeft: "auto",
+                                    ...(events.refreshingUserNotes && {
+                                        animation: 'spin 1s linear infinite'
+                                    })
+                                }}>
+                                <RefreshIcon />
+                            </IconButton>
                         </Tabs>
-                        <IconButton
-                            onClick={() => {
-                                dispatch(toggleRefreshUserNotes());
-                                dispatch(setIsRefreshingUserEvents(true));
-                            }}
-                            disabled={events.refreshingUserNotes}
-                            sx={{
-                                color: themeColors.secondary, 
-                                position: 'absolute', 
-                                top: 765, 
-                                right: 30,
-                                ...(events.refreshingUserNotes && {
-                                    animation: 'spin 1s linear infinite'
-                                })
-                            }}>
-                            <RefreshIcon />
-                        </IconButton>
                     </Box>
                     
                     {tabIndex === 0 && (

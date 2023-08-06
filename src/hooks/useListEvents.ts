@@ -338,8 +338,10 @@ export const useListEvents = ({}: useListEventsProps) => {
     const fetchUserNotes = () => {
       if (!pool) return;
       dispatch(clearUserEvents());
-      console.log("Requesting User Notes")
-      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
+      const pubkeyToFetch: string = note.profileEventToShow === null ? keys.publicKey.decoded : note.profileEventToShow.pubkey;
+      console.log("Requesting User Notes for ", pubkeyToFetch)
+
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [pubkeyToFetch]}])
       let eventsBatch: Event[] = [];
 
       sub.on("event", (event: Event) => {
@@ -366,5 +368,5 @@ export const useListEvents = ({}: useListEventsProps) => {
     }
 
     fetchUserNotes();
-  }, [pool, keys.publicKey.decoded, events.refreshUserNotes])
+  }, [pool, keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
 }

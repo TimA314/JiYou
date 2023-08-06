@@ -6,6 +6,7 @@ import { AlertMessage } from "../../components/AlertMessages";
 const initialState: NoteSlice = {
     noteModalEvent: null,
     replyToNoteEvent: null,
+    profileEventToShow: null,
     searchEventIds: [],
     hashTags: [],
     tabIndex: 0,
@@ -50,7 +51,10 @@ export const noteSlice = createSlice({
         },      
         addMessage: (state, action: PayloadAction<AlertMessage>) => {
             state.alertMessages.push(action.payload);
-        },    
+        },
+        setProfileEventToShow: (state, action: PayloadAction<Event | null>) => {
+            state.profileEventToShow = action.payload;
+        }
     }
 });
 
@@ -66,13 +70,15 @@ export const {
     setImageOnlyMode,
     setHideExplicitContent,
     removeMessage,
-    addMessage
+    addMessage,
+    setProfileEventToShow
 } = noteSlice.actions;
 export default noteSlice.reducer;
 
 export type NoteSlice = {
   noteModalEvent: Event | null
   replyToNoteEvent: Event | null
+  profileEventToShow: Event | null
   searchEventIds: string[];
   hashTags: string[];
   tabIndex: number;

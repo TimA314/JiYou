@@ -4,11 +4,14 @@ import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import CellTowerIcon from '@mui/icons-material/CellTower';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import "./NavBar.css";
 import NavMenu from './NavMenu';
-import { Avatar } from '@mui/material';
+import { Avatar, IconButton } from '@mui/material';
 import { ProfileContent } from '../nostr/Types';
+import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { useDispatch } from 'react-redux';
+import { clearUserEvents } from '../redux/slices/eventsSlice';
 
 interface NavBarProps {
   profile: ProfileContent
@@ -16,6 +19,8 @@ interface NavBarProps {
 
 const NavBar = ({profile}: NavBarProps) => {
   const ref = React.useRef<HTMLDivElement>(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     if (ref.current) {
@@ -33,9 +38,12 @@ const NavBar = ({profile}: NavBarProps) => {
       <Link  className="nav-link" to="/relays">
         <CellTowerIcon color="primary"/>
       </Link>
-      <Link  className="nav-link" to="/profile">
+      <IconButton  className="nav-link" onClick={() => {
+        dispatch(setProfileEventToShow(null));
+        navigate("/profile");
+      }}>
         {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon color="primary" />}
-      </Link>
+      </IconButton>
   </Paper>
 </Box>
   );
