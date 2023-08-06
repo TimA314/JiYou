@@ -41,50 +41,49 @@ const dispatch = useDispatch();
 const [showEditProfile, setShowEditProfile] = useState(false);
 
 useEffect(() => {
-    if (note.profileEventToShow === null) {
-        setProfileNameInput(events.metaData[keys.publicKey.decoded]?.name ?? "");
-        setProfileAboutInput(events.metaData[keys.publicKey.decoded]?.about ?? "");
-        setImageUrlInput(events.metaData[keys.publicKey.decoded]?.picture ?? "");
-        setBannerUrlInput(events.metaData[keys.publicKey.decoded]?.banner ?? "");
-        return;
-    }
+    
 
-    setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
-    setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
-    setImageUrlInput(events.metaData[note.profileEventToShow.pubkey]?.picture ?? "");
-    setBannerUrlInput(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "");
-
+    
 }, [note.profileEventToShow])
 
 
+
 useEffect(() => {
-    if (!pool || keys.publicKey.decoded === "" || note.profileEventToShow !== null) return;
-
-    const userMetaData = events.metaData[keys.publicKey.decoded];
-
-    const loadProfile = async () => {
-        try {
-
-            setProfileNameInput(userMetaData?.name ?? "");
-            setProfileAboutInput(userMetaData?.about ?? "");
-            setImageUrlInput(userMetaData?.picture ?? "");
-            setBannerUrlInput(userMetaData?.banner ?? "");
-
-        } catch (error) {
-            console.log(error);
-        }
+    if (note.profileEventToShow !== null) {
+        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
+        setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
+        setImageUrlInput(events.metaData[note.profileEventToShow.pubkey]?.picture ?? "");
+        setBannerUrlInput(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "");
+        return;
     }
+    
+    if (!pool || !events.metaData[keys.publicKey.decoded]) return;
+    
+    const userMetaData = events.metaData[keys.publicKey.decoded];
+    
+    setProfileNameInput(userMetaData?.name ?? "");
+    setProfileAboutInput(userMetaData?.about ?? "");
+    setImageUrlInput(userMetaData?.picture ?? "");
+    setBannerUrlInput(userMetaData?.banner ?? "");
+    
+}, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
-    loadProfile();
-}, [])
 
-const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+const handleTabChange = (newValue: number) => {
     setTabIndex(newValue);
 };
 
 const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!pool) return;
+
+    if (profileNameInput === events.metaData[keys.publicKey.decoded]?.name  &&
+        profileAboutInput === events.metaData[keys.publicKey.decoded]?.about  &&
+        imageUrlInput === events.metaData[keys.publicKey.decoded]?.picture  &&
+        bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner ) return;
+
+    if (profileNameInput === "" && profileAboutInput === "" && imageUrlInput === "" && bannerUrlInput === "") return;
+    console.log("Updating profile")
     updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
 }
 
@@ -108,7 +107,6 @@ const handleEditOrSaveClick = () => {
         handleFormSubmit({preventDefault: () => {}});
     }
 }
-
     
 // ----------------------------------------------------------------------
     
