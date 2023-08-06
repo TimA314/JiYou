@@ -338,21 +338,13 @@ export const useListEvents = ({}: useListEventsProps) => {
     const fetchUserNotes = () => {
       if (!pool) return;
 
-      if(note.profileEventToShow !== null){
-        dispatch(clearCurrentProfileNotes())
-      } else{
-        dispatch(clearUserEvents());
-      }
+      dispatch(clearUserEvents());
 
-      const pubkeyToFetch: string = note.profileEventToShow === null ? keys.publicKey.decoded : note.profileEventToShow.pubkey;
-      console.log("Requesting User Notes for ", pubkeyToFetch)
-
-      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [pubkeyToFetch]}])
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
       let eventsBatch: Event[] = [];
 
       sub.on("event", (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
-        console.log(note.profileEventToShow === null ? "userEvent" : "profileEvent")
 
         if (eventsBatch.length > 2) {
           batch(() => {
@@ -368,7 +360,6 @@ export const useListEvents = ({}: useListEventsProps) => {
           eventsBatch = []; 
         }
 
-
       });
 
       sub.on("eose", () => {
@@ -376,13 +367,67 @@ export const useListEvents = ({}: useListEventsProps) => {
 
         if (eventsBatch.length > 0) {
           batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
+
+            eventsBatch.forEach((ev) => {
+
+              if (keys.publicKey.decoded === ev.pubkey) {
+                dispatch(addUserNotes(ev));
+              }
+              
+            });
+
+          });
+          eventsBatch = []; 
+        }
+      })
+
+    }
+
+    fetchUserNotes();
+  }, [pool, keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
+  
+
+  //Curent Profile Notes
+  useEffect(() => {
+    
+    const fetchCurrentProfileNotes = () => {
+      dispatch(clearCurrentProfileNotes());
+      if (!pool || note.profileEventToShow == null) return;
+
+
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [note.profileEventToShow.pubkey]}])
+      
+      let eventsBatch: Event[] = [];
+
+      sub.on("event", (event: Event) => {
+        eventsBatch.push(sanitizeEvent(event));
+        
+        if (eventsBatch.length > 2) {
+          batch(() => {
+            eventsBatch.forEach((ev) => {
+                dispatch(addCurrentProfileNotes(ev));
+            });
+          });
+          eventsBatch = []; 
+        }
+      });
+      
+      sub.on("eose", () => {        
+
+        if (eventsBatch.length > 0) {
+      
+          batch(() => {
+            eventsBatch.forEach((ev) => {
+              dispatch(addCurrentProfileNotes(eventsBatch));
+            });
           });
           eventsBatch = [];
         }
       })
     }
+    
+    fetchCurrentProfileNotes();
+  }, [note.profileEventToShow]);
 
-    fetchUserNotes();
-  }, [pool, keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
+
 }

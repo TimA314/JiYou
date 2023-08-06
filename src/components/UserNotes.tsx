@@ -13,41 +13,43 @@ export default function UserNotes({}: Props) {
     if (note.profileEventToShow !== null) {
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-            {events.currentProfileNotes && events.currentProfileNotes.map((event) => {
-    
-                return (
-                    <Box key={event.sig}>
-                        <Note
-                            event={event}
-                            updateFollowing={() => {}} 
-                            disableReplyIcon={false}
-                            disableImagesOnly={true}
-                            />
-                    </Box>
-                )
-            })}
-        </Box>
+                {events.currentProfileNotes && events.currentProfileNotes.map((event) => {
+        
+                    return (
+                        <Box key={event.sig}>
+                            <Note
+                                event={event}
+                                updateFollowing={() => {}} 
+                                disableReplyIcon={false}
+                                disableImagesOnly={true}
+                                />
+                        </Box>
+                    )
+                })}
+            </Box>
+        )
+
+    } else {
+
+        return (
+            <Box style={{marginBottom: "15px", marginTop: "15px"}}>
+                {events.userNotes && events.userNotes.map((event) => {
+                    if (note.profileEventToShow === null && event.pubkey !== keys.publicKey.decoded) {
+                        return <></>
+                    }
+                    
+                    return (
+                        <Box key={event.sig}>
+                            <Note
+                                event={event}
+                                updateFollowing={() => {}} 
+                                disableReplyIcon={false}
+                                disableImagesOnly={true}
+                                />
+                        </Box>
+                    )
+                })}
+            </Box>
         )
     }
-
-    return (
-        <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-            {events.userNotes && events.userNotes.map((event) => {
-                if (note.profileEventToShow === null && event.pubkey !== keys.publicKey.decoded) {
-                    return <></>
-                }
-
-                return (
-                    <Box key={event.sig}>
-                        <Note
-                            event={event}
-                            updateFollowing={() => {}} 
-                            disableReplyIcon={false}
-                            disableImagesOnly={true}
-                            />
-                    </Box>
-                )
-            })}
-        </Box>
-    )
 }

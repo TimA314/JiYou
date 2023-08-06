@@ -42,11 +42,7 @@ const [showEditProfile, setShowEditProfile] = useState(false);
 
 useEffect(() => {
     
-
-    
 }, [note.profileEventToShow])
-
-
 
 useEffect(() => {
     if (note.profileEventToShow !== null) {
@@ -136,7 +132,7 @@ const styles = {
                             <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
                             <Toolbar >
                                 <IconButton edge="start" color="inherit" aria-label="menu">
-                                <MenuItem />
+                                    <MenuItem />
                                 </IconButton>
                             </Toolbar>
                             <div className="avatarContainer">
@@ -181,12 +177,12 @@ const styles = {
                                 {note.profileEventToShow === null && (
                                     <Box>
                                         <Button 
-                                        variant="contained" 
-                                        color="primary" 
-                                        onClick={() => handleEditOrSaveClick()}
-                                        sx={{width: "100%", marginBottom: "1rem"}}
-                                        >
-                                        {showEditProfile ? "Save" : "Edit Profile"}
+                                            variant="contained" 
+                                            color="primary" 
+                                            onClick={() => handleEditOrSaveClick()}
+                                            sx={{width: "100%", marginBottom: "1rem"}}
+                                            >
+                                            {showEditProfile ? "Save" : "Edit Profile"}
                                         </Button>
 
                                         <Collapse in={showEditProfile} timeout="auto" unmountOnExit>
@@ -198,7 +194,6 @@ const styles = {
                                                 color='primary'
                                                 value={profileNameInput}
                                                 onChange={e => setProfileNameInput(e.target.value)}
-                                                fullWidth
                                                 InputProps={{
                                                     style: { color: themeColors.textColor},
                                                     startAdornment: 
@@ -216,7 +211,6 @@ const styles = {
                                                     color='primary'
                                                     value={profileAboutInput}
                                                     onChange={e => setProfileAboutInput(e.target.value)}
-                                                    fullWidth
                                                     multiline
                                                     rows={4}
                                                     InputProps={{
@@ -236,7 +230,6 @@ const styles = {
                                                     color='primary'
                                                     value={imageUrlInput}
                                                     onChange={e => setImageUrlInput(e.target.value)}
-                                                    fullWidth
                                                     InputProps={{
                                                         style: { color: themeColors.textColor},
                                                         startAdornment: 
@@ -251,7 +244,6 @@ const styles = {
                                                         id="bannerImageUrlInput"
                                                         label="Banner Image URL"
                                                         InputLabelProps={{sx: { color: themeColors.textColor }}}
-                                                        fullWidth
                                                         color="primary"
                                                         value={bannerUrlInput}
                                                         onChange={e => setBannerUrlInput(e.target.value)} 
@@ -271,7 +263,7 @@ const styles = {
                             </Stack>
                     </Box>
                     
-                    <Box sx={{color: themeColors.textColor}}>
+                    <Box sx={{color: themeColors.textColor,  display: 'flex'}}>
                         <Tabs
                             value={tabIndex}
                             textColor='inherit'
@@ -280,22 +272,22 @@ const styles = {
                             >
                             <Tab label="User Notes" />
                             <Tab label="Notifications" />   
-                            <IconButton
-                                onClick={() => {
-                                    dispatch(toggleRefreshUserNotes());
-                                    dispatch(setIsRefreshingUserEvents(true));
-                                }}
-                                disabled={events.refreshingUserNotes}
-                                sx={{
-                                    color: themeColors.secondary, 
-                                    marginLeft: "auto",
-                                    ...(events.refreshingUserNotes && {
-                                        animation: 'spin 1s linear infinite'
-                                    })
-                                }}>
-                                <RefreshIcon />
-                            </IconButton>
                         </Tabs>
+                        <IconButton
+                            onClick={() => {
+                                dispatch(toggleRefreshUserNotes());
+                                dispatch(setIsRefreshingUserEvents(true));
+                            }}
+                            disabled={events.refreshingUserNotes}
+                            sx={{
+                                color: themeColors.secondary, 
+                                marginLeft: "auto",
+                                ...(events.refreshingUserNotes && {
+                                    animation: 'spin 1s linear infinite'
+                                })
+                            }}>
+                            <RefreshIcon />
+                        </IconButton>
                     </Box>
                     
                     {tabIndex === 0 && (
