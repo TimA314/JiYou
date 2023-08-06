@@ -157,11 +157,11 @@ const styles = {
                                         marginBottom: "0.5rem",
                                     }}>
                                     <Chip 
-                                        label={"Following: " + nostr.following.length}
+                                        label={"Following: " + note.profileEventToShow ? nostr.currentProfileFollowing.length : nostr.following.length}
                                         sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
                                     <Chip
-                                        label={"Followers: " + nostr.followers.length}
+                                        label={"Followers: " + note.profileEventToShow ? nostr.currentProfileFollowers.length : nostr.followers.length}
                                         sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
                                 </Box>

@@ -354,7 +354,7 @@ export const useListEvents = ({}: useListEventsProps) => {
         eventsBatch.push(sanitizeEvent(event));
         console.log(note.profileEventToShow === null ? "userEvent" : "profileEvent")
 
-        if (eventsBatch.length > 3) {
+        if (eventsBatch.length > 2) {
           batch(() => {
             eventsBatch.forEach((ev) => {
 

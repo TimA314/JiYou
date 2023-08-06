@@ -238,7 +238,6 @@ const Note: React.FC<NoteProps> = ({
         <CardContent sx={{padding: 2}}>
           <Card 
             elevation={4}
-            onClick={() => dispatch(addSearchEventId(previewEvent?.id))}
             sx={{ 
               marginBottom: "10px", 
               color: themeColors.textColor, 
@@ -250,6 +249,12 @@ const Note: React.FC<NoteProps> = ({
 
                     <Grid item xs={4}>
                         <CardHeader
+                                onClick={() => {
+                                  if (previewEvent !== undefined){
+                                    dispatch(setProfileEventToShow(previewEvent))
+                                    navigate("/profile");
+                                  }
+                                }}
                                 avatar={
                                   <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }
