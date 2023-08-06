@@ -11,9 +11,11 @@ const initialState: EventsType = {
     metaData: {},
     reactions: {},
     refreshUserNotes: false,
-    refreshFeedNotes: true,
     refreshingUserNotes: false,
-    refreshingFeedNotes: false
+    refreshFeedNotes: true,
+    refreshingFeedNotes: false,
+    refreshCurrentProfileNotes: false,
+    refreshingCurrentProfileNotes: false,
 }
 
 
@@ -61,15 +63,10 @@ export const eventsSlice = createSlice({
             if (!likedEventId) return;
         
             const prevReactionEvents = state.reactions[likedEventId] ? [...state.reactions[likedEventId]] : [];
-        
-            // Remove duplicates based on ID
-            state.reactions[likedEventId] = prevReactionEvents.filter((event, index, self) =>
-                index === self.findIndex((t) => (
-                    t.id === event.id
-                ))
-            );
-        
-            state.reactions[likedEventId].push(action.payload);
+
+            if(!prevReactionEvents.some(event => event.id === action.payload.id)) {
+                state.reactions[likedEventId] = [...prevReactionEvents, action.payload];
+            }
         },
         
         toggleRefreshUserNotes: (state) => {
@@ -86,6 +83,12 @@ export const eventsSlice = createSlice({
         },
         setIsRefreshingFeedNotes: (state, action) => {
             state.refreshingFeedNotes = action.payload;
+        },
+        setRefreshingCurrentProfileNotes: (state, action) => {
+            state.refreshingCurrentProfileNotes = action.payload;
+        },
+        toggleRefreshCurrentProfileNotes: (state) => {
+            state.refreshCurrentProfileNotes = !state.refreshCurrentProfileNotes;
         }
     }
 });
@@ -105,7 +108,9 @@ export const {
     setIsRefreshingUserEvents,
     setIsRefreshingFeedNotes,
     addCurrentProfileNotes,
-    clearCurrentProfileNotes
+    clearCurrentProfileNotes,
+    toggleRefreshCurrentProfileNotes,
+    setRefreshingCurrentProfileNotes
 } = eventsSlice.actions;
 
 export default eventsSlice.reducer;
@@ -121,5 +126,7 @@ export type EventsType = {
   refreshUserNotes: boolean,
   refreshFeedNotes: boolean,
   refreshingUserNotes: boolean,
-  refreshingFeedNotes: boolean
+  refreshingFeedNotes: boolean,
+  refreshCurrentProfileNotes: boolean,
+  refreshingCurrentProfileNotes: boolean
 }

@@ -4,7 +4,7 @@ import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addCurrentProfileNotes, addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearCurrentProfileNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents } from '../redux/slices/eventsSlice';
+import { addCurrentProfileNotes, addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearCurrentProfileNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
@@ -29,12 +29,20 @@ export const useListEvents = ({}: useListEventsProps) => {
 
   //Feed Notes
   useEffect(() => {
-
     dispatch(clearGlobalNotes());
+    
+    if (!events.refreshFeedNotes){
+      dispatch(setIsRefreshingFeedNotes(true))
+    }
+
     const subFeedEvents = async () => {
-      if (!pool) return;
+      if (!pool)  {
+        dispatch(setIsRefreshingFeedNotes(false))
+        return;
+      }
       dispatch(addMessage({ message: "Requesting Notes", isError: false }));
       
+
       let imageOnly = note.imageOnlyMode;
       let hideExplicitContent = note.hideExplicitContent;
       
@@ -109,6 +117,9 @@ export const useListEvents = ({}: useListEventsProps) => {
       events.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
+      events.currentProfileNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
+        .forEach((event) => pubkeysToFetch.push(event.pubkey));
+
       Object.values(events.reactions).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
@@ -156,7 +167,7 @@ export const useListEvents = ({}: useListEventsProps) => {
       fetchMetaData();
 
     return () => {};
-  }, [events.globalNotes, events.reactions, events.replyNotes, events.rootNotes, keys.publicKey.decoded]);
+  }, [events.globalNotes, events.reactions, events.replyNotes, events.rootNotes, keys.publicKey.decoded, events.currentProfileNotes]);
 
   
 
@@ -173,8 +184,10 @@ export const useListEvents = ({}: useListEventsProps) => {
       const rootEventsToFetch = events.rootNotes.filter((e) => reactionsFetched.current[e.id] !== true);
       const replyEventsToFetch = Object.values(events.replyNotes).flat().filter((e) => reactionsFetched.current[e.id] !== true);
       const userEventsToFetch =  events.userNotes.filter((e) => reactionsFetched.current[e.id] !== true);
+      const currentProfileEventsToFetch =  events.currentProfileNotes.filter((e) => reactionsFetched.current[e.id] !== true);
 
-      const uniqueEvents = [...new Set([...feedEventsToFetch, ...rootEventsToFetch, ...userEventsToFetch, ...replyEventsToFetch])];
+      const uniqueEvents = [...new Set([...feedEventsToFetch, ...rootEventsToFetch, ...userEventsToFetch, ...replyEventsToFetch, ...currentProfileEventsToFetch])];
+      if (uniqueEvents.length === 0) return;
 
       uniqueEvents.forEach((e) => {
         reactionsFetched.current[e.id] = true;
@@ -182,10 +195,6 @@ export const useListEvents = ({}: useListEventsProps) => {
         allEventIdsToFetch.push(e.id)
         }
       );
-
-      if(allEventIdsToFetch.length === 0 || allPubkeysToFetch.length === 0){
-        return;
-      }
 
       let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
       
@@ -211,8 +220,11 @@ export const useListEvents = ({}: useListEventsProps) => {
       })
     }
 
-    fetchReactions();
-  }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes]);
+    setTimeout(() => {
+      fetchReactions();
+    }, 1000);
+    
+  }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes, events.currentProfileNotes]);
 
   
   //Reply Events
@@ -235,9 +247,12 @@ export const useListEvents = ({}: useListEventsProps) => {
       events.userNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
         .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-      replyEventIdsToFetch.forEach((id) => repliesFetched.current[id] = true)
-
+      events.currentProfileNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+        .forEach((e) => replyEventIdsToFetch.push(e.id));
+      
       if (replyEventIdsToFetch.length === 0) return;
+
+      replyEventIdsToFetch.forEach((id) => repliesFetched.current[id] = true)
 
       let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
       
@@ -264,7 +279,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     }
 
     subReplyEvents();
-  }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes]);
+  }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes, events.currentProfileNotes]);
 
 
   //Root Events
@@ -289,6 +304,13 @@ export const useListEvents = ({}: useListEventsProps) => {
       });
 
       events.userNotes.forEach((e: Event) => {
+        e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
+          idsToFetch.push(t[1])
+          rootsFetched.current[e.id] = true;
+        }));
+      });
+
+      events.currentProfileNotes.forEach((e: Event) => {
         e.tags?.filter((t) => t[0] === "e" && t[1] && rootsFetched.current[t[1]] !== true).forEach(((t) => {
           idsToFetch.push(t[1])
           rootsFetched.current[e.id] = true;
@@ -330,7 +352,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     }
 
     subRootEvents();
-  }, [events.globalNotes, events.replyNotes, events.userNotes, events.rootNotes]);
+  }, [events.globalNotes, events.replyNotes, events.userNotes, events.rootNotes, events.currentProfileNotes]);
 
   //User Notes
   useEffect(() => {
@@ -338,21 +360,13 @@ export const useListEvents = ({}: useListEventsProps) => {
     const fetchUserNotes = () => {
       if (!pool) return;
 
-      if(note.profileEventToShow !== null){
-        dispatch(clearCurrentProfileNotes())
-      } else{
-        dispatch(clearUserEvents());
-      }
+      dispatch(clearUserEvents());
 
-      const pubkeyToFetch: string = note.profileEventToShow === null ? keys.publicKey.decoded : note.profileEventToShow.pubkey;
-      console.log("Requesting User Notes for ", pubkeyToFetch)
-
-      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [pubkeyToFetch]}])
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
       let eventsBatch: Event[] = [];
 
       sub.on("event", (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
-        console.log(note.profileEventToShow === null ? "userEvent" : "profileEvent")
 
         if (eventsBatch.length > 2) {
           batch(() => {
@@ -368,21 +382,92 @@ export const useListEvents = ({}: useListEventsProps) => {
           eventsBatch = []; 
         }
 
-
       });
 
       sub.on("eose", () => {
-        dispatch(setIsRefreshingUserEvents(false))
-
+        
         if (eventsBatch.length > 0) {
           batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
+            
+            eventsBatch.forEach((ev) => {
+              
+              if (keys.publicKey.decoded === ev.pubkey) {
+                dispatch(addUserNotes(ev));
+              }
+              
+            });
+            
           });
-          eventsBatch = [];
+          eventsBatch = []; 
         }
+
+        dispatch(setIsRefreshingUserEvents(false))
       })
+
     }
 
     fetchUserNotes();
   }, [pool, keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
+  
+
+  //Curent Profile Notes
+  useEffect(() => {
+    
+    const fetchCurrentProfileNotes = () => {
+      dispatch(clearCurrentProfileNotes());
+
+      if (!pool || note.profileEventToShow === null) {
+        return;
+      }
+
+      const profileNotesAlreadyFetched = events.globalNotes.filter((e: Event) => e.pubkey === note.profileEventToShow?.pubkey)
+      if (profileNotesAlreadyFetched.length > 0) {
+        batch(() => {
+          profileNotesAlreadyFetched.forEach((ev) => {
+            dispatch(addCurrentProfileNotes(ev));
+          });
+        });
+      }
+
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [note.profileEventToShow.pubkey]}])
+      
+      let eventsBatch: Event[] = [];
+
+      sub.on("event", (event: Event) => {
+        if (profileNotesAlreadyFetched.length > 0 && profileNotesAlreadyFetched.some((e: Event) => e.id === event.id)) {
+          return; 
+        }
+        
+        eventsBatch.push(sanitizeEvent(event));
+
+        if (eventsBatch.length > 2) {
+          batch(() => {
+            eventsBatch.forEach((ev) => {
+                dispatch(addCurrentProfileNotes(ev));
+            });
+          });
+          eventsBatch = []; 
+        }
+      });
+      
+      sub.on("eose", () => {        
+
+        if (eventsBatch.length > 0) {
+      
+          batch(() => {
+            eventsBatch.forEach((ev) => {
+              dispatch(addCurrentProfileNotes(eventsBatch));
+            });
+          });
+          eventsBatch = [];
+        }
+        dispatch(setRefreshingCurrentProfileNotes(false));
+
+      })
+    }
+    
+    fetchCurrentProfileNotes();
+  }, [note.profileEventToShow, events.refreshCurrentProfileNotes]);
+
+
 }

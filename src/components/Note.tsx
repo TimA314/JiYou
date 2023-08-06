@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { Badge, BadgeProps, Box, Button, CircularProgress, Grid, Paper } from '@mui/material';
+import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
 import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
@@ -22,9 +22,10 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, addSearchEventId, setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
+import { setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 
 
 //Expand Note
@@ -168,6 +169,7 @@ const Note: React.FC<NoteProps> = ({
       <CardHeader
         onClick={() => {
           dispatch(setProfileEventToShow(event))
+          dispatch(setRefreshingCurrentProfileNotes(true));
           navigate("/profile");
         }}
         avatar={
@@ -212,7 +214,7 @@ const Note: React.FC<NoteProps> = ({
         </Box>
       </CardContent>
       <CardContent>
-        {hashTagsFromNote
+        {hashTagsFromNote?.length > 0 && hashTagsFromNote
           .filter((tag) => hashTagsFromNote.indexOf(tag) === hashTagsFromNote.lastIndexOf(tag))
           .map((tag) => (
             <Typography
@@ -304,7 +306,7 @@ const Note: React.FC<NoteProps> = ({
           {moment.unix(event.created_at).fromNow()}
         </Typography>
         <Box sx={{display: 'flex', alignContent: "flex-start", justifyContent: 'start'}}>
-        <IconButton aria-label="cart" onClick={showReplyThread}>
+        <IconButton onClick={showReplyThread}>
           <StyledBadge color="secondary">
             {<Badge badgeContent={events.replyNotes[event.id]?.length ?? 0} color="primary"><ForumIcon color="primary"/></Badge> }
           </StyledBadge>
@@ -357,7 +359,7 @@ const Note: React.FC<NoteProps> = ({
             Event Id: {event.id}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            PubKey: {nip19.npubEncode(event.pubkey)}
+            PubKey: {nip19.npubEncode(event.pubkey) ?? ""}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             PubKey hex: {event.pubkey}
