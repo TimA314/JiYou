@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, current } from "@reduxjs/toolkit";
 import { RelaySetting } from "../../nostr/Types";
 import { defaultRelays } from "../../nostr/DefaultRelays";
 
@@ -6,7 +6,9 @@ import { defaultRelays } from "../../nostr/DefaultRelays";
 const initialState: NostrSlice = {
     relays: defaultRelays,
     following: [],
-    followers: []
+    followers: [],
+    currentProfileFollowers: [],
+    currentProfileFollowing: []
 }
 
 export const nostrSlice = createSlice({
@@ -27,16 +29,32 @@ export const nostrSlice = createSlice({
         },
         setFollowers: (state, action) => {
             state.followers = action.payload;
+        },
+        setCurrentProfileFollowers: (state, action) => {
+            state.currentProfileFollowers = action.payload;
+        },
+        setCurrentProfileFollowing: (state, action) => {
+            state.currentProfileFollowing = action.payload;
         }
     }
 });
 
 
-export const { setRelays, setFollowing, addFollowing, removeFollowing } = nostrSlice.actions;
+export const { 
+    setRelays, 
+    setFollowing, 
+    addFollowing, 
+    removeFollowing,
+    setFollowers,
+    setCurrentProfileFollowers,
+    setCurrentProfileFollowing,
+ } = nostrSlice.actions;
 export default nostrSlice.reducer;
 
 export type NostrSlice = {
-  relays: RelaySetting[],
-  following: string[],
-  followers: string[]
+    relays: RelaySetting[],
+    following: string[],
+    followers: string[]
+    currentProfileFollowers: string[],
+    currentProfileFollowing: string[]
 }

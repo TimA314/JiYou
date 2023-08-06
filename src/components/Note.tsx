@@ -22,8 +22,9 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, addSearchEventId } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, addSearchEventId, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
+import { useNavigate } from 'react-router-dom';
 
 
 //Expand Note
@@ -98,7 +99,7 @@ const Note: React.FC<NoteProps> = ({
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const images = GetImageFromPost(event.content);
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
-  
+  const navigate = useNavigate();
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
@@ -165,6 +166,10 @@ const Note: React.FC<NoteProps> = ({
   return (
     <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
+        onClick={() => {
+          dispatch(setProfileEventToShow(event))
+          navigate("/profile");
+        }}
         avatar={
           <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
           </Avatar>
@@ -233,7 +238,6 @@ const Note: React.FC<NoteProps> = ({
         <CardContent sx={{padding: 2}}>
           <Card 
             elevation={4}
-            onClick={() => dispatch(addSearchEventId(previewEvent?.id))}
             sx={{ 
               marginBottom: "10px", 
               color: themeColors.textColor, 
@@ -245,6 +249,12 @@ const Note: React.FC<NoteProps> = ({
 
                     <Grid item xs={4}>
                         <CardHeader
+                                onClick={() => {
+                                  if (previewEvent !== undefined){
+                                    dispatch(setProfileEventToShow(previewEvent))
+                                    navigate("/profile");
+                                  }
+                                }}
                                 avatar={
                                   <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }

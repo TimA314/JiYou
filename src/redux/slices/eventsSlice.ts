@@ -7,6 +7,7 @@ const initialState: EventsType = {
     rootNotes: [],
     replyNotes: {},
     userNotes: [],
+    currentProfileNotes: [],
     metaData: {},
     reactions: {},
     refreshUserNotes: false,
@@ -44,6 +45,12 @@ export const eventsSlice = createSlice({
         },
         addUserNotes: (state, action) => {
             state.userNotes = [...new Set([...state.userNotes, action.payload])]
+        },
+        addCurrentProfileNotes: (state, action) => {
+            state.currentProfileNotes = [...new Set([...state.currentProfileNotes, action.payload])]
+        },
+        clearCurrentProfileNotes: (state) => {
+            state.currentProfileNotes = [];
         },
         addMetaData: (state, action) => {
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
@@ -96,7 +103,9 @@ export const {
     toggleRefreshFeedNotes,
     clearUserEvents,
     setIsRefreshingUserEvents,
-    setIsRefreshingFeedNotes
+    setIsRefreshingFeedNotes,
+    addCurrentProfileNotes,
+    clearCurrentProfileNotes
 } = eventsSlice.actions;
 
 export default eventsSlice.reducer;
@@ -106,6 +115,7 @@ export type EventsType = {
   rootNotes: Event[],
   replyNotes:  Record<string, Event[]>,
   userNotes: Event[],
+  currentProfileNotes: Event[],
   metaData:  Record<string, MetaData>,
   reactions:  Record<string, Event[]>,
   refreshUserNotes: boolean,

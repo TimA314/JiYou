@@ -4,7 +4,7 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RootState } from '../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { PoolContext } from '../context/PoolContext';
-import { setFollowing } from '../redux/slices/nostrSlice';
+import { setCurrentProfileFollowers, setCurrentProfileFollowing, setFollowing } from '../redux/slices/nostrSlice';
 
 type UseFollowingProps = {};
 
@@ -12,21 +12,21 @@ export const useFollowing = ({}: UseFollowingProps) => {
   const pool = useContext(PoolContext);
   const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
+  const note = useSelector((state: RootState) => state.note);
   const [followers, setFollowers] = useState<string[]>([]);
   const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const dispatch = useDispatch();
 
 
-  const getFollowing = async () => {
-    if(keys.publicKey.decoded === ""){
-      dispatch(setFollowing([]));
+  const getFollowing = async (pubkey: string) => {
+    if(pubkey === ""){
       return [];
     }
 
     if (!pool) return [];
     let followingPks: string[] = [];
-    const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [keys.publicKey.decoded], limit: 1 }])
+    const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [pubkey], limit: 1 }])
     
     if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return [];
 
@@ -37,36 +37,53 @@ export const useFollowing = ({}: UseFollowingProps) => {
       }
     }
 
-    dispatch(setFollowing(followingPks));
+    if (note.profileEventToShow !== null) {
+      dispatch(setCurrentProfileFollowing(followingPks));
+    } else{
+      dispatch(setFollowing(followingPks));
+    }
+
     return followingPks;
   };
 
-  const getFollowers = async () => {
-    if(keys.publicKey.decoded === ""){
-      setFollowers([]);
+  const getFollowers = async (pubkey: string) => {
+    if(!pool || pubkey === ""){
       return;
     }
-    if (!pool) return;
 
-    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [keys.publicKey.decoded] }])
+    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pubkey] }])
 
     if (!followerEvents || followerEvents.length === 0) return;
 
     const followerPks: string[] = followerEvents.map((event) => event.pubkey);
+
+    if(note.profileEventToShow !== null){
+      dispatch(setCurrentProfileFollowers(followerPks));
+      return;
+    }
+    
     setFollowers(followerPks);
   }
   
   useEffect(() => {
-    getFollowing();
-    getFollowers();
+    getFollowers(keys.publicKey.decoded);
+    getFollowing(keys.publicKey.decoded);
   }, [pool, nostr.relays, keys.publicKey.decoded]);
 
+  useEffect(() => {
+    if(note.profileEventToShow !== null){
+      getFollowing(note.profileEventToShow.pubkey);
+      getFollowers(note.profileEventToShow.pubkey);
+      return;
+    }
+
+  }), [note.profileEventToShow];
   
   const updateFollowing = async (followPubkey: string) => {
     if (!pool) return;
 
     try {
-      const currentFollowing = await getFollowing();
+      const currentFollowing = await getFollowing(keys.publicKey.decoded);
       const isUnfollowing: boolean = !!currentFollowing.find((follower) => follower === followPubkey);
                 
       const newTags: string[][] = isUnfollowing ? [] : [["p", followPubkey]];

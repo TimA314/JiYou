@@ -91,7 +91,7 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
                 sx={{ 
                     color: themeColors.secondary, 
                     position: 'fixed', 
-                    top: 60, 
+                    top: 70, 
                     right: 10, 
                     zIndex: 1000,
                     ...(events.refreshingFeedNotes && {
