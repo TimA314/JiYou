@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, Chip, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Chip, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar, Typography} from '@mui/material'
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -167,7 +167,19 @@ const styles = {
                                         sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
                                 </Box>
-                                
+                                <Box sx={{ 
+                                        color: themeColors.textColor,
+                                        textAlign: 'center',
+                                        marginBottom: "0.5rem",
+                                    }}>
+                                    <Typography variant='h5' color={themeColors.primary}>
+                                        {profileNameInput}
+                                    </Typography>
+                                    <Typography variant='body2' color={themeColors.textColor}>
+                                        {profileAboutInput}
+                                    </Typography>
+                                </Box>
+
                                 {note.profileEventToShow === null && (
                                     <Box>
                                         <Button 

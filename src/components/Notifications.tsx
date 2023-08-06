@@ -9,6 +9,8 @@ type Props = {}
 
 export default function Notifications({}: Props) {
   const events = useSelector((state: RootState) => state.events);
+  const keys = useSelector((state: RootState) => state.keys);
+  const note = useSelector((state: RootState) => state.note);
   const [userReactionNotes, setReactionNotes] = useState<Event[]>([]);
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function Notifications({}: Props) {
         
         const likedNote = events.userNotes.find((note) => note.id === likedNoteEventId[1])
 
-        if (!likedNote) return (<></>)
+        if (!likedNote || (note.profileEventToShow === null && likedNote.pubkey !== keys.publicKey.decoded)) return (<></>)
 
         return (
           <UserNotificationNote 
