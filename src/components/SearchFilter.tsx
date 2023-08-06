@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import { Close } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { addHashTag, addSearchEventId, removeHashTag } from "../redux/slices/noteSlice";
+import { addHashTag, addSearchEventId, removeHashTag, removeSearchEventId } from "../redux/slices/noteSlice";
 import { toggleRefreshFeedNotes } from "../redux/slices/eventsSlice";
 
 interface Props {}
@@ -38,7 +38,7 @@ export default function SearchFilter({}: Props) {
   };
 
   const handleRemoveSearchedEventId = (id: string) => {
-    dispatch(addSearchEventId(id));
+    dispatch(removeSearchEventId(id));
     dispatch(toggleRefreshFeedNotes())
   }
 
