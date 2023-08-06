@@ -9,54 +9,55 @@ type Props = {}
 
 export default function Notifications({}: Props) {
   const events = useSelector((state: RootState) => state.events);
-  const keys = useSelector((state: RootState) => state.keys);
   const note = useSelector((state: RootState) => state.note);
-  const [userReactionNotes, setReactionNotes] = useState<Event[]>([]);
+  const [reactionNotes, setReactionNotes] = useState<Event[]>([]);
 
   useEffect(() => {
-    setReactionNotes([]);
-
     const reactionEvents: Event[] = [];
 
     if(note.profileEventToShow !== null){
+
       events.currentProfileNotes.forEach((e: Event) => {
-        if (events.reactions[e.id]){
-          events.reactions[e.id].forEach((e) =>{
-            reactionEvents.push(e)
+        if (events.reactions[e.id]?.length > 0){
+          events.reactions[e.id].forEach((r) =>{
+            reactionEvents.push(r)
           })
         }
       })
+
     } else {
+
       events.userNotes.forEach((e: Event) => {
-        if (events.reactions[e.id]){
-          events.reactions[e.id].forEach((e) =>{
-            reactionEvents.push(e)
+
+        if (events.reactions[e.id]?.length > 0){
+
+          events.reactions[e.id].forEach((r) =>{
+            reactionEvents.push(r)
           })
+
         }
       })
+
     }
-
     
-    setReactionNotes((prev: Event[]) => [...new Set([...prev, ...reactionEvents])])
-  },[events.userNotes])
+    setReactionNotes([...new Set([...reactionEvents])])
 
+  },[events.userNotes, events.currentProfileNotes, events.reactions, note.profileEventToShow])
   return (
     <Stack>
-      {userReactionNotes.map((event) => {
-        const likedNoteEventId = event.tags.find((tag) => tag[0] === "e") || "";
-        
-        const likedNote = events.userNotes.find((note) => note.id === likedNoteEventId[1])
+      {reactionNotes.map((r: Event) => {
+        const likedNoteEventId = r.tags.find((tag) => tag[0] === "e" && tag[1]);
+        const likedNote = likedNoteEventId && events.userNotes.find((note) => note.id === likedNoteEventId[1]);
 
-        if (!likedNote || (note.profileEventToShow === null && likedNote.pubkey !== keys.publicKey.decoded)) return (<></>)
-
-        return (
+        return likedNote && (
           <UserNotificationNote 
-            key={event.sig + "notificationNote"} 
-            event={event} 
+            key={r.sig + "notificationNote"} 
+            event={r} 
             userNote={likedNote}
-            />
-        )
+          />
+        );
       })}
     </Stack>
-  )
+)
+
 }

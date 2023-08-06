@@ -7,8 +7,10 @@ import { useCallback, useContext, useState } from "react";
 import { DiceBears } from "../utils/miscUtils";
 import moment from "moment";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
+import { setProfileEventToShow } from "../redux/slices/noteSlice";
+import { setRefreshingCurrentProfileNotes } from "../redux/slices/eventsSlice";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -37,7 +39,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const events = useSelector((state: RootState) => state.events);
-
+    const dispatch = useDispatch();
 
     const handleExpandClick = useCallback(() => {
         setExpanded((expanded: boolean) => !expanded);
@@ -50,6 +52,10 @@ export default function UserNotificationNote({event, userNote}: Props) {
 
                     <Grid item xs={4}>
                         <CardHeader
+                            onClick={() => {
+                                dispatch(setProfileEventToShow(event))
+                                dispatch(setRefreshingCurrentProfileNotes(true));
+                                }}
                             avatar={
                             <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                             </Avatar>
@@ -99,7 +105,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                         Event Id: {event.id}
                     </Typography>
                     <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-                        PubKey: {nip19.npubEncode(event.pubkey)}
+                        PubKey: {nip19.npubEncode(event.pubkey) ?? ""}
                     </Typography>
                     <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
                         PubKey hex: {event.pubkey}
@@ -149,6 +155,10 @@ export default function UserNotificationNote({event, userNote}: Props) {
 
             <Grid item xs={3}>
                 <CardHeader
+                    onClick={() => {
+                        dispatch(setProfileEventToShow(event))
+                        dispatch(setRefreshingCurrentProfileNotes(true));
+                    }}
                     avatar={
                     <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                     </Avatar>
@@ -170,7 +180,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
             
             <Grid item xs={1}>
                 <CardContent>
-                    <Avatar src={events.metaData[event.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
+                    <Avatar src={events.metaData[userNote.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                 </CardContent>
             </Grid>
 
@@ -207,7 +217,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                 Event Id: {event.id}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-                PubKey: {nip19.npubEncode(event.pubkey)}
+                PubKey: {nip19.npubEncode(event.pubkey) ?? ""}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
                 PubKey hex: {event.pubkey}
@@ -222,7 +232,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                 Sig: {event.sig}
             </Typography>
             <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-                Tags: <ul >{event.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
+                Tags: <ul >{event.tags.map((tag) => <li key={tag[1] + event.sig}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
             </Typography>
             </CardContent>
         </Collapse>
