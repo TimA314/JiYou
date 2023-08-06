@@ -69,7 +69,7 @@ useEffect(() => {
 }, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
 
-const handleTabChange = (newValue: number) => {
+const handleTabChange = (event: any, newValue: number) => {
     setTabIndex(newValue);
 };
 

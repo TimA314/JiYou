@@ -4,7 +4,7 @@ import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents } from '../redux/slices/eventsSlice';
+import { addCurrentProfileNotes, addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearCurrentProfileNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
@@ -337,7 +337,13 @@ export const useListEvents = ({}: useListEventsProps) => {
     
     const fetchUserNotes = () => {
       if (!pool) return;
-      dispatch(clearUserEvents());
+
+      if(note.profileEventToShow !== null){
+        dispatch(clearCurrentProfileNotes())
+      } else{
+        dispatch(clearUserEvents());
+      }
+
       const pubkeyToFetch: string = note.profileEventToShow === null ? keys.publicKey.decoded : note.profileEventToShow.pubkey;
       console.log("Requesting User Notes for ", pubkeyToFetch)
 
@@ -346,13 +352,23 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       sub.on("event", (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
-        console.log("userEvent")
+        console.log(note.profileEventToShow === null ? "userEvent" : "profileEvent")
+
         if (eventsBatch.length > 3) {
           batch(() => {
-            eventsBatch.forEach(ev => dispatch(addUserNotes(ev)));
+            eventsBatch.forEach((ev) => {
+
+              if (keys.publicKey.decoded === ev.pubkey) {
+                dispatch(addUserNotes(ev));
+              } else {
+                dispatch(addCurrentProfileNotes(ev));
+              }
+            });
           });
-          eventsBatch = [];
+          eventsBatch = []; 
         }
+
+
       });
 
       sub.on("eose", () => {
