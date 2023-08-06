@@ -63,11 +63,10 @@ export const useListEvents = ({}: useListEventsProps) => {
         filter["#t"] = note.hashTags;
       }
 
-      if (note.tabIndex == 1) {
-        if (nostr.following.length === 0) return;
-
+      if (note.tabIndex == 1 && nostr.following.length > 0){
         filter.authors = nostr.following;
       }
+
 
       console.log("fetching feed with filter: " + JSON.stringify(filter))
       let sub = pool.sub(readableRelayUrls, [filter]);

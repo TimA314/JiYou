@@ -4,7 +4,8 @@ import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { RootState } from '../redux/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { PoolContext } from '../context/PoolContext';
-import { setCurrentProfileFollowers, setCurrentProfileFollowing, setFollowing } from '../redux/slices/nostrSlice';
+import { setCurrentProfileFollowers, setCurrentProfileFollowing, setFollowers, setFollowing } from '../redux/slices/nostrSlice';
+import { addMessage } from '../redux/slices/noteSlice';
 
 type UseFollowingProps = {};
 
@@ -13,7 +14,6 @@ export const useFollowing = ({}: UseFollowingProps) => {
   const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
   const note = useSelector((state: RootState) => state.note);
-  const [followers, setFollowers] = useState<string[]>([]);
   const allRelayUrls = nostr.relays.map((r) => r.relayUrl);
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const dispatch = useDispatch();
@@ -62,7 +62,7 @@ export const useFollowing = ({}: UseFollowingProps) => {
       return;
     }
     
-    setFollowers(followerPks);
+    dispatch(setFollowers(followerPks));
   }
   
   useEffect(() => {
@@ -83,9 +83,13 @@ export const useFollowing = ({}: UseFollowingProps) => {
     if (!pool) return;
 
     try {
-      const currentFollowing = await getFollowing(keys.publicKey.decoded);
+      let currentFollowing = await getFollowing(keys.publicKey.decoded);
+      if (currentFollowing.length === 0 && nostr.following.length > 0) {
+        currentFollowing = nostr.following;
+      }
+
       const isUnfollowing: boolean = !!currentFollowing.find((follower) => follower === followPubkey);
-                
+
       const newTags: string[][] = isUnfollowing ? [] : [["p", followPubkey]];
       currentFollowing.forEach((follow) => {
         if (follow === followPubkey && isUnfollowing) {
@@ -102,19 +106,27 @@ export const useFollowing = ({}: UseFollowingProps) => {
         tags: newTags,
       } as EventTemplate
       
+      let signed = false;
+
       //sign with Nostr Extension
       if (window.nostr && keys.privateKey.decoded === "") {
-        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
-        if (signed) {
-          setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
-          return
-        }
+        signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
+      }
+      
+      //sign with sk
+      if (!signed){
+        signed= await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch); 
+      }
+      
+      if(!signed){
+        dispatch(addMessage({message: "Could not sign event", isError: true}));
+        return;
       }
 
-      //sign with sk
-      const signedWithSk = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch); 
-      if (signedWithSk) {      
-        setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1]))
+      if(isUnfollowing){
+        dispatch(setFollowing(currentFollowing.filter((follower) => follower !== followPubkey)));
+      } else { 
+        dispatch(setFollowing(newTags.filter((tag) => tag[0] === "p").map((tag) => tag[1])));
       }
 
     } catch (error) {
@@ -122,5 +134,5 @@ export const useFollowing = ({}: UseFollowingProps) => {
     }
 }
 
-  return { updateFollowing, followers };
+  return { updateFollowing };
 };

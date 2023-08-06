@@ -26,6 +26,7 @@ import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToSh
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
 import { setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { addFollowing } from '../redux/slices/nostrSlice';
 
 
 //Expand Note
@@ -110,6 +111,7 @@ const Note: React.FC<NoteProps> = ({
   }, []);
   
   const handleFollowButtonClicked = useCallback(() => {
+    dispatch(addFollowing(event.pubkey));
     updateFollowing(event.pubkey);
     setIsFollowing((isFollowing) => !isFollowing);
   }, [updateFollowing, event.pubkey]);
