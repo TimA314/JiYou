@@ -14,14 +14,28 @@ export default function Notifications({}: Props) {
   const [userReactionNotes, setReactionNotes] = useState<Event[]>([]);
 
   useEffect(() => {
-    const reactionEvents: Event[] = []
-    events.userNotes.forEach((e: Event) => {
-      if (events.reactions[e.id]){
-        events.reactions[e.id].forEach((e) =>{
-          reactionEvents.push(e)
-        })
-      }
-    })
+    setReactionNotes([]);
+
+    const reactionEvents: Event[] = [];
+
+    if(note.profileEventToShow !== null){
+      events.currentProfileNotes.forEach((e: Event) => {
+        if (events.reactions[e.id]){
+          events.reactions[e.id].forEach((e) =>{
+            reactionEvents.push(e)
+          })
+        }
+      })
+    } else {
+      events.userNotes.forEach((e: Event) => {
+        if (events.reactions[e.id]){
+          events.reactions[e.id].forEach((e) =>{
+            reactionEvents.push(e)
+          })
+        }
+      })
+    }
+
     
     setReactionNotes((prev: Event[]) => [...new Set([...prev, ...reactionEvents])])
   },[events.userNotes])
@@ -37,7 +51,7 @@ export default function Notifications({}: Props) {
 
         return (
           <UserNotificationNote 
-            key={event.sig} 
+            key={event.sig + "notificationNote"} 
             event={event} 
             userNote={likedNote}
             />

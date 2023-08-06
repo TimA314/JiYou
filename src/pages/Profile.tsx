@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { clearUserEvents, setIsRefreshingUserEvents, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
 
@@ -102,6 +102,16 @@ const handleEditOrSaveClick = () => {
     if (showEditProfile) {
         handleFormSubmit({preventDefault: () => {}});
     }
+}
+
+const handleRefreshUserNotesClicked = () => {
+    if (note.profileEventToShow !== null) {
+        dispatch(setRefreshingCurrentProfileNotes(true));
+        dispatch(toggleRefreshCurrentProfileNotes());
+        return;
+    }
+    dispatch(setIsRefreshingUserEvents(true));
+    dispatch(toggleRefreshUserNotes());
 }
     
 // ----------------------------------------------------------------------
@@ -274,15 +284,12 @@ const styles = {
                             <Tab label="Notifications" />   
                         </Tabs>
                         <IconButton
-                            onClick={() => {
-                                dispatch(toggleRefreshUserNotes());
-                                dispatch(setIsRefreshingUserEvents(true));
-                            }}
-                            disabled={events.refreshingUserNotes}
+                            onClick={() => handleRefreshUserNotesClicked()}
+                            disabled={events.refreshingUserNotes || events.refreshingCurrentProfileNotes}
                             sx={{
                                 color: themeColors.secondary, 
                                 marginLeft: "auto",
-                                ...(events.refreshingUserNotes && {
+                                ...((events.refreshingUserNotes || events.refreshingCurrentProfileNotes) && {
                                     animation: 'spin 1s linear infinite'
                                 })
                             }}>
