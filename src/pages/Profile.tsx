@@ -116,18 +116,6 @@ const handleRefreshUserNotesClicked = () => {
 }
     
 // ----------------------------------------------------------------------
-    
-const styles = {
-    banner: {
-        height: 350,
-        backgroundImage: `url(${bannerUrlInput})`,
-        backgroundImageAlt: `url(${events.metaData[note.profileEventToShow?.pubkey ?? ""]?.banner ?? ""})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        margin: -24,
-        padding: 24,
-    }
-};
 
 
     return (
@@ -135,27 +123,45 @@ const styles = {
             {keys.publicKey.decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
 
-                        <Paper  style={styles.banner}>
-                            <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
-                                <Button variant='contained' color="secondary" onClick={handleLogout}>
-                                    {note.profileEventToShow !== null ? "Back" : "Logout"}
-                                </Button>
-                            </Box>
-                            <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
-                            <Toolbar >
-                                <IconButton edge="start" color="inherit" aria-label="menu">
-                                    <MenuItem />
-                                </IconButton>
-                            </Toolbar>
-                            <div className="avatarContainer">
-                                <Avatar
-                                    src={imageUrlInput}
-                                    alt={events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? ""}
-                                    sx={{ width: 200, height: 200 }}
-                                    />
-                            </div>
-                            </AppBar>
-                        </Paper>
+                    <Box style={{
+                        position: 'relative',
+                        height: 350,                                          
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        width: '100%',
+                        }}>
+                            <img
+                                src={note.profileEventToShow ? getMediaNostrBandImageUrl(note.profileEventToShow.pubkey ?? "", "banner", 1200) : (events.metaData[keys.publicKey.decoded]?.banner ?? "")}
+                                alt={note.profileEventToShow ? (events.metaData[note.profileEventToShow?.pubkey ?? ""]?.banner ?? "") : events.metaData[keys.publicKey.decoded]?.banner ?? ""}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    position: 'absolute',
+                                    zIndex: -1,
+                                    borderRadius: "0px 0px 20px 20px",
+                                }}
+                            />
+                        <Box sx={{display: "flex", justifyContent: "flex-end", padding: "1rem"}}>
+                            <Button variant='contained' color="secondary" onClick={handleLogout}>
+                                {note.profileEventToShow !== null ? "Back" : "Logout"}
+                            </Button>
+                        </Box>
+                        <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
+                        <Toolbar >
+                            <IconButton edge="start" color="inherit" aria-label="menu">
+                                <MenuItem />
+                            </IconButton>
+                        </Toolbar>
+                        <div className="avatarContainer">
+                            <Avatar
+                                src={imageUrlInput}
+                                alt={events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? ""}
+                                sx={{ width: 200, height: 200 }}
+                                />
+                        </div>
+                        </AppBar>
+                    </Box>
 
                     <Box sx={{marginTop: "1rem", marginBottom: "1rem"}}>
                         <Stack direction="column" spacing={3} marginTop="1rem">

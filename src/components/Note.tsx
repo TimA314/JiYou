@@ -261,7 +261,7 @@ const Note: React.FC<NoteProps> = ({
                                   }
                                 }}
                                 avatar={
-                                  <Avatar src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)}  alt={events.metaData[event.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={getMediaNostrBandImageUrl(previewEvent.pubkey, "picture", 64)}  alt={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }
                                 title={events.metaData[previewEvent.pubkey]?.name ?? ""}
                                 subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
