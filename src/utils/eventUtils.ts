@@ -70,4 +70,8 @@ export function insertEventIntoDescendingList<T extends Event>(
   export function eventContainsExplicitContent(event: Event): boolean {
     return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1].toLowerCase())).length > 0
   }
+
+ export const getMediaNostrBandImageUrl = (pubkeyToFetch: string, type: string, size: number) => {
+    return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
+  } 
   

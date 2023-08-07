@@ -27,6 +27,7 @@ import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
 import { setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
+import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 
 
 //Expand Note
@@ -175,7 +176,7 @@ const Note: React.FC<NoteProps> = ({
           navigate("/profile");
         }}
         avatar={
-          <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
+          <Avatar aria-label="recipe" src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
           </Avatar>
         }
         title={events.metaData[event.pubkey]?.name ?? ""}
@@ -260,7 +261,7 @@ const Note: React.FC<NoteProps> = ({
                                   }
                                 }}
                                 avatar={
-                                  <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)}  alt={events.metaData[event.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }
                                 title={events.metaData[previewEvent.pubkey]?.name ?? ""}
                                 subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
