@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { setProfileEventToShow } from "../redux/slices/noteSlice";
 import { setRefreshingCurrentProfileNotes } from "../redux/slices/eventsSlice";
+import { getMediaNostrBandImageUrl } from "../utils/eventUtils";
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -130,7 +131,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
 
                         <Grid item xs={1}>
                             <CardContent>
-                                <Avatar src={events.metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
+                                <Avatar src={getMediaNostrBandImageUrl(userNote.pubkey, 'picture', 64)} alt={events.metaData[userNote.pubkey].picture} sx={{width: 24, height: 24}}/>
                             </CardContent>
                         </Grid>
 
@@ -160,7 +161,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                         dispatch(setRefreshingCurrentProfileNotes(true));
                     }}
                     avatar={
-                    <Avatar aria-label="profile picture" src={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
+                    <Avatar aria-label="profile picture" src={getMediaNostrBandImageUrl(event.pubkey, 'picture', 64)} alt={events.metaData[event.pubkey]?.picture ?? defaultAvatar}>
                     </Avatar>
                     }
                     title={events.metaData[event.pubkey]?.name ?? event.pubkey.substring(0, 6) + "..."}
@@ -180,7 +181,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
             
             <Grid item xs={1}>
                 <CardContent>
-                    <Avatar src={events.metaData[userNote.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
+                    <Avatar src={getMediaNostrBandImageUrl(userNote.pubkey, 'picture', 64)} alt={events.metaData[userNote.pubkey]?.picture ?? ""} sx={{width: 24, height: 24}}/>
                 </CardContent>
             </Grid>
 

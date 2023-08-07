@@ -16,6 +16,7 @@ import { PoolContext } from '../context/PoolContext';
 import { clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 
 
 interface ProfileProps {
@@ -48,8 +49,8 @@ useEffect(() => {
     if (note.profileEventToShow !== null) {
         setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
-        setImageUrlInput(events.metaData[note.profileEventToShow.pubkey]?.picture ?? "");
-        setBannerUrlInput(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "");
+        setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
+        setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
         return;
     }
     
@@ -120,6 +121,7 @@ const styles = {
     banner: {
         height: 350,
         backgroundImage: `url(${bannerUrlInput})`,
+        backgroundImageAlt: `url(${events.metaData[note.profileEventToShow?.pubkey ?? ""]?.banner ?? ""})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         margin: -24,
@@ -148,6 +150,7 @@ const styles = {
                             <div className="avatarContainer">
                                 <Avatar
                                     src={imageUrlInput}
+                                    alt={events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? ""}
                                     sx={{ width: 200, height: 200 }}
                                     />
                             </div>
