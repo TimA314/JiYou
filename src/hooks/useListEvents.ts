@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useContext } from 'react';
 import { Event, Filter } from 'nostr-tools';
-import { eventContainsExplicitContent } from '../utils/eventUtils';
+import { eventContainsExplicitContent, fetchNostrBandMetaData } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -53,7 +53,7 @@ export const useListEvents = ({}: useListEventsProps) => {
         hideExplicitContent = settings.feedSettings.hideExplicitContent
       }
 
-      let filter: Filter = {kinds: [1], limit: 150};
+      let filter: Filter = {kinds: [1], limit: 100};
 
       if (note.searchEventIds.length > 0){
         filter.ids = note.searchEventIds;
@@ -111,7 +111,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     
     const fetchMetaData = async () => {
       if (!pool) return;
-      const pubkeysToFetch = [];
+      const pubkeysToFetch: string[] = [];
 
       events.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
@@ -140,9 +140,11 @@ export const useListEvents = ({}: useListEventsProps) => {
         },
       ]);
 
+      let allFetchedEvents: Event[] = [];
       let eventsBatch: Event[] = [];
 
       sub.on("event", async (event: Event) => {
+        allFetchedEvents.push(event);
         const sanitizedEvent = await sanitizeEvent(event);
         eventsBatch.push(sanitizedEvent);
         if (eventsBatch.length > 10) {
@@ -154,12 +156,27 @@ export const useListEvents = ({}: useListEventsProps) => {
       });
 
       sub.on("eose", () => {
+        console.log(allFetchedEvents.length)
         if (eventsBatch.length > 0) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
           });
           eventsBatch = [];
         }
+
+        const missingEvents = pubkeysToFetch.filter((pk) => allFetchedEvents.find((e) => e.pubkey === pk));
+        if (missingEvents.length === 0) return;
+
+        batch(() => {
+          missingEvents.forEach(async (pk) => {
+
+            const nostrBandMetaData = await fetchNostrBandMetaData(pk);
+            if (nostrBandMetaData !== null && nostrBandMetaData !== undefined) {
+              dispatch(addMetaData(nostrBandMetaData));
+            }
+          });
+        });
+
       })
 
     };

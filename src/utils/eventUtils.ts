@@ -1,5 +1,5 @@
-import { AnyAction, Middleware } from "@reduxjs/toolkit";
 import { Event } from "nostr-tools";
+import { MetaData } from "../nostr/Types";
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(
@@ -73,5 +73,26 @@ export function insertEventIntoDescendingList<T extends Event>(
 
  export const getMediaNostrBandImageUrl = (pubkeyToFetch: string, type: string, size: number) => {
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
-  } 
+  }
+
+  export const getMetaDataNostrBandUrl = (pubkeyToFetch: string) => {
+    return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
+  }
   
+  export const fetchNostrBandMetaData = async (pubkeyToFetch: string): Promise<MetaData | null> => {
+    const url = getMetaDataNostrBandUrl(pubkeyToFetch);
+    
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          return null;
+        }
+
+        const data = await response.json();
+        console.log(data);
+        return data;
+
+    } catch (error) {
+        return null;
+    }
+}

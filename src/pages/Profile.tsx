@@ -13,11 +13,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { EventsType, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
-import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import { checkImageUrl } from '../utils/miscUtils';
+import { nip19 } from 'nostr-tools';
 
 
 interface ProfileProps {
@@ -47,12 +48,19 @@ const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
 
 useEffect(() => {
-    
-}, [note.profileEventToShow])
-
-useEffect(() => {
     if (note.profileEventToShow !== null) {
-        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
+        if (!events.metaData[note.profileEventToShow.pubkey]){
+            const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
+            if (nostrBandMetaData) {
+                nostrBandMetaData.then((data) => {
+                    if (data) {
+                        dispatch(addMetaData(data))
+                    }
+                })
+            }
+        }
+
+        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey));
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
         setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
@@ -65,7 +73,7 @@ useEffect(() => {
     
     const userMetaData = events.metaData[keys.publicKey.decoded];
     
-    setProfileNameInput(userMetaData?.name ?? "");
+    setProfileNameInput(userMetaData?.name ?? nip19.npubEncode(keys.publicKey.decoded));
     setProfileAboutInput(userMetaData?.about ?? "");
     setImageUrlInput(userMetaData?.picture ?? "");
     setBannerUrlInput(userMetaData?.banner ?? "");
@@ -130,7 +138,6 @@ const handleRefreshUserNotesClicked = () => {
 }
 
 const handleBannerError = () : string => {
-
     if (note.profileEventToShow !== null && events.metaData[note.profileEventToShow.pubkey]?.banner !== undefined) {
         console.log("banner " + events.metaData[note.profileEventToShow.pubkey]?.banner)
         checkImageUrl(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "").then(isWorking => {
@@ -170,7 +177,8 @@ const handleBannerError = () : string => {
                         width: '100%',
                         }}>
                            {bannerSrc !== "" && 
-                                <img
+                                <Box
+                                    component="img"
                                     src={bannerSrc}
                                     style={{
                                         width: '100%',

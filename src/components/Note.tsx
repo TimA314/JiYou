@@ -93,12 +93,11 @@ const Note: React.FC<NoteProps> = ({
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-
+  const dicebear = DiceBears();
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
-
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const images = GetImageFromPost(event.content);
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
@@ -106,7 +105,6 @@ const Note: React.FC<NoteProps> = ({
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
-  const dicebear = DiceBears();
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
@@ -167,6 +165,7 @@ const Note: React.FC<NoteProps> = ({
     dispatch(setReplyToNoteEvent(event));
   }
 
+
   return (
     <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
@@ -177,10 +176,13 @@ const Note: React.FC<NoteProps> = ({
           navigate("/profile");
         }}
         avatar={
-          <Avatar aria-label="recipe" src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
+          <Avatar 
+            aria-label="recipe" 
+            src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} 
+            alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
           </Avatar>
         }
-        title={events.metaData[event.pubkey]?.name ?? ""}
+        title={events.metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 8) + "..." }
         subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}

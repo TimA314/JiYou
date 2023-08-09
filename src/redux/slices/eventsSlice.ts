@@ -57,6 +57,9 @@ export const eventsSlice = createSlice({
         addMetaData: (state, action) => {
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
         },
+        addParsedMetaData: (state, action) => {
+            state.metaData[action.payload.pubkey] = action.payload as MetaData;
+        },
         addReactions: (state, action) => {
             // Get the last 'e' tag, which should be the event ID.
             const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e");
@@ -100,7 +103,8 @@ export const {
     addRootNotes, 
     addReplyNotes, 
     addUserNotes, 
-    addMetaData, 
+    addMetaData,
+    addParsedMetaData,
     addReactions, 
     toggleRefreshUserNotes,
     toggleRefreshFeedNotes,
@@ -128,5 +132,5 @@ export type EventsType = {
   refreshingUserNotes: boolean,
   refreshingFeedNotes: boolean,
   refreshCurrentProfileNotes: boolean,
-  refreshingCurrentProfileNotes: boolean
+  refreshingCurrentProfileNotes: boolean,
 }
