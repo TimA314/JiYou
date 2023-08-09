@@ -13,9 +13,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { checkImageUrl } from '../utils/miscUtils';
+import { nip19 } from 'nostr-tools';
 
 
 interface ProfileProps {
@@ -26,7 +29,7 @@ export default function Profile({
     updateProfile, 
 }: ProfileProps) {
 const pool = useContext(PoolContext);
-const events = useSelector((state: RootState) => state.events);
+const events: EventsType = useSelector((state: RootState) => state.events);
 const nostr = useSelector((state: RootState) => state.nostr);
 const keys = useSelector((state: RootState) => state.keys);
 const note = useSelector((state: RootState) => state.note);
@@ -40,16 +43,29 @@ const [tabIndex, setTabIndex] = useState(0);
 const dispatch = useDispatch();
 const [showEditProfile, setShowEditProfile] = useState(false);
 
-useEffect(() => {
-    
-}, [note.profileEventToShow])
+const [imageSrc, setImageSrc] = useState(imageUrlInput);
+const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
+
 
 useEffect(() => {
     if (note.profileEventToShow !== null) {
-        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? "");
+        if (!events.metaData[note.profileEventToShow.pubkey]){
+            const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
+            if (nostrBandMetaData) {
+                nostrBandMetaData.then((data) => {
+                    if (data) {
+                        dispatch(addMetaData(data))
+                    }
+                })
+            }
+        }
+
+        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey));
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
-        setImageUrlInput(events.metaData[note.profileEventToShow.pubkey]?.picture ?? "");
-        setBannerUrlInput(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "");
+        setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
+        setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
+        setImageSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
+        setBannerSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
         return;
     }
     
@@ -57,10 +73,12 @@ useEffect(() => {
     
     const userMetaData = events.metaData[keys.publicKey.decoded];
     
-    setProfileNameInput(userMetaData?.name ?? "");
+    setProfileNameInput(userMetaData?.name ?? nip19.npubEncode(keys.publicKey.decoded));
     setProfileAboutInput(userMetaData?.about ?? "");
     setImageUrlInput(userMetaData?.picture ?? "");
     setBannerUrlInput(userMetaData?.banner ?? "");
+    setImageSrc(userMetaData?.picture ?? "");
+    setBannerSrc(userMetaData?.banner ?? "");
     
 }, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
@@ -81,11 +99,16 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     if (profileNameInput === "" && profileAboutInput === "" && imageUrlInput === "" && bannerUrlInput === "") return;
     console.log("Updating profile")
     updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
+    setProfileNameInput(profileNameInput);
+    setProfileAboutInput(profileAboutInput);
+    setImageUrlInput(imageUrlInput);
+    setBannerUrlInput(bannerUrlInput);
 }
 
 const handleLogout = () => {
     if (note.profileEventToShow !== null) {
         dispatch(setProfileEventToShow(null));
+        dispatch(clearCurrentProfileNotes());
         navigate("/");
         return;
     }
@@ -113,19 +136,32 @@ const handleRefreshUserNotesClicked = () => {
     dispatch(setIsRefreshingUserEvents(true));
     dispatch(toggleRefreshUserNotes());
 }
+
+const handleBannerError = () : string => {
+    if (note.profileEventToShow !== null && events.metaData[note.profileEventToShow.pubkey]?.banner !== undefined) {
+        console.log("banner " + events.metaData[note.profileEventToShow.pubkey]?.banner)
+        checkImageUrl(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "").then(isWorking => {
+            if (isWorking) {
+                setBannerSrc(events.metaData[note.profileEventToShow!.pubkey].banner!);
+                return events.metaData[note.profileEventToShow!.pubkey].banner!;
+            };
+        })
+    } 
+
+    if (note.profileEventToShow === null && events.metaData[keys.publicKey.decoded]?.banner !== undefined) {
+        checkImageUrl(events.metaData[keys.publicKey.decoded].banner!).then(isWorking => {
+            if (isWorking) {
+                setBannerSrc(events.metaData[keys.publicKey.decoded].banner!);
+                return events.metaData[keys.publicKey.decoded].banner!;
+            };
+        })
+    }
+
+    setBannerSrc("");
+    return "";
+}
     
 // ----------------------------------------------------------------------
-    
-const styles = {
-    banner: {
-        height: 350,
-        backgroundImage: `url(${bannerUrlInput})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        margin: -24,
-        padding: 24,
-    }
-};
 
 
     return (
@@ -133,26 +169,48 @@ const styles = {
             {keys.publicKey.decoded !== "" && (
                 <Box sx={{marginBottom: "50px"}}>
 
-                        <Paper  style={styles.banner}>
-                            <Box sx={{marginTop: "15px", display: "flex", justifyContent: "flex-end"}}>
-                                <Button variant='contained' color="secondary" onClick={handleLogout}>
-                                    {note.profileEventToShow !== null ? "Back" : "Logout"}
-                                </Button>
-                            </Box>
-                            <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
-                            <Toolbar >
-                                <IconButton edge="start" color="inherit" aria-label="menu">
-                                    <MenuItem />
-                                </IconButton>
-                            </Toolbar>
-                            <div className="avatarContainer">
-                                <Avatar
-                                    src={imageUrlInput}
-                                    sx={{ width: 200, height: 200 }}
-                                    />
-                            </div>
-                            </AppBar>
-                        </Paper>
+                    <Box style={{
+                        position: 'relative',
+                        height: 350,                                          
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        width: '100%',
+                        }}>
+                           {bannerSrc !== "" && 
+                                <Box
+                                    component="img"
+                                    src={bannerSrc}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        position: 'absolute',
+                                        zIndex: -1,
+                                        borderRadius: "0px 0px 20px 20px",
+                                    }}
+                                    onError={() => handleBannerError()}
+                                />
+                            } 
+                        <Box sx={{display: "flex", justifyContent: "flex-end", padding: "1rem"}}>
+                            <Button variant='contained' color="secondary" onClick={handleLogout}>
+                                {note.profileEventToShow !== null ? "Back" : "Logout"}
+                            </Button>
+                        </Box>
+                        <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
+                        <Toolbar >
+                            <IconButton edge="start" color="inherit" aria-label="menu">
+                                <MenuItem />
+                            </IconButton>
+                        </Toolbar>
+                        <div className="avatarContainer">
+                            <Avatar
+                                src={imageSrc}
+                                sx={{ width: 200, height: 200 }}
+                                onError={() => note.profileEventToShow ? setImageSrc(events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
+                                />
+                        </div>
+                        </AppBar>
+                    </Box>
 
                     <Box sx={{marginTop: "1rem", marginBottom: "1rem"}}>
                         <Stack direction="column" spacing={3} marginTop="1rem">
@@ -163,11 +221,11 @@ const styles = {
                                         marginBottom: "0.5rem",
                                     }}>
                                     <Chip 
-                                        label={"Following: " + note.profileEventToShow ? nostr.currentProfileFollowing.length : nostr.following.length}
+                                        label={"Following: " + (note.profileEventToShow ? nostr.currentProfileFollowing.length : nostr.following.length)}
                                         sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
                                     <Chip
-                                        label={"Followers: " + note.profileEventToShow ? nostr.currentProfileFollowers.length : nostr.followers.length}
+                                        label={"Followers: " + (note.profileEventToShow ? nostr.currentProfileFollowers.length : nostr.followers.length)}
                                         sx={{ margin: "0.5rem", color: themeColors.textColor }}
                                         />
                                 </Box>
@@ -199,6 +257,7 @@ const styles = {
                                             <Paper>
                                                 <TextField 
                                                 id="profileNameInput"
+                                                fullWidth
                                                 label="Name"
                                                 InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                 color='primary'
@@ -216,6 +275,7 @@ const styles = {
                                                 <Paper sx={{marginTop: "1rem"}}>
                                                     <TextField 
                                                     id="profileAboutInput"
+                                                    fullWidth
                                                     label="About"
                                                     InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                     color='primary'
@@ -235,6 +295,7 @@ const styles = {
                                                 <Paper sx={{marginTop: "1rem"}}>   
                                                     <TextField 
                                                     id="profileImageUrlInput"
+                                                    fullWidth
                                                     label="Profile Image URL"
                                                     InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                     color='primary'
@@ -252,6 +313,7 @@ const styles = {
                                                 <Paper sx={{marginTop: "1rem"}}>
                                                     <TextField
                                                         id="bannerImageUrlInput"
+                                                        fullWidth
                                                         label="Banner Image URL"
                                                         InputLabelProps={{sx: { color: themeColors.textColor }}}
                                                         color="primary"

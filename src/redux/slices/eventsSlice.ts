@@ -57,15 +57,18 @@ export const eventsSlice = createSlice({
         addMetaData: (state, action) => {
             state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
         },
+        addParsedMetaData: (state, action) => {
+            state.metaData[action.payload.pubkey] = action.payload as MetaData;
+        },
         addReactions: (state, action) => {
             // Get the last 'e' tag, which should be the event ID.
-            const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e")?.[1];
-            if (!likedEventId) return;
+            const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e");
+            if (!likedEventId || !likedEventId[1]) return;
         
-            const prevReactionEvents = state.reactions[likedEventId] ? [...state.reactions[likedEventId]] : [];
+            const prevReactionEvents = state.reactions[likedEventId[1]] ? [...state.reactions[likedEventId[1]]] : [];
 
             if(!prevReactionEvents.some(event => event.id === action.payload.id)) {
-                state.reactions[likedEventId] = [...prevReactionEvents, action.payload];
+                state.reactions[likedEventId[1]] = [...prevReactionEvents, action.payload];
             }
         },
         
@@ -100,7 +103,8 @@ export const {
     addRootNotes, 
     addReplyNotes, 
     addUserNotes, 
-    addMetaData, 
+    addMetaData,
+    addParsedMetaData,
     addReactions, 
     toggleRefreshUserNotes,
     toggleRefreshFeedNotes,
@@ -128,5 +132,5 @@ export type EventsType = {
   refreshingUserNotes: boolean,
   refreshingFeedNotes: boolean,
   refreshCurrentProfileNotes: boolean,
-  refreshingCurrentProfileNotes: boolean
+  refreshingCurrentProfileNotes: boolean,
 }

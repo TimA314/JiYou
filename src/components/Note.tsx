@@ -25,7 +25,9 @@ import { RootState } from '../redux/store';
 import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
-import { setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { addFollowing } from '../redux/slices/nostrSlice';
+import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 
 
 //Expand Note
@@ -91,12 +93,11 @@ const Note: React.FC<NoteProps> = ({
   const [liked, setLiked] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-
+  const dicebear = DiceBears();
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
   const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
-
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const images = GetImageFromPost(event.content);
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
@@ -104,12 +105,12 @@ const Note: React.FC<NoteProps> = ({
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const dispatch = useDispatch();
-  const dicebear = DiceBears();
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
   
   const handleFollowButtonClicked = useCallback(() => {
+    dispatch(addFollowing(event.pubkey));
     updateFollowing(event.pubkey);
     setIsFollowing((isFollowing) => !isFollowing);
   }, [updateFollowing, event.pubkey]);
@@ -164,19 +165,24 @@ const Note: React.FC<NoteProps> = ({
     dispatch(setReplyToNoteEvent(event));
   }
 
+
   return (
     <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
         onClick={() => {
           dispatch(setProfileEventToShow(event))
+          dispatch(clearCurrentProfileNotes());
           dispatch(setRefreshingCurrentProfileNotes(true));
           navigate("/profile");
         }}
         avatar={
-          <Avatar aria-label="recipe" src={events.metaData[event.pubkey]?.picture ?? dicebear}>
+          <Avatar 
+            aria-label="recipe" 
+            src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} 
+            alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
           </Avatar>
         }
-        title={events.metaData[event.pubkey]?.name ?? ""}
+        title={events.metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 8) + "..." }
         subheader={events.metaData[event.pubkey]?.nip05 ?? ""}
         subheaderTypographyProps={{color: themeColors.textColor}}
         style={{color: themeColors.textColor}}
@@ -254,11 +260,13 @@ const Note: React.FC<NoteProps> = ({
                                 onClick={() => {
                                   if (previewEvent !== undefined){
                                     dispatch(setProfileEventToShow(previewEvent))
+                                    dispatch(clearCurrentProfileNotes());
+                                    dispatch(setRefreshingCurrentProfileNotes(true));
                                     navigate("/profile");
                                   }
                                 }}
                                 avatar={
-                                  <Avatar src={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
+                                  <Avatar src={getMediaNostrBandImageUrl(previewEvent.pubkey, "picture", 64)}  alt={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
                                 }
                                 title={events.metaData[previewEvent.pubkey]?.name ?? ""}
                                 subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useContext } from 'react';
 import { Event, Filter } from 'nostr-tools';
-import { eventContainsExplicitContent } from '../utils/eventUtils';
+import { eventContainsExplicitContent, fetchNostrBandMetaData } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -53,7 +53,7 @@ export const useListEvents = ({}: useListEventsProps) => {
         hideExplicitContent = settings.feedSettings.hideExplicitContent
       }
 
-      let filter: Filter = {kinds: [1], limit: 150};
+      let filter: Filter = {kinds: [1], limit: 100};
 
       if (note.searchEventIds.length > 0){
         filter.ids = note.searchEventIds;
@@ -63,25 +63,24 @@ export const useListEvents = ({}: useListEventsProps) => {
         filter["#t"] = note.hashTags;
       }
 
-      if (note.tabIndex == 1) {
-        if (nostr.following.length === 0) return;
-
+      if (note.tabIndex == 1 && nostr.following.length > 0){
         filter.authors = nostr.following;
       }
+
 
       console.log("fetching feed with filter: " + JSON.stringify(filter))
       let sub = pool.sub(readableRelayUrls, [filter]);
 
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
+      sub.on("event", async (event: Event) => {
         if (hideExplicitContent && eventContainsExplicitContent(event)) return;
         if (imageOnly && GetImageFromPost(event.content)?.length === 0){
           return;
         }
         if (note.hashTags.length > 0 && event.tags.filter((t) => t[0] === "t" && note.hashTags.includes(t[1])).length === 0) return;
 
-        eventsBatch.push(sanitizeEvent(event));
+        eventsBatch.push(await sanitizeEvent(event));
 
         if (eventsBatch.length > 10) {
           batch(() => {
@@ -112,7 +111,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     
     const fetchMetaData = async () => {
       if (!pool) return;
-      const pubkeysToFetch = [];
+      const pubkeysToFetch: string[] = [];
 
       events.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
@@ -141,10 +140,13 @@ export const useListEvents = ({}: useListEventsProps) => {
         },
       ]);
 
+      let allFetchedEvents: Event[] = [];
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
-        eventsBatch.push(sanitizeEvent(event));
+      sub.on("event", async (event: Event) => {
+        allFetchedEvents.push(event);
+        const sanitizedEvent = await sanitizeEvent(event);
+        eventsBatch.push(sanitizedEvent);
         if (eventsBatch.length > 10) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
@@ -154,12 +156,27 @@ export const useListEvents = ({}: useListEventsProps) => {
       });
 
       sub.on("eose", () => {
+        console.log(allFetchedEvents.length)
         if (eventsBatch.length > 0) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
           });
           eventsBatch = [];
         }
+
+        const missingEvents = pubkeysToFetch.filter((pk) => allFetchedEvents.find((e) => e.pubkey === pk));
+        if (missingEvents.length === 0) return;
+
+        batch(() => {
+          missingEvents.forEach(async (pk) => {
+
+            const nostrBandMetaData = await fetchNostrBandMetaData(pk);
+            if (nostrBandMetaData !== null && nostrBandMetaData !== undefined) {
+              dispatch(addMetaData(nostrBandMetaData));
+            }
+          });
+        });
+
       })
 
     };
@@ -200,7 +217,7 @@ export const useListEvents = ({}: useListEventsProps) => {
       
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
+      sub.on("event", async (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
         if (eventsBatch.length > 10) {
           batch(() => {
@@ -258,7 +275,7 @@ export const useListEvents = ({}: useListEventsProps) => {
       
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
+      sub.on("event", async (event: Event) => {
         eventsBatch.push(sanitizeEvent(event));
         if (eventsBatch.length > 10) {
           batch(() => {
@@ -332,8 +349,8 @@ export const useListEvents = ({}: useListEventsProps) => {
       
       let eventsBatch: Event[] = [];
       
-      sub.on("event", (event: Event) => {
-        eventsBatch.push(sanitizeEvent(event));
+      sub.on("event", async (event: Event) => {
+        eventsBatch.push(await sanitizeEvent(event));
         if (eventsBatch.length > 10) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
@@ -365,8 +382,8 @@ export const useListEvents = ({}: useListEventsProps) => {
       const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
-        eventsBatch.push(sanitizeEvent(event));
+      sub.on("event", async (event: Event) => {
+        eventsBatch.push(await sanitizeEvent(event));
 
         if (eventsBatch.length > 2) {
           batch(() => {
@@ -433,12 +450,12 @@ export const useListEvents = ({}: useListEventsProps) => {
       
       let eventsBatch: Event[] = [];
 
-      sub.on("event", (event: Event) => {
+      sub.on("event", async (event: Event) => {
         if (profileNotesAlreadyFetched.length > 0 && profileNotesAlreadyFetched.some((e: Event) => e.id === event.id)) {
           return; 
         }
         
-        eventsBatch.push(sanitizeEvent(event));
+        eventsBatch.push(await sanitizeEvent(event));
 
         if (eventsBatch.length > 2) {
           batch(() => {
