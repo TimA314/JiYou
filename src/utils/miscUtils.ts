@@ -12,6 +12,28 @@ export const bech32ToHex = (str: string) => {
   }
 };
 
+export function checkImageUrl(url: string, timeout = 5000): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+      const img = new Image();
+      const timer = setTimeout(() => {
+          resolve(false); // Consider the image as non-working after the timeout
+          img.src = ''; // Prevent the image from continuing to try loading
+      }, timeout);
+
+      img.onload = () => {
+          clearTimeout(timer);
+          resolve(true);   // Image loaded successfully
+      };
+
+      img.onerror = () => {
+          clearTimeout(timer);
+          resolve(false); // Error occurred while loading the image
+      };
+
+      img.src = url;
+  });
+}
+
 export const metaDataAndRelayHelpingRelay = "wss://purplepag.es" // Helps find kinds 0 and 10002 Events. More info at https://purplepag.es/what
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));

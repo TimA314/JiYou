@@ -25,7 +25,7 @@ import { RootState } from '../redux/store';
 import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
-import { setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 
@@ -172,6 +172,7 @@ const Note: React.FC<NoteProps> = ({
       <CardHeader
         onClick={() => {
           dispatch(setProfileEventToShow(event))
+          dispatch(clearCurrentProfileNotes());
           dispatch(setRefreshingCurrentProfileNotes(true));
           navigate("/profile");
         }}
@@ -257,6 +258,8 @@ const Note: React.FC<NoteProps> = ({
                                 onClick={() => {
                                   if (previewEvent !== undefined){
                                     dispatch(setProfileEventToShow(previewEvent))
+                                    dispatch(clearCurrentProfileNotes());
+                                    dispatch(setRefreshingCurrentProfileNotes(true));
                                     navigate("/profile");
                                   }
                                 }}

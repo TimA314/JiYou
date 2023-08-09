@@ -23,10 +23,11 @@ export const sanitizeString = (str: string) => {
       parser.pathname +
       parser.search +
       parser.hash;
-    return sanitizedUrl;
+      return sanitizedUrl;
   }
   
-  export const sanitizeEvent = (event: Event) => {
+  
+  export const sanitizeEvent =  (event: Event) => {
     let sanitizedProfileContent = "";
   
     if (event.kind === 0){

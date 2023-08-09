@@ -13,10 +13,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { EventsType, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { checkImageUrl } from '../utils/miscUtils';
 
 
 interface ProfileProps {
@@ -27,7 +28,7 @@ export default function Profile({
     updateProfile, 
 }: ProfileProps) {
 const pool = useContext(PoolContext);
-const events = useSelector((state: RootState) => state.events);
+const events: EventsType = useSelector((state: RootState) => state.events);
 const nostr = useSelector((state: RootState) => state.nostr);
 const keys = useSelector((state: RootState) => state.keys);
 const note = useSelector((state: RootState) => state.note);
@@ -41,6 +42,10 @@ const [tabIndex, setTabIndex] = useState(0);
 const dispatch = useDispatch();
 const [showEditProfile, setShowEditProfile] = useState(false);
 
+const [imageSrc, setImageSrc] = useState(imageUrlInput);
+const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
+
+
 useEffect(() => {
     
 }, [note.profileEventToShow])
@@ -51,6 +56,8 @@ useEffect(() => {
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
         setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
+        setImageSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
+        setBannerSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
         return;
     }
     
@@ -62,6 +69,8 @@ useEffect(() => {
     setProfileAboutInput(userMetaData?.about ?? "");
     setImageUrlInput(userMetaData?.picture ?? "");
     setBannerUrlInput(userMetaData?.banner ?? "");
+    setImageSrc(userMetaData?.picture ?? "");
+    setBannerSrc(userMetaData?.banner ?? "");
     
 }, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
@@ -82,11 +91,16 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     if (profileNameInput === "" && profileAboutInput === "" && imageUrlInput === "" && bannerUrlInput === "") return;
     console.log("Updating profile")
     updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
+    setProfileNameInput(profileNameInput);
+    setProfileAboutInput(profileAboutInput);
+    setImageUrlInput(imageUrlInput);
+    setBannerUrlInput(bannerUrlInput);
 }
 
 const handleLogout = () => {
     if (note.profileEventToShow !== null) {
         dispatch(setProfileEventToShow(null));
+        dispatch(clearCurrentProfileNotes());
         navigate("/");
         return;
     }
@@ -114,6 +128,31 @@ const handleRefreshUserNotesClicked = () => {
     dispatch(setIsRefreshingUserEvents(true));
     dispatch(toggleRefreshUserNotes());
 }
+
+const handleBannerError = () : string => {
+
+    if (note.profileEventToShow !== null && events.metaData[note.profileEventToShow.pubkey]?.banner !== undefined) {
+        console.log("banner " + events.metaData[note.profileEventToShow.pubkey]?.banner)
+        checkImageUrl(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "").then(isWorking => {
+            if (isWorking) {
+                setBannerSrc(events.metaData[note.profileEventToShow!.pubkey].banner!);
+                return events.metaData[note.profileEventToShow!.pubkey].banner!;
+            };
+        })
+    } 
+
+    if (note.profileEventToShow === null && events.metaData[keys.publicKey.decoded]?.banner !== undefined) {
+        checkImageUrl(events.metaData[keys.publicKey.decoded].banner!).then(isWorking => {
+            if (isWorking) {
+                setBannerSrc(events.metaData[keys.publicKey.decoded].banner!);
+                return events.metaData[keys.publicKey.decoded].banner!;
+            };
+        })
+    }
+
+    setBannerSrc("");
+    return "";
+}
     
 // ----------------------------------------------------------------------
 
@@ -130,18 +169,20 @@ const handleRefreshUserNotesClicked = () => {
                         backgroundPosition: 'center',
                         width: '100%',
                         }}>
-                            <img
-                                src={note.profileEventToShow ? getMediaNostrBandImageUrl(note.profileEventToShow.pubkey ?? "", "banner", 1200) : (events.metaData[keys.publicKey.decoded]?.banner ?? "")}
-                                alt={note.profileEventToShow ? (events.metaData[note.profileEventToShow?.pubkey ?? ""]?.banner ?? "") : events.metaData[keys.publicKey.decoded]?.banner ?? ""}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover',
-                                    position: 'absolute',
-                                    zIndex: -1,
-                                    borderRadius: "0px 0px 20px 20px",
-                                }}
-                            />
+                           {bannerSrc !== "" && 
+                                <img
+                                    src={bannerSrc}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover',
+                                        position: 'absolute',
+                                        zIndex: -1,
+                                        borderRadius: "0px 0px 20px 20px",
+                                    }}
+                                    onError={() => handleBannerError()}
+                                />
+                            } 
                         <Box sx={{display: "flex", justifyContent: "flex-end", padding: "1rem"}}>
                             <Button variant='contained' color="secondary" onClick={handleLogout}>
                                 {note.profileEventToShow !== null ? "Back" : "Logout"}
@@ -155,9 +196,9 @@ const handleRefreshUserNotesClicked = () => {
                         </Toolbar>
                         <div className="avatarContainer">
                             <Avatar
-                                src={imageUrlInput}
-                                alt={events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? ""}
+                                src={imageSrc}
                                 sx={{ width: 200, height: 200 }}
+                                onError={() => note.profileEventToShow ? setImageSrc(events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
                                 />
                         </div>
                         </AppBar>
@@ -208,6 +249,7 @@ const handleRefreshUserNotesClicked = () => {
                                             <Paper>
                                                 <TextField 
                                                 id="profileNameInput"
+                                                fullWidth
                                                 label="Name"
                                                 InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                 color='primary'
@@ -225,6 +267,7 @@ const handleRefreshUserNotesClicked = () => {
                                                 <Paper sx={{marginTop: "1rem"}}>
                                                     <TextField 
                                                     id="profileAboutInput"
+                                                    fullWidth
                                                     label="About"
                                                     InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                     color='primary'
@@ -244,6 +287,7 @@ const handleRefreshUserNotesClicked = () => {
                                                 <Paper sx={{marginTop: "1rem"}}>   
                                                     <TextField 
                                                     id="profileImageUrlInput"
+                                                    fullWidth
                                                     label="Profile Image URL"
                                                     InputLabelProps={{style: {color: themeColors.textColor}}} 
                                                     color='primary'
@@ -261,6 +305,7 @@ const handleRefreshUserNotesClicked = () => {
                                                 <Paper sx={{marginTop: "1rem"}}>
                                                     <TextField
                                                         id="bannerImageUrlInput"
+                                                        fullWidth
                                                         label="Banner Image URL"
                                                         InputLabelProps={{sx: { color: themeColors.textColor }}}
                                                         color="primary"
