@@ -28,7 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
-
+import BoltIcon from '@mui/icons-material/Bolt';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -46,11 +46,10 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 //Styles
-const FavoriteIconButton = styled(IconButton)(({ theme }) => ({
+const ReactionIconButton = styled(IconButton)(({ }) => ({
   '&.animateLike': {
-    animation: '$scaleAnimation 0.3s ease-in-out',
-    color: 'purple',
-  },
+    animation: '$scaleAnimation 0.3s ease-in-out'
+    },
   '@keyframes scaleAnimation': {
     '0%': { transform: 'scale(1)' },
     '50%': { transform: 'scale(1.3)' },
@@ -91,6 +90,7 @@ const Note: React.FC<NoteProps> = ({
   const nostr = useSelector((state: RootState) => state.nostr);
 
   const [liked, setLiked] = useState(false);
+  const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const dicebear = DiceBears();
@@ -143,6 +143,11 @@ const Note: React.FC<NoteProps> = ({
     const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
     setLiked(signedManually);
 
+  }, [pool, nostr.relays, event]);
+
+  const zapNote = useCallback(async () => {
+    if (!pool) return;
+    setZapped(true)
   }, [pool, nostr.relays, event]);
 
   useEffect(() => {
@@ -327,10 +332,10 @@ const Note: React.FC<NoteProps> = ({
           >
             <RateReviewIcon />
           </IconButton>
-          <FavoriteIconButton 
+
+          <ReactionIconButton 
             aria-label="Upvote note" 
             onClick={likeNote} 
-            disabled={liked} 
             sx={{ color: liked ? themeColors.primary : themeColors.textColor }}
             className={liked ? 'animateLike' : ''}
           >
@@ -338,7 +343,20 @@ const Note: React.FC<NoteProps> = ({
             {(events.reactions[event.id]?.length ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + event.sig} />
-          </FavoriteIconButton>
+          </ReactionIconButton>
+
+          <ReactionIconButton
+            arie-label="zap note"
+            onClick={zapNote}
+            sx={{ color: zapped ? themeColors.secondary : themeColors.textColor }}
+            className={zapped ? 'animateLike' : ''}
+            >
+              <Typography variant='caption' sx={{color: themeColors.textColor}}>
+                {(zapped ? 1 : 0)}
+              </Typography>
+              <BoltIcon id={"zap-icon-" + event.sig} />
+          </ReactionIconButton>
+
           <ExpandMore
             expand={expanded}
             onClick={handleExpandClick}
