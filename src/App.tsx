@@ -87,6 +87,15 @@ function App() {
         dispatch(setImageOnlyMode(parsedSettings.feedSettings.imagesOnlyMode))
       }
     }
+
+    const checkWebLN = async () => {
+
+      if (typeof window.webln !== 'undefined') {
+        console.log('WebLN is available!');
+      }
+    }
+    checkWebLN();
+    
   }, []);
 
 
