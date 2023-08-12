@@ -67,16 +67,24 @@ export const useProfile = ({}: UseProfileProps) => {
     console.log("Updating profile");
 
     try {
+          // Fetch user profile
+        let contentToPost;
 
-        const updatedProfileContent: ProfileContent = {
-            name: name,
-            about: about,
-            picture: picture,
-            banner: banner
-        }
-        setProfile(updatedProfileContent);
+        const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
         
-        const newContent = JSON.stringify(updatedProfileContent);  
+        if (profileEvent && profileEvent.length > 0) {
+          const sanitizedEvent = sanitizeEvent(profileEvent[0]);
+          contentToPost = JSON.parse(sanitizedEvent.content);
+        }
+
+        contentToPost.name = name;
+        contentToPost.about = about;
+        contentToPost.picture = picture;
+        contentToPost.banner = banner;
+
+        setProfile(contentToPost);
+        
+        const newContent = JSON.stringify(contentToPost);  
         const _baseEvent = {
             kind: Kind.Metadata,
             content: newContent,
