@@ -400,6 +400,9 @@ const Note: React.FC<NoteProps> = ({
             Sig: {event.sig}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            Lud16: {events.metaData[event.pubkey]?.lud16 ?? ""}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
             Tags: <ul >{event.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
           </Typography>
         </CardContent>

@@ -69,12 +69,14 @@ export const useProfile = ({}: UseProfileProps) => {
     try {
           // Fetch user profile
         let contentToPost;
-
+        
         const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
+        console.log("length: " + profileEvent.length)
         
         if (profileEvent && profileEvent.length > 0) {
           const sanitizedEvent = sanitizeEvent(profileEvent[0]);
           contentToPost = JSON.parse(sanitizedEvent.content);
+          console.log(contentToPost);
         }
 
         contentToPost.name = name;

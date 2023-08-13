@@ -4,6 +4,7 @@ export const defaultRelays: RelaySetting[]  = [
     {relayUrl: "wss://nostr.wine", read: true, write: false},
     {relayUrl: "wss://eden.nostr.land", read: true, write: false},
     {relayUrl: "wss://relay.nostr.band/", read: true, write: false},
+    {relayUrl: "wss://nostr-pub.wellorder.net", read: false, write: true},
     {relayUrl: "wss://relay.nostr.band/all", read: false, write: true},
     {relayUrl: "wss://relay.snort.social", read: false, write: true},
     {relayUrl: "wss://nostr.bitcoiner.social", read: false, write: true},
