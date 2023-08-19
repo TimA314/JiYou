@@ -13,4 +13,5 @@ export const defaultRelays: RelaySetting[]  = [
     {relayUrl: "wss://relay.nostr.bg/", read: false, write: true},
     {relayUrl: "wss://nostr.fmt.wiz.biz/", read: false, write: true},
     {relayUrl: "wss://nos.lol/", read: false, write: true},
+    {relayUrl: "wss://nostr.mutinywallet.com", read: false, write: true},
   ]

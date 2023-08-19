@@ -29,6 +29,8 @@ import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../r
 import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
+import * as invoice from 'light-bolt11-decoder'
+import { Invoice } from '@node-lightning/invoice';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -89,11 +91,12 @@ const Note: React.FC<NoteProps> = ({
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
 
+  const [zappedAmount, setZappedAmount] = useState(0);
+
   const [liked, setLiked] = useState(false);
   const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const dicebear = DiceBears();
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
@@ -101,10 +104,31 @@ const Note: React.FC<NoteProps> = ({
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const images = GetImageFromPost(event.content);
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
-  const navigate = useNavigate();
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
+
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const dicebear = DiceBears();
+  
+  useEffect(() => {
+    const zapsForNote: Event[] | null = events.zaps[event.id];
+    if(!zapsForNote) return;
+
+    let amount = 0;
+    zapsForNote.forEach(z => {
+      const bolt = z.tags.find(t => t[0] === "bolt11")?.[1]
+      if (bolt) {
+        const decoded = invoice.decode(bolt);
+        console.log("decoded bolt11: " + decoded)
+        if(!decoded) return;
+        amount += decoded.amount;
+      }
+    });
+    setZappedAmount(amount);
+  
+  },[events.zaps]);
+
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
@@ -352,7 +376,7 @@ const Note: React.FC<NoteProps> = ({
             className={zapped ? 'animateLike' : ''}
             >
               <Typography variant='caption' sx={{color: themeColors.textColor}}>
-                {(zapped ? 1 : 0)}
+                {zappedAmount + (zapped ? 1 : 0)}
               </Typography>
               <BoltIcon id={"zap-icon-" + event.sig} />
           </ReactionIconButton>

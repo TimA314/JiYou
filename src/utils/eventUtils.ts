@@ -89,7 +89,6 @@ export function insertEventIntoDescendingList<T extends Event>(
         }
 
         const data = await response.json();
-        console.log(data);
         return data;
 
     } catch (error) {

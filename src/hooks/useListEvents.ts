@@ -156,7 +156,6 @@ export const useListEvents = ({}: useListEventsProps) => {
       });
 
       sub.on("eose", () => {
-        console.log(allFetchedEvents.length)
         if (eventsBatch.length > 0) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addMetaData(ev)));

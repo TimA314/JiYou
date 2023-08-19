@@ -8,12 +8,14 @@ import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { PoolContext } from './context/PoolContext';
 import { SimplePool } from 'nostr-tools';
+import { Buffer } from 'buffer';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 const pool = new SimplePool();
+window.Buffer = Buffer;
 
 root.render(
   <React.StrictMode>

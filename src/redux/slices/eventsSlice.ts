@@ -10,6 +10,7 @@ const initialState: EventsType = {
     currentProfileNotes: [],
     metaData: {},
     reactions: {},
+    zaps: {},
     refreshUserNotes: false,
     refreshingUserNotes: false,
     refreshFeedNotes: true,
@@ -71,7 +72,16 @@ export const eventsSlice = createSlice({
                 state.reactions[likedEventId[1]] = [...prevReactionEvents, action.payload];
             }
         },
-        
+        addZaps: (state, action) => {
+            console.log("adding zaps")
+            const zappedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e");
+            if (!zappedEventId || !zappedEventId[1]) return;
+
+            const prevZapEvents = state.zaps[zappedEventId[1]] ? [...state.zaps[zappedEventId[1]]] : [];
+
+            state.zaps[zappedEventId[1]] = [...prevZapEvents, action.payload];
+            
+        },
         toggleRefreshUserNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes;
         },
@@ -105,7 +115,8 @@ export const {
     addUserNotes, 
     addMetaData,
     addParsedMetaData,
-    addReactions, 
+    addReactions,
+    addZaps,
     toggleRefreshUserNotes,
     toggleRefreshFeedNotes,
     clearUserEvents,
@@ -120,17 +131,18 @@ export const {
 export default eventsSlice.reducer;
 
 export type EventsType = {
-  globalNotes: Event[],
-  rootNotes: Event[],
-  replyNotes:  Record<string, Event[]>,
-  userNotes: Event[],
-  currentProfileNotes: Event[],
-  metaData:  Record<string, MetaData>,
-  reactions:  Record<string, Event[]>,
-  refreshUserNotes: boolean,
-  refreshFeedNotes: boolean,
-  refreshingUserNotes: boolean,
-  refreshingFeedNotes: boolean,
-  refreshCurrentProfileNotes: boolean,
-  refreshingCurrentProfileNotes: boolean,
+    globalNotes: Event[],
+    rootNotes: Event[],
+    replyNotes:  Record<string, Event[]>,
+    userNotes: Event[],
+    currentProfileNotes: Event[],
+    metaData:  Record<string, MetaData>,
+    reactions:  Record<string, Event[]>,
+    zaps:  Record<string, Event[]>,
+    refreshUserNotes: boolean,
+    refreshFeedNotes: boolean,
+    refreshingUserNotes: boolean,
+    refreshingFeedNotes: boolean,
+    refreshCurrentProfileNotes: boolean,
+    refreshingCurrentProfileNotes: boolean,
 }

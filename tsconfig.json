@@ -21,5 +21,8 @@
     "strictNullChecks": true,
     "useDefineForClassFields": true,
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "declarations.d.ts"
+  ]
 }

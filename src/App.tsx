@@ -24,12 +24,14 @@ import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
 import { AlertMessages } from './components/AlertMessages';
 import { setHideExplicitContent, setImageOnlyMode } from './redux/slices/noteSlice';
+import useZaps from './hooks/useZaps';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
   const note = useSelector((state: RootState) => state.note);
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
+  useZaps({});
   const { profile, updateProfile} = useProfile({});
 
   useListEvents({});
