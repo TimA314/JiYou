@@ -30,7 +30,6 @@ import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
-import { Invoice } from '@node-lightning/invoice';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -112,6 +111,7 @@ const Note: React.FC<NoteProps> = ({
   const dicebear = DiceBears();
   
   useEffect(() => {
+    console.log("zapsForNote", events.zaps[event.id]?.length)
     const zapsForNote: Event[] | null = events.zaps[event.id];
     if(!zapsForNote) return;
 
@@ -120,11 +120,14 @@ const Note: React.FC<NoteProps> = ({
       const bolt = z.tags.find(t => t[0] === "bolt11")?.[1]
       if (bolt) {
         const decoded = invoice.decode(bolt);
-        console.log("decoded bolt11: " + decoded)
         if(!decoded) return;
-        amount += decoded.amount;
+        console.log("decoded bolt11: " + JSON.stringify(decoded))
+        const amountSection = decoded.sections.find((section: { name: string; }) => section.name === 'amount');
+        const decodedAmount = amountSection ? Number(amountSection.value) / 1000 : null;
+        amount += decodedAmount ?? 0;
       }
     });
+    console.log("amount", amount)
     setZappedAmount(amount);
   
   },[events.zaps]);

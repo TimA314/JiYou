@@ -53,7 +53,7 @@ export const useListEvents = ({}: useListEventsProps) => {
         hideExplicitContent = settings.feedSettings.hideExplicitContent
       }
 
-      let filter: Filter = {kinds: [1], limit: 100};
+      let filter: Filter = {kinds: [1], limit: 75};
 
       if (note.searchEventIds.length > 0){
         filter.ids = note.searchEventIds;

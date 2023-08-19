@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
 import { PoolContext } from "../context/PoolContext";
-import { batch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import { defaultRelays } from "../nostr/DefaultRelays";
 import { Event, Filter } from "nostr-tools";
@@ -16,6 +16,7 @@ const useZaps = (props: Props) => {
     const nostr = useSelector((state: RootState) => state.nostr);
     const note = useSelector((state: RootState) => state.note);
     const zapsFetched = useRef<Record<string, boolean>>({});
+    const dispatch = useDispatch();
     
     const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
     
@@ -48,9 +49,8 @@ const useZaps = (props: Props) => {
             let eventsBatch: Event[] = [];
             
             sub.on("event", (event: Event) => {
-                console.log(JSON.stringify(event))
                 eventsBatch.push(sanitizeEvent(event));
-                if (eventsBatch.length > 10) {
+                if (eventsBatch.length > 5) {
                     batch(() => {
                         eventsBatch.forEach(ev => dispatch(addZaps(ev)));
                     });
