@@ -26,8 +26,8 @@ export const useFollowing = ({}: UseFollowingProps) => {
 
     if (!pool) return [];
     let followingPks: string[] = [];
-    const userFollowingEvent: Event[] = await pool.list(allRelayUrls, [{kinds: [3], authors: [pubkey], limit: 1 }])
-    
+    const userFollowingEvent: Event[] = await pool.batchedList('initial', allRelayUrls, [{kinds: [3], authors: [pubkey], limit: 1 }])
+    console.log("FollowingEvents: " + userFollowingEvent.length)
     if (!userFollowingEvent[0] || !userFollowingEvent[0].tags) return [];
 
     const followingArray: string[][] = userFollowingEvent[0].tags.filter((tag) => tag[0] === 'p');
@@ -51,8 +51,8 @@ export const useFollowing = ({}: UseFollowingProps) => {
       return;
     }
 
-    const followerEvents = await pool.list(allRelayUrls, [{kinds: [3], ["#p"]: [pubkey] }])
-
+    const followerEvents = await pool.batchedList('initial', allRelayUrls, [{kinds: [3], ["#p"]: [pubkey] }])
+    console.log("FollowerEvents: " + followerEvents.length)
     if (!followerEvents || followerEvents.length === 0) return;
 
     const followerPks: string[] = followerEvents.map((event) => event.pubkey);

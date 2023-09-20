@@ -70,7 +70,7 @@ export const useProfile = ({}: UseProfileProps) => {
           // Fetch user profile
         let contentToPost;
         
-        const profileEvent: Event[] = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
+        const profileEvent: Event[] = await pool.batchedList('initial',[...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
         console.log("length: " + profileEvent.length)
         
         if (profileEvent && profileEvent.length > 0) {

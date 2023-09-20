@@ -21,7 +21,7 @@ const useZaps = (props: Props) => {
     useEffect(() => {
         if (!pool) return;
         
-        const fetchZaps = () => { 
+        const fetchZaps = async () => { 
             const allPubkeysToFetch: string[] = []
             const allEventIdsToFetch: string[] = []
             const feedEventsToFetch = events.globalNotes.filter((e) => zapsFetched.current[e.id] !== true);
@@ -41,28 +41,11 @@ const useZaps = (props: Props) => {
             
             const filter: Filter = {kinds: [9735], '#e': allEventIdsToFetch, '#p': allPubkeysToFetch};
             
-            let sub = pool.sub(allRelayUrls, [filter])
+            let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [filter])
             
-            let eventsBatch: Event[] = [];
-            
-            sub.on("event", (event: Event) => {
-                eventsBatch.push(sanitizeEvent(event));
-                if (eventsBatch.length > 7) {
-                    batch(() => {
-                        eventsBatch.forEach(ev => dispatch(addZaps(ev)));
-                    });
-                    eventsBatch = [];
-                }
+            batch(() => {
+                batchedList.forEach(ev => dispatch(addZaps(sanitizeEvent(ev))));
             });
-
-            sub.on("eose", () => {
-                if (eventsBatch.length > 0) {
-                  batch(() => {
-                    eventsBatch.forEach(ev => dispatch(addZaps(ev)));
-                  });
-                  eventsBatch = [];
-                }
-              })
         }
         
         fetchZaps();

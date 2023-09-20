@@ -133,50 +133,31 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       if (pubkeysToFetch.length === 0) return;
       
-      const sub = pool.sub([...allRelayUrls, "wss://purplepag.es"], [
+      const batchedList = await pool.batchedList('noteDetails',[...allRelayUrls, "wss://purplepag.es"], [
         {
           kinds: [0],
           authors: pubkeysToFetch,
         },
       ]);
 
-      let allFetchedEvents: Event[] = [];
-      let eventsBatch: Event[] = [];
+      console.log("MetaData: " + batchedList.length)
 
-      sub.on("event", async (event: Event) => {
-        allFetchedEvents.push(event);
-        const sanitizedEvent = await sanitizeEvent(event);
-        eventsBatch.push(sanitizedEvent);
-        if (eventsBatch.length > 10) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
-          });
-          eventsBatch = [];
-        }
+      batch(() => {
+        batchedList.forEach(ev => dispatch(addMetaData(sanitizeEvent(ev))));
       });
 
-      sub.on("eose", () => {
-        if (eventsBatch.length > 0) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addMetaData(ev)));
-          });
-          eventsBatch = [];
-        }
+      const missingEvents = pubkeysToFetch.filter((pk) => batchedList.find((e) => e.pubkey === pk));
+      if (missingEvents.length === 0) return;
 
-        const missingEvents = pubkeysToFetch.filter((pk) => allFetchedEvents.find((e) => e.pubkey === pk));
-        if (missingEvents.length === 0) return;
+      batch(() => {
+        missingEvents.forEach(async (pk) => {
 
-        batch(() => {
-          missingEvents.forEach(async (pk) => {
-
-            const nostrBandMetaData = await fetchNostrBandMetaData(pk);
-            if (nostrBandMetaData !== null && nostrBandMetaData !== undefined) {
-              dispatch(addMetaData(nostrBandMetaData));
-            }
-          });
+          const nostrBandMetaData = await fetchNostrBandMetaData(pk);
+          if (nostrBandMetaData !== null && nostrBandMetaData !== undefined) {
+            dispatch(addMetaData(nostrBandMetaData));
+          }
         });
-
-      })
+      });
 
     };
 
@@ -212,34 +193,16 @@ export const useListEvents = ({}: useListEventsProps) => {
         }
       );
 
-      let sub = pool.sub(allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
-      
-      let eventsBatch: Event[] = [];
+      let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [{ "kinds": [7], "#e": allEventIdsToFetch, "#p": allPubkeysToFetch}]);
+      console.log("Reactions: " + batchedList.length)
 
-      sub.on("event", async (event: Event) => {
-        eventsBatch.push(sanitizeEvent(event));
-        if (eventsBatch.length > 10) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReactions(ev)));
-          });
-          eventsBatch = [];
-        }
+      batch(() => {
+        batchedList.forEach(ev => dispatch(addReactions(sanitizeEvent(ev))));
       });
-
-      sub.on("eose", () => {
-        if (eventsBatch.length > 0) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReactions(ev)));
-          });
-          eventsBatch = [];
-        }
-      })
     }
 
-    setTimeout(() => {
-      fetchReactions();
-    }, 1000);
-    
+    fetchReactions();
+ 
   }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes, events.currentProfileNotes]);
 
   
@@ -270,28 +233,12 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       replyEventIdsToFetch.forEach((id) => repliesFetched.current[id] = true)
 
-      let sub = pool.sub(allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
-      
-      let eventsBatch: Event[] = [];
-
-      sub.on("event", async (event: Event) => {
-        eventsBatch.push(sanitizeEvent(event));
-        if (eventsBatch.length > 10) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
-          });
-          eventsBatch = [];
-        }
+      let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [{ kinds: [1], "#e": replyEventIdsToFetch}]);
+      console.log("ReplyEvents: " + batchedList.length)
+      batch(() => {
+        batchedList.forEach(ev => dispatch(addReplyNotes(sanitizeEvent(ev))));
       });
-
-      sub.on("eose", () => {
-        if (eventsBatch.length > 0) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addReplyNotes(ev)));
-          });
-          eventsBatch = [];
-        }
-      })
+      
     }
 
     subReplyEvents();
@@ -344,82 +291,39 @@ export const useListEvents = ({}: useListEventsProps) => {
         return;
       }
 
-      let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
-      
-      let eventsBatch: Event[] = [];
-      
-      sub.on("event", async (event: Event) => {
-        eventsBatch.push(await sanitizeEvent(event));
-        if (eventsBatch.length > 10) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
-          })
-        }
-      });
-
-      sub.on("eose", () => {
-        if (eventsBatch.length > 0) {
-          batch(() => {
-            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
-          });
-          eventsBatch = [];
-        }
+      let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
+      console.log("RootEvents: " + batchedList.length)
+      batch(() => {
+        batchedList.forEach(ev => dispatch(addRootNotes(sanitizeEvent(ev))));
       })
     }
 
     subRootEvents();
   }, [events.globalNotes, events.replyNotes, events.userNotes, events.rootNotes, events.currentProfileNotes]);
 
+
   //User Notes
   useEffect(() => {
     
-    const fetchUserNotes = () => {
+    const fetchUserNotes = async () => {
       if (!pool) return;
 
       dispatch(clearUserEvents());
 
-      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
+      const batchedList = await pool.batchedList('initial', allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
       let eventsBatch: Event[] = [];
 
-      sub.on("event", async (event: Event) => {
-        eventsBatch.push(await sanitizeEvent(event));
-
-        if (eventsBatch.length > 2) {
-          batch(() => {
-            eventsBatch.forEach((ev) => {
-
-              if (keys.publicKey.decoded === ev.pubkey) {
-                dispatch(addUserNotes(ev));
-              } else {
-                dispatch(addCurrentProfileNotes(ev));
-              }
-            });
-          });
-          eventsBatch = []; 
-        }
-
+      batch(() => {
+        eventsBatch.forEach((ev) => {
+          if (keys.publicKey.decoded === ev.pubkey) {
+            dispatch(addUserNotes(sanitizeEvent(ev)));
+          } else {
+            dispatch(addCurrentProfileNotes(sanitizeEvent(ev)));
+          }
+        });
       });
 
-      sub.on("eose", () => {
-        
-        if (eventsBatch.length > 0) {
-          batch(() => {
-            
-            eventsBatch.forEach((ev) => {
-              
-              if (keys.publicKey.decoded === ev.pubkey) {
-                dispatch(addUserNotes(ev));
-              }
-              
-            });
-            
-          });
-          eventsBatch = []; 
-        }
-
-        dispatch(setIsRefreshingUserEvents(false))
-      })
-
+      dispatch(setIsRefreshingUserEvents(false))
     }
 
     fetchUserNotes();

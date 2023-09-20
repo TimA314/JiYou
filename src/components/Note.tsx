@@ -127,7 +127,6 @@ const Note: React.FC<NoteProps> = ({
         amount += decodedAmount;
       }
     });
-    console.log("amount", amount)
     setZappedAmount(amount);
   
   },[events.zaps]);
@@ -179,17 +178,19 @@ const Note: React.FC<NoteProps> = ({
       return;
     }
 
-    console.log("metaDataOfNote", events.metaData[event.pubkey]?.lud16)
-    const lud16 = events.metaData[event.pubkey]?.lud16;
+    let lud16 = events.metaData[event.pubkey]?.lud16;
     if(!lud16) {
-      console.log("no lud16")
       const metaDataEvent = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded]}]);
-      console.log("metaDataEvent", JSON.stringify(metaDataEvent[0]))
-    } 
-    // fetch(lud16).then((response) => {
-    //   console.log("response", response.json())
-    //   return response.json();
-    // })
+      if(!metaDataEvent[0]?.content || metaDataEvent[0]?.content.trim() === "") return;
+      lud16 = JSON.parse(metaDataEvent[0]?.content)?.lud16;
+      console.log("lud16", lud16)
+      if(!lud16) return;
+    }
+
+    fetch(lud16).then((response) => {
+      console.log("response", response.json())
+      return response.json();
+    })
 
     //setZapped(true)
   }, [pool, nostr.relays, event]);
@@ -210,7 +211,6 @@ const Note: React.FC<NoteProps> = ({
   }
 
   const handleReplyToNote = () => {
-    console.log("reply to note modal open", event);
     dispatch(setReplyToNoteEvent(event));
   }
 
