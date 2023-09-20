@@ -14,7 +14,7 @@ import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
-import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
+import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -30,6 +30,7 @@ import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
+import { defaultRelays } from '../nostr/DefaultRelays';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -105,13 +106,13 @@ const Note: React.FC<NoteProps> = ({
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
+  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const dicebear = DiceBears();
   
   useEffect(() => {
-    console.log("zapsForNote", events.zaps[event.id]?.length)
     const zapsForNote: Event[] | null = events.zaps[event.id];
     if(!zapsForNote) return;
 
@@ -121,10 +122,9 @@ const Note: React.FC<NoteProps> = ({
       if (bolt) {
         const decoded = invoice.decode(bolt);
         if(!decoded) return;
-        console.log("decoded bolt11: " + JSON.stringify(decoded))
         const amountSection = decoded.sections.find((section: { name: string; }) => section.name === 'amount');
-        const decodedAmount = amountSection ? Number(amountSection.value) / 1000 : null;
-        amount += decodedAmount ?? 0;
+        const decodedAmount = amountSection ? Number(amountSection.value) / 1000 : 0;
+        amount += decodedAmount;
       }
     });
     console.log("amount", amount)
@@ -174,7 +174,24 @@ const Note: React.FC<NoteProps> = ({
 
   const zapNote = useCallback(async () => {
     if (!pool) return;
-    setZapped(true)
+    if (!typeof window.webln) {
+      console.log('WebLN is not available');
+      return;
+    }
+
+    console.log("metaDataOfNote", events.metaData[event.pubkey]?.lud16)
+    const lud16 = events.metaData[event.pubkey]?.lud16;
+    if(!lud16) {
+      console.log("no lud16")
+      const metaDataEvent = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded]}]);
+      console.log("metaDataEvent", JSON.stringify(metaDataEvent[0]))
+    } 
+    // fetch(lud16).then((response) => {
+    //   console.log("response", response.json())
+    //   return response.json();
+    // })
+
+    //setZapped(true)
   }, [pool, nostr.relays, event]);
 
   useEffect(() => {

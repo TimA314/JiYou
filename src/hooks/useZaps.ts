@@ -11,10 +11,8 @@ type Props = {}
 
 const useZaps = (props: Props) => {
     const pool = useContext(PoolContext);
-    const keys = useSelector((state: RootState) => state.keys);
     const events = useSelector((state: RootState) => state.events);
     const nostr = useSelector((state: RootState) => state.nostr);
-    const note = useSelector((state: RootState) => state.note);
     const zapsFetched = useRef<Record<string, boolean>>({});
     const dispatch = useDispatch();
     
@@ -42,7 +40,6 @@ const useZaps = (props: Props) => {
             });
             
             const filter: Filter = {kinds: [9735], '#e': allEventIdsToFetch, '#p': allPubkeysToFetch};
-            console.log("getting zaps")
             
             let sub = pool.sub(allRelayUrls, [filter])
             
@@ -50,7 +47,7 @@ const useZaps = (props: Props) => {
             
             sub.on("event", (event: Event) => {
                 eventsBatch.push(sanitizeEvent(event));
-                if (eventsBatch.length > 5) {
+                if (eventsBatch.length > 7) {
                     batch(() => {
                         eventsBatch.forEach(ev => dispatch(addZaps(ev)));
                     });
@@ -72,8 +69,4 @@ const useZaps = (props: Props) => {
     }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes, events.currentProfileNotes]);
 }
 
-export default useZaps
-
-function dispatch(arg0: any): void {
-    throw new Error("Function not implemented.");
-}
+export default useZaps;
