@@ -48,6 +48,7 @@ export interface MetaData {
   picture?: string,
   banner?: string,
   nip05?: string,
+  lud06?: string,
   lud16?: string,
 }
 

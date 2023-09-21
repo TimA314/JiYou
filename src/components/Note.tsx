@@ -27,7 +27,7 @@ import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
 import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
-import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { fetchNostrBandMetaData, getMediaNostrBandImageUrl, getZapEndpoint } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
 import { defaultRelays } from '../nostr/DefaultRelays';
@@ -178,20 +178,18 @@ const Note: React.FC<NoteProps> = ({
       return;
     }
 
-    let lud16 = events.metaData[event.pubkey]?.lud16;
-    if(!lud16) {
-      const metaDataEvent = await pool.list([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded]}]);
-      if(!metaDataEvent[0]?.content || metaDataEvent[0]?.content.trim() === "") return;
-      lud16 = JSON.parse(metaDataEvent[0]?.content)?.lud16;
-      console.log("lud16", lud16)
-      if(!lud16) return;
+    if (events.metaData[event.pubkey]){
+      const endpoint = await getZapEndpoint(events.metaData[event.pubkey]);
+      console.log("zap endpoint: ", endpoint);
+    } else {
+      const nostrBandMetaData = await fetchNostrBandMetaData(event.pubkey);
+      if (!nostrBandMetaData) {
+        console.log("No zap endpoint found for pubkey: ", event.pubkey);
+        return;
+      }
+      const endpoint = await getZapEndpoint(nostrBandMetaData);
+      console.log("zap endpoint from NostrBand: ", endpoint);
     }
-
-    fetch(lud16).then((response) => {
-      console.log("response", response.json())
-      return response.json();
-    })
-
     //setZapped(true)
   }, [pool, nostr.relays, event]);
 
