@@ -1,4 +1,4 @@
-import { Event } from "nostr-tools";
+import { Event, EventTemplate, Kind } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
 import { bech32 } from '@scure/base'
 export const utf8Decoder = new TextDecoder('utf-8')
@@ -81,23 +81,26 @@ export function insertEventIntoDescendingList<T extends Event>(
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
   }
 
-  export async function getZapEndpoint(metadata: MetaData): Promise<null | string> {
+  export const getLnurl = (metadata: MetaData) => {
+    let lnurl: string = ''
+    console.log("zap metadata: ", metadata)
+    if (metadata.lud06) {
+      let { words } = bech32.decode(metadata.lud06, 1000)
+      let data = bech32.fromWords(words)
+      lnurl = utf8Decoder.decode(data)
+      console.log(lnurl)
+    } else if (metadata.lud16) {
+      let [name, domain] = metadata.lud16.split('@')
+      lnurl = `https://${domain}/.well-known/lnurlp/${name}`
+      console.log(lnurl)
+      return lnurl;
+    } else {
+      return null;
+    }
+  }
+
+  export async function getZapEndpoint(lnurl: string): Promise<null | string> {
     try {
-      let lnurl: string = ''
-      console.log("zap metadata: ", metadata)
-      if (metadata.lud06) {
-        let { words } = bech32.decode(metadata.lud06, 1000)
-        let data = bech32.fromWords(words)
-        lnurl = utf8Decoder.decode(data)
-        console.log(lnurl)
-      } else if (metadata.lud16) {
-        let [name, domain] = metadata.lud16.split('@')
-        lnurl = `https://${domain}/.well-known/lnurlp/${name}`
-        console.log(lnurl)
-      } else {
-        return null
-      }
-  
       let res = await fetch(lnurl)
       let body = await res.json()
   

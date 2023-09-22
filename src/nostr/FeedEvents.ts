@@ -113,3 +113,7 @@ dispatch: Dispatch<AnyAction>
     dispatch(addMessage({message: eventKindMessage, isError: false}))
     return true;
 }
+
+export const signEvent = (event) => {
+  
+}

@@ -13,8 +13,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
-import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
+import { nip19, EventTemplate, Kind, Event, finishEvent } from 'nostr-tools';
+import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost, makeZapRequest, metaDataAndRelayHelpingRelay, validateZapRequest } from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -22,15 +22,16 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow, addMessage } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
 import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
-import { fetchNostrBandMetaData, getMediaNostrBandImageUrl, getZapEndpoint } from '../utils/eventUtils';
+import { fetchNostrBandMetaData, getLnurl, getMediaNostrBandImageUrl, getZapEndpoint } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
 import { defaultRelays } from '../nostr/DefaultRelays';
+import { MetaData } from '../nostr/Types';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -178,19 +179,72 @@ const Note: React.FC<NoteProps> = ({
       return;
     }
 
+    let callback = null;
+    let lnurl = null;
+    let amount = 1 * 1000;
+
     if (events.metaData[event.pubkey]){
-      const endpoint = await getZapEndpoint(events.metaData[event.pubkey]);
-      console.log("zap endpoint: ", endpoint);
+      // Get the lnurl from the metadata
+      lnurl = getLnurl(events.metaData[event.pubkey]);
     } else {
+      // Backup get lnurl from NostrBand metadata
       const nostrBandMetaData = await fetchNostrBandMetaData(event.pubkey);
-      if (!nostrBandMetaData) {
-        console.log("No zap endpoint found for pubkey: ", event.pubkey);
+      if (nostrBandMetaData) {
+        lnurl = getLnurl(nostrBandMetaData as MetaData)
         return;
       }
-      const endpoint = await getZapEndpoint(nostrBandMetaData);
-      console.log("zap endpoint from NostrBand: ", endpoint);
+      
+      if (!lnurl) {
+        dispatch(addMessage({ message: "unable to sign event", isError: true }));
+        return;
+      }
+      
+      callback = await getZapEndpoint(lnurl);
+
+      const zapRequest = makeZapRequest(
+        {
+          profile: event.pubkey,
+          event: event.id,
+          amount: amount,
+          comment: "zap",
+          relays: allRelayUrls
+      });
+
+      let signedEvent = null;
+
+      if (window.nostr){
+        signedEvent = await window.nostr.signEvent(zapRequest);
+        console.log("nostr signed by extension");
+      } else {
+        signedEvent = finishEvent(zapRequest, keys.privateKey.decoded);
+      }
+      if (!signedEvent) {
+        dispatch(addMessage({ message: "unable to sign event", isError: true }));
+        return;
+      }
+      
+      const validation = validateZapRequest(JSON.stringify(signedEvent));
+      if(validation !== null){
+        dispatch(addMessage({message: validation, isError: true}));
+        return;
+      }
+
+      const jsonResult = await fetch(`${callback}?amount=${amount}&nostr=${event}&lnurl=${lnurl}`)
+      const invoice = await jsonResult.json();
+      
+      // Provide invoice to a lightning wallet client (e.g. Zeus, Breez, alby, etc.)
+      try{
+        if (window.webln){
+          window.webln.sendPayment(invoice);
+        } else {
+          dispatch(addMessage({message: "webln unavailable, unable to send payment", isError: true}));
+        }
+      } catch (e) {
+        console.error(e);
+        dispatch(addMessage({message: "unable to send payment", isError: true}));
+      }
     }
-    //setZapped(true)
+    setZapped(true)
   }, [pool, nostr.relays, event]);
 
   useEffect(() => {
