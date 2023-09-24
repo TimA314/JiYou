@@ -81,37 +81,20 @@ export function insertEventIntoDescendingList<T extends Event>(
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
   }
 
-  export const getLnurl = (metadata: MetaData) => {
-    let lnurl: string = ''
-    console.log("zap metadata: ", metadata)
-    if (metadata.lud06) {
-      let { words } = bech32.decode(metadata.lud06, 1000)
-      let data = bech32.fromWords(words)
-      lnurl = utf8Decoder.decode(data)
-      console.log(lnurl)
-    } else if (metadata.lud16) {
-      let [name, domain] = metadata.lud16.split('@')
-      lnurl = `https://${domain}/.well-known/lnurlp/${name}`
-      console.log(lnurl)
-      return lnurl;
-    } else {
-      return null;
-    }
-  }
+  export const getLnurl = (metaData: MetaData) => {
+    let lud06 = metaData.lud06;
+    let lud16 = metaData.lud16;
 
-  export async function getZapEndpoint(lnurl: string): Promise<null | string> {
-    try {
-      let res = await fetch(lnurl)
-      let body = await res.json()
-  
-      if (body.allowsNostr && body.nostrPubkey) {
-        return body.callback
-      }
-    } catch (err) {
-      console.error(err);
+    if (lud06 && lud06 !== "") {
+      let { words } = bech32.decode(lud06, 1000)
+      let data = bech32.fromWords(words)
+      return utf8Decoder.decode(data)
+    } else if (lud16 && lud16 !== "") {
+      let [name, domain] = lud16.split('@')
+      return `https://${domain}/.well-known/lnurlp/${name}`
+    } else {
+      return null
     }
-  
-    return null
   }
   
   export const fetchNostrBandMetaData = async (pubkeyToFetch: string): Promise<MetaData | null> => {

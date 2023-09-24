@@ -11,6 +11,7 @@ type Props = {}
 
 const useZaps = (props: Props) => {
     const pool = useContext(PoolContext);
+    const keys = useSelector((state: RootState) => state.keys);
     const events = useSelector((state: RootState) => state.events);
     const nostr = useSelector((state: RootState) => state.nostr);
     const zapsFetched = useRef<Record<string, boolean>>({});
@@ -18,6 +19,7 @@ const useZaps = (props: Props) => {
     
     const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
     
+
     useEffect(() => {
         if (!pool) return;
         

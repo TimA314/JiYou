@@ -53,7 +53,7 @@ export const useListEvents = ({}: useListEventsProps) => {
         hideExplicitContent = settings.feedSettings.hideExplicitContent
       }
 
-      let filter: Filter = {kinds: [1], limit: 75};
+      let filter: Filter = {kinds: [1], limit: 50};
 
       if (note.searchEventIds.length > 0){
         filter.ids = note.searchEventIds;
@@ -327,7 +327,7 @@ export const useListEvents = ({}: useListEventsProps) => {
     }
 
     fetchUserNotes();
-  }, [pool, keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
+  }, [keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
   
 
   //Curent Profile Notes

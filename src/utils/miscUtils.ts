@@ -212,6 +212,16 @@ export const GetImageFromPost = (content: string): string[] => {
     return "";
   }
 
+  export const getZapCallbackFromLnurl = async (lnurl: string) => {
+    let res = await fetch(lnurl)
+    let body = await res.json()
+    console.log(JSON.stringify(body));
+
+    if (body.allowsNostr && body.nostrPubkey) {
+      return body.callback
+    }
+  }
+
   export function validateZapRequest(zapRequestString: string): string | null {
     let zapRequest: Event
   
@@ -289,7 +299,7 @@ export const GetImageFromPost = (content: string): string[] => {
       tags: [
         ['p', profile],
         ['amount', amount.toString()],
-        ['relays', ...relays],
+        ['relays', relays.join(',')],
       ],
     }
   
