@@ -175,7 +175,6 @@ const Note: React.FC<NoteProps> = ({
   }, [pool, nostr.relays, event]);
 
   const zapNote = async () => {
-  const zapNote = async () => {
     if (!pool) return;
     if (!typeof window.webln) {
       console.log('WebLN is not available');
@@ -202,8 +201,6 @@ const Note: React.FC<NoteProps> = ({
         lnurl = getLnurl(nostrBandMetaData as MetaData)
       }
     }
-      }
-    }
       
     console.log("lnurl", lnurl);
 
@@ -242,29 +239,9 @@ const Note: React.FC<NoteProps> = ({
         relays: allRelayUrls
       }
     );
-    const zapRequest = makeZapRequest(
-      {
-        profile: event.pubkey,
-        event: event.id,
-        amount: amount,
-        comment: "zap",
-        relays: allRelayUrls
-      }
-    );
 
     let signedEvent = null;
-    let signedEvent = null;
 
-    if (window.nostr && keys.privateKey.decoded === ""){
-      signedEvent = await window.nostr.signEvent(zapRequest);
-      console.log("signed by extension");
-    } else {
-      signedEvent = finishEvent(zapRequest, keys.privateKey.decoded);
-    }
-    if (!signedEvent) {
-      dispatch(addMessage({ message: "unable to sign event", isError: true }));
-      return;
-    }
     if (window.nostr && keys.privateKey.decoded === ""){
       signedEvent = await window.nostr.signEvent(zapRequest);
       console.log("signed by extension");
@@ -283,16 +260,7 @@ const Note: React.FC<NoteProps> = ({
       return;
     }
     console.log("zapRequest", zapRequest);
-    const validation = validateZapRequest(JSON.stringify(signedEvent));
-    console.log("validation", validation);
-    if(validation !== null){
-      dispatch(addMessage({message: validation, isError: true}));
-      return;
-    }
-    console.log("zapRequest", zapRequest);
 
-    // Provide invoice to a lightning wallet client (e.g. Zeus, Breez, alby, etc.)
-    try{
     // Provide invoice to a lightning wallet client (e.g. Zeus, Breez, alby, etc.)
     try{
       const jsonResult = await fetch(`${callback}?amount=${amount}&nostr=${event}&lnurl=${lnurl}`)
@@ -313,23 +281,7 @@ const Note: React.FC<NoteProps> = ({
       console.log(error);
       dispatch(addMessage({message: "unable to send payment", isError: true}));
     }
-  }
-      console.log("invoice", invoice.pr)
-      if(typeof window.webln !== 'undefined') {
-        await window.webln.enable();
-        await window.webln.sendPayment(invoice.pr);
-        dispatch(addMessage({message: "zap sent", isError: false}));
-        setZappedAmount((prev) => prev + amount);
-        setZapped(true);
-        dispatch(addMessage({message: "webln unavailable, unable to send payment", isError: true}));
-      }
-      console.log("zap sent")
-    }
-    catch(error) {
-      // User denied permission or cancelled 
-      console.log(error);
-      dispatch(addMessage({message: "unable to send payment", isError: true}));
-    }
+
   }
 
   useEffect(() => {
