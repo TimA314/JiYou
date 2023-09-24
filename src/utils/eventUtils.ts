@@ -1,7 +1,5 @@
 import { Event, EventTemplate, Kind } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
-import { bech32 } from '@scure/base'
-export const utf8Decoder = new TextDecoder('utf-8')
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(
@@ -79,22 +77,6 @@ export function insertEventIntoDescendingList<T extends Event>(
 
   export const getMetaDataNostrBandUrl = (pubkeyToFetch: string) => {
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
-  }
-
-  export const getLnurl = (metaData: MetaData) => {
-    let lud06 = metaData.lud06;
-    let lud16 = metaData.lud16;
-
-    if (lud06 && lud06 !== "") {
-      let { words } = bech32.decode(lud06, 1000)
-      let data = bech32.fromWords(words)
-      return utf8Decoder.decode(data)
-    } else if (lud16 && lud16 !== "") {
-      let [name, domain] = lud16.split('@')
-      return `https://${domain}/.well-known/lnurlp/${name}`
-    } else {
-      return null
-    }
   }
   
   export const fetchNostrBandMetaData = async (pubkeyToFetch: string): Promise<MetaData | null> => {
