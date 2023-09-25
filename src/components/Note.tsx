@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { nip19, EventTemplate, Kind, Event, finishEvent } from 'nostr-tools';
+import { nip19, EventTemplate, Event, finishEvent } from 'nostr-tools';
 import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
@@ -32,7 +32,6 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { MetaData } from '../nostr/Types';
-import { getZapEndpoint } from 'nostr-tools/lib/nip57';
 import { getLnurl, getZapCallbackFromLnurl, makeZapRequest, validateZapRequest } from '../nostr/Zaps';
 
 //Expand Note
@@ -181,7 +180,6 @@ const Note: React.FC<NoteProps> = ({
       return;
     }
     console.log("zapNote");
-    console.log("zapNote");
 
     let callback = null;
     let lnurl = null;
@@ -191,11 +189,9 @@ const Note: React.FC<NoteProps> = ({
       // Get the lnurl from the metadata
       lnurl = getLnurl(events.metaData[event.pubkey]);
       console.log(events.metaData[event.pubkey])
-      console.log(events.metaData[event.pubkey])
     } else {
       // Backup get lnurl from NostrBand metadata
       const nostrBandMetaData = await fetchNostrBandMetaData(event.pubkey);
-      console.log("nostrBandMetaData", nostrBandMetaData)
       console.log("nostrBandMetaData", nostrBandMetaData)
       if (nostrBandMetaData) {
         lnurl = getLnurl(nostrBandMetaData as MetaData)
@@ -208,20 +204,7 @@ const Note: React.FC<NoteProps> = ({
       dispatch(addMessage({ message: "unable to get lnurl", isError: true }));
       return;
     }
-    console.log("lnurl", lnurl);
-
-    if (!lnurl) {
-      dispatch(addMessage({ message: "unable to get lnurl", isError: true }));
-      return;
-    }
       
-    callback = await getZapCallbackFromLnurl(lnurl);
-
-    console.log("callback", callback);
-    if (!callback) {
-      dispatch(addMessage({ message: "unable to get callback from lnurl", isError: true }));
-      return;
-    }
     callback = await getZapCallbackFromLnurl(lnurl);
 
     console.log("callback", callback);
@@ -494,7 +477,6 @@ const Note: React.FC<NoteProps> = ({
             className={zapped ? 'animateLike' : ''}
             >
               <Typography variant='caption' sx={{color: themeColors.textColor}}>
-                {zappedAmount}
                 {zappedAmount}
               </Typography>
               <BoltIcon id={"zap-icon-" + event.sig} />
