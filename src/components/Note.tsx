@@ -25,7 +25,7 @@ import { RootState } from '../redux/store';
 import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow, addMessage } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
-import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { addZaps, clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -149,7 +149,7 @@ const Note: React.FC<NoteProps> = ({
     
     //Construct the event
     const _baseEvent = {
-      kind: Kind.Reaction,
+      kind: 7,
       content: "+",
       created_at: Math.floor(Date.now() / 1000),
       tags: [
@@ -274,7 +274,16 @@ const Note: React.FC<NoteProps> = ({
         setZapped(true);
         dispatch(addMessage({message: "webln unavailable, unable to send payment", isError: true}));
       }
-      console.log("zap sent")
+
+      let sub = pool.sub(allRelayUrls, [{kinds: [9735], ids: [signedEvent.id]}]);
+      sub.on('event', event => {
+        console.log("zap reciept", event);
+        if (event.kind === 9735) {
+          setZappedAmount((prev) => prev - amount);
+          dispatch(addZaps(event))
+          dispatch(addMessage({message: "zap sent", isError: false}));
+        }
+      });
     }
     catch(error) {
       // User denied permission or cancelled 
