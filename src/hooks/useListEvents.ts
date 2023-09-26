@@ -108,77 +108,74 @@ export const useListEvents = ({}: useListEventsProps) => {
 
   //MetaData
   useEffect(() => {
-  
-    
     const fetchMetaData = async () => {
       if (!pool) return;
+
       const maxAttempts = 5;
-      const pubkeysToFetch: string[] = [];
+      const pubkeysToFetch = new Set<string>();
 
-      events.globalNotes.filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
-        .forEach((event) => pubkeysToFetch.push(event.pubkey));
-
-      events.currentProfileNotes.filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
-        .forEach((event) => pubkeysToFetch.push(event.pubkey));
-
-      Object.values(events.reactions).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
-        .forEach((event) => pubkeysToFetch.push(event.pubkey));
-
-      Object.values(events.replyNotes).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
-        .forEach((event) => pubkeysToFetch.push(event.pubkey));
-
-      Object.values(events.rootNotes).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
-        .forEach((event) => pubkeysToFetch.push(event.pubkey));
-
+      const addPubkey = (event: Event<number>) => {
+        if (!metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts) {
+          pubkeysToFetch.add(event.pubkey);
+        }
+      };
+  
+      const flatMapEvents = (events: Record<string, Event<number>[]>) => {
+        return Object.values(events).reduce((acc: Event<number>[], arr) => acc.concat(arr), []);
+      };
+  
+      [
+        ...events.globalNotes,
+        ...events.currentProfileNotes,
+        ...events.rootNotes
+      ].forEach(addPubkey);
+  
+      [
+        ...flatMapEvents(events.reactions),
+        ...flatMapEvents(events.replyNotes)
+      ].forEach(addPubkey);
 
       if (!events.metaData[keys.publicKey.decoded] || metadataFetched.current[keys.publicKey.decoded] < maxAttempts) {
-        pubkeysToFetch.unshift(keys.publicKey.decoded);
+        pubkeysToFetch.add(keys.publicKey.decoded);
       }
 
-      console.log("Pubkeys to fetch: ", pubkeysToFetch.length)
+      console.log("Pubkeys to fetch: ", pubkeysToFetch.size);
 
-      pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = metadataFetched.current[pubkey] ? metadataFetched.current[pubkey] + 1 : 1));
+      if (pubkeysToFetch.size === 0) return;
 
-      if (pubkeysToFetch.length === 0) return;
-      
+      pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = (metadataFetched.current[pubkey] || 0) + 1));
+
       const batchedList = await pool.batchedList('noteDetails',[...allRelayUrls, ...metaDataAndRelayHelpingRelay, "wss://purplepag.es"], [
-        {
-          kinds: [0],
-          authors: pubkeysToFetch,
-        },
+        { kinds: [0], authors: Array.from(pubkeysToFetch) },
       ]);
 
-      console.log("MetaData: " + batchedList.length)
+      console.log("MetaData: " + batchedList.length);
 
       batch(() => {
         batchedList.forEach(ev => {
           metadataFetched.current[ev.pubkey] = maxAttempts;
-          dispatch(addMetaData(sanitizeEvent(ev)))
+          dispatch(addMetaData(sanitizeEvent(ev)));
         });
       });
 
-      const missingEvents = pubkeysToFetch.filter((pk) => batchedList.find((e) => e.pubkey === pk));
+      const missingEvents = Array.from(pubkeysToFetch).filter((pk) => !batchedList.find((e) => e.pubkey === pk));
       if (missingEvents.length === 0) return;
-      console.log("Missing Events: ",missingEvents.length)
 
-      batch(() => {
-        missingEvents.forEach(async (pk) => {
+      console.log("Missing Events: ", missingEvents.length);
 
+      await Promise.all(
+        missingEvents.map(async (pk) => {
           const nostrBandMetaData = await fetchNostrBandMetaData(pk);
-          if (nostrBandMetaData !== null && nostrBandMetaData !== undefined && nostrBandMetaData.name) {
+          if (nostrBandMetaData?.name) {
             dispatch(addMetaData(nostrBandMetaData as MetaData));
           }
-        });
-      });
-
+        })
+      );
     };
 
-      fetchMetaData();
+    fetchMetaData();
 
-    return () => {};
   }, [events.globalNotes, events.reactions, events.replyNotes, events.rootNotes, keys.publicKey.decoded, events.currentProfileNotes]);
-
-  
 
 
   //Reactions
