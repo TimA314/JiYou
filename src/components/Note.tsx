@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { nip19, EventTemplate, Event, finishEvent } from 'nostr-tools';
+import { nip19, EventTemplate, Event, finishEvent, getEventHash } from 'nostr-tools';
 import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
@@ -143,7 +143,7 @@ const Note: React.FC<NoteProps> = ({
     setIsFollowing((isFollowing) => !isFollowing);
   }, [updateFollowing, event.pubkey]);
   
-  const likeNote = useCallback(async () => {
+  const likeNote = async () => {
     if (!pool) return;
     
     //Construct the event
@@ -171,7 +171,7 @@ const Note: React.FC<NoteProps> = ({
     const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
     setLiked(signedManually);
 
-  }, [pool, nostr.relays, event]);
+  };
 
   const zapNote = async () => {
     if (!pool) return;
@@ -224,10 +224,16 @@ const Note: React.FC<NoteProps> = ({
     );
 
     let signedEvent = null;
-
-    if (window.nostr && keys.privateKey.decoded === ""){
-      signedEvent = await window.nostr.signEvent(zapRequest);
-      console.log("signed by extension");
+    let userPubkey = keys.publicKey.decoded;
+    
+    if (window.nostr){
+      try{
+        signedEvent = await window.nostr.signEvent(zapRequest);
+        console.log("signed by extension");
+      } catch{
+        dispatch(addMessage({ message: "unable to sign event", isError: true }));
+        return;
+      }
     } else {
       signedEvent = finishEvent(zapRequest, keys.privateKey.decoded);
     }
@@ -235,7 +241,7 @@ const Note: React.FC<NoteProps> = ({
       dispatch(addMessage({ message: "unable to sign event", isError: true }));
       return;
     }
-      
+    
     const validation = validateZapRequest(JSON.stringify(signedEvent));
     console.log("validation", validation);
     if(validation !== null){
@@ -273,7 +279,6 @@ const Note: React.FC<NoteProps> = ({
       console.log(error);
       dispatch(addMessage({message: "unable to send payment", isError: true}));
     }
-
   }
 
   useEffect(() => {
@@ -477,7 +482,7 @@ const Note: React.FC<NoteProps> = ({
             className={zapped ? 'animateLike' : ''}
             >
               <Typography variant='caption' sx={{color: themeColors.textColor}}>
-                {zappedAmount}
+                {zappedAmount / 1000}
               </Typography>
               <BoltIcon id={"zap-icon-" + event.sig} />
           </ReactionIconButton>

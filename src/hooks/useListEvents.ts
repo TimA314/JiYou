@@ -6,7 +6,7 @@ import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { addCurrentProfileNotes, addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearCurrentProfileNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
-import { GetImageFromPost } from '../utils/miscUtils';
+import { GetImageFromPost, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
 import { defaultRelays } from '../nostr/DefaultRelays';
 
@@ -133,7 +133,7 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       if (pubkeysToFetch.length === 0) return;
       
-      const batchedList = await pool.batchedList('noteDetails',[...allRelayUrls, "wss://purplepag.es"], [
+      const batchedList = await pool.batchedList('noteDetails',[...allRelayUrls, ...metaDataAndRelayHelpingRelay, "wss://purplepag.es"], [
         {
           kinds: [0],
           authors: pubkeysToFetch,

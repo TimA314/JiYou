@@ -9,7 +9,7 @@ import { addZaps } from "../redux/slices/eventsSlice";
 
 type Props = {}
 
-const useZaps = (props: Props) => {
+const useGetZaps = (props: Props) => {
     const pool = useContext(PoolContext);
     const keys = useSelector((state: RootState) => state.keys);
     const events = useSelector((state: RootState) => state.events);
@@ -54,4 +54,4 @@ const useZaps = (props: Props) => {
     }, [events.globalNotes, events.replyNotes, events.rootNotes, events.userNotes, events.currentProfileNotes]);
 }
 
-export default useZaps;
+export default useGetZaps;
