@@ -9,6 +9,7 @@ import { PoolContext } from '../context/PoolContext';
 import { GetImageFromPost, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
 import { defaultRelays } from '../nostr/DefaultRelays';
+import { MetaData } from '../nostr/Types';
 
 type useListEventsProps = {};
 
@@ -18,7 +19,7 @@ export const useListEvents = ({}: useListEventsProps) => {
   const events = useSelector((state: RootState) => state.events);
   const nostr = useSelector((state: RootState) => state.nostr);
   const note = useSelector((state: RootState) => state.note);
-  const metadataFetched = useRef<Record<string, boolean>>({});
+  const metadataFetched = useRef<Record<string, number>>({});
   const reactionsFetched = useRef<Record<string, boolean>>({});
   const repliesFetched = useRef<Record<string, boolean>>({});
   const rootsFetched = useRef<Record<string, boolean>>({});
@@ -111,25 +112,32 @@ export const useListEvents = ({}: useListEventsProps) => {
     
     const fetchMetaData = async () => {
       if (!pool) return;
+      const maxAttempts = 5;
       const pubkeysToFetch: string[] = [];
 
-      events.globalNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
+      events.globalNotes.filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
-      events.currentProfileNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
+      events.currentProfileNotes.filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
-      Object.values(events.reactions).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
+      Object.values(events.reactions).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
-      Object.values(events.replyNotes).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
-      .forEach((event) => pubkeysToFetch.push(event.pubkey));
+      Object.values(events.replyNotes).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
+        .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
-      if (!events.metaData[keys.publicKey.decoded]) {
-        pubkeysToFetch.unshift(keys.publicKey.decoded)
+      Object.values(events.rootNotes).flat().filter((event) => !metadataFetched.current[event.pubkey] || metadataFetched.current[event.pubkey] < maxAttempts)
+        .forEach((event) => pubkeysToFetch.push(event.pubkey));
+
+
+      if (!events.metaData[keys.publicKey.decoded] || metadataFetched.current[keys.publicKey.decoded] < maxAttempts) {
+        pubkeysToFetch.unshift(keys.publicKey.decoded);
       }
 
-      pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = true));
+      console.log("Pubkeys to fetch: ", pubkeysToFetch.length)
+
+      pubkeysToFetch.forEach((pubkey) => (metadataFetched.current[pubkey] = metadataFetched.current[pubkey] ? metadataFetched.current[pubkey] + 1 : 1));
 
       if (pubkeysToFetch.length === 0) return;
       
@@ -143,18 +151,22 @@ export const useListEvents = ({}: useListEventsProps) => {
       console.log("MetaData: " + batchedList.length)
 
       batch(() => {
-        batchedList.forEach(ev => dispatch(addMetaData(sanitizeEvent(ev))));
+        batchedList.forEach(ev => {
+          metadataFetched.current[ev.pubkey] = maxAttempts;
+          dispatch(addMetaData(sanitizeEvent(ev)))
+        });
       });
 
       const missingEvents = pubkeysToFetch.filter((pk) => batchedList.find((e) => e.pubkey === pk));
       if (missingEvents.length === 0) return;
+      console.log("Missing Events: ",missingEvents.length)
 
       batch(() => {
         missingEvents.forEach(async (pk) => {
 
           const nostrBandMetaData = await fetchNostrBandMetaData(pk);
-          if (nostrBandMetaData !== null && nostrBandMetaData !== undefined) {
-            dispatch(addMetaData(nostrBandMetaData));
+          if (nostrBandMetaData !== null && nostrBandMetaData !== undefined && nostrBandMetaData.name) {
+            dispatch(addMetaData(nostrBandMetaData as MetaData));
           }
         });
       });
@@ -177,11 +189,11 @@ export const useListEvents = ({}: useListEventsProps) => {
       const allPubkeysToFetch: string[] = []
       const allEventIdsToFetch: string[] = []
 
-      const feedEventsToFetch = events.globalNotes.filter((e) => reactionsFetched.current[e.id] !== true);
-      const rootEventsToFetch = events.rootNotes.filter((e) => reactionsFetched.current[e.id] !== true);
-      const replyEventsToFetch = Object.values(events.replyNotes).flat().filter((e) => reactionsFetched.current[e.id] !== true);
-      const userEventsToFetch =  events.userNotes.filter((e) => reactionsFetched.current[e.id] !== true);
-      const currentProfileEventsToFetch =  events.currentProfileNotes.filter((e) => reactionsFetched.current[e.id] !== true);
+      const feedEventsToFetch = events.globalNotes.filter((e) => !reactionsFetched.current[e.id] || reactionsFetched.current[e.id] !== true);
+      const rootEventsToFetch = events.rootNotes.filter((e) => !reactionsFetched.current[e.id] || reactionsFetched.current[e.id] !== true);
+      const replyEventsToFetch = Object.values(events.replyNotes).flat().filter((e) => !reactionsFetched.current[e.id] || reactionsFetched.current[e.id] !== true);
+      const userEventsToFetch =  events.userNotes.filter((e) => !reactionsFetched.current[e.id] || reactionsFetched.current[e.id] !== true);
+      const currentProfileEventsToFetch =  events.currentProfileNotes.filter((e) => !reactionsFetched.current[e.id] || reactionsFetched.current[e.id] !== true);
 
       const uniqueEvents = [...new Set([...feedEventsToFetch, ...rootEventsToFetch, ...userEventsToFetch, ...replyEventsToFetch, ...currentProfileEventsToFetch])];
       if (uniqueEvents.length === 0) return;
@@ -214,19 +226,19 @@ export const useListEvents = ({}: useListEventsProps) => {
 
       const replyEventIdsToFetch: string[] = []
      
-      events.globalNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+      events.globalNotes.filter((e: Event) => !repliesFetched.current[e.id] || repliesFetched.current[e.id] !== true)
         .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-      Object.values(events.rootNotes).flat().filter((e: Event) => repliesFetched.current[e.id] !== true)
+      Object.values(events.rootNotes).flat().filter((e: Event) => !repliesFetched.current[e.id] || repliesFetched.current[e.id] !== true)
       .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-      Object.values(events.replyNotes).flat().filter((e: Event) => repliesFetched.current[e.id] !== true)
+      Object.values(events.replyNotes).flat().filter((e: Event) => !repliesFetched.current[e.id] || repliesFetched.current[e.id] !== true)
       .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-      events.userNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+      events.userNotes.filter((e: Event) => !repliesFetched.current[e.id] || repliesFetched.current[e.id] !== true)
         .forEach((e) => replyEventIdsToFetch.push(e.id));
 
-      events.currentProfileNotes.filter((e: Event) => repliesFetched.current[e.id] !== true)
+      events.currentProfileNotes.filter((e: Event) => !repliesFetched.current[e.id] || repliesFetched.current[e.id] !== true)
         .forEach((e) => replyEventIdsToFetch.push(e.id));
       
       if (replyEventIdsToFetch.length === 0) return;

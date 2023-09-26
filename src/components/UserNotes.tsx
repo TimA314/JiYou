@@ -13,7 +13,7 @@ export default function UserNotes({}: Props) {
     if (note.profileEventToShow !== null) {
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                {events.currentProfileNotes && events.currentProfileNotes.map((event) => {
+                {events.currentProfileNotes && [...new Set(events.currentProfileNotes)].map((event) => {
         
                     return (
                         <Box key={event.sig}>
@@ -33,10 +33,7 @@ export default function UserNotes({}: Props) {
 
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                {events.userNotes && events.userNotes.map((event) => {
-                    if (note.profileEventToShow === null && event.pubkey !== keys.publicKey.decoded) {
-                        return <></>
-                    }
+                {events.userNotes && events.userNotes.filter(event => event.pubkey !== keys.publicKey.decoded).map((event) => {
                     
                     return (
                         <Box key={event.sig}>
