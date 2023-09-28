@@ -60,13 +60,7 @@ export function insertEventIntoDescendingList<T extends Event>(
 
   const explicitTags: string[] = [
     "nsfw",
-    "gore",
-    "nudity",
-    "nude",
-    "blood",
-    "nudestr",
-    "nudestrband",
-    "sexy",
+    ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
   ]
 
   export function eventContainsExplicitContent(event: Event): boolean {
