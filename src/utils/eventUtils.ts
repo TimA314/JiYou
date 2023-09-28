@@ -1,10 +1,12 @@
 import { Event, EventTemplate, Kind } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(
-    sortedArray: T[],
-    event: T
+  sortedArray: T[],
+  event: T
   ) {
     let start = 0;
     let end = sortedArray.length - 1;
@@ -58,12 +60,7 @@ export function insertEventIntoDescendingList<T extends Event>(
     return [];
   }
 
-  const explicitTags: string[] = [
-    "nsfw",
-    ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
-  ]
-
-  export function eventContainsExplicitContent(event: Event): boolean {
+  export function eventContainsExplicitContent(event: Event, explicitTags: string[]): boolean {
     return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1].toLowerCase())).length > 0
   }
 

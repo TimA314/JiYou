@@ -7,6 +7,7 @@ import { addMetaData } from "../redux/slices/eventsSlice";
 import { fetchNostrBandMetaData } from "../utils/eventUtils";
 import { Event } from 'nostr-tools';
 import { defaultRelays } from "../nostr/DefaultRelays";
+import { metaDataAndRelayHelpingRelay } from "../utils/miscUtils";
  
  
  export const useGetMetaData = () => {
@@ -18,7 +19,7 @@ import { defaultRelays } from "../nostr/DefaultRelays";
 
 
     const dispatch = useDispatch();
-    const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
+    const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl), metaDataAndRelayHelpingRelay])];
 
  
  //MetaData

@@ -112,12 +112,14 @@ const handleLogout = () => {
         navigate("/");
         return;
     }
+
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
+
     dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
     dispatch(clearUserEvents());
-    console.log("Logged out");
     navigate("/start")
+    console.log("Logged out");
 }
 
 const handleEditOrSaveClick = () => {

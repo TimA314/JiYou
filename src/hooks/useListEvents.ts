@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useContext } from 'react';
 import { Event, Filter } from 'nostr-tools';
-import { eventContainsExplicitContent, fetchNostrBandMetaData } from '../utils/eventUtils';
+import { eventContainsExplicitContent } from '../utils/eventUtils';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
 import { batch, useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addGlobalNotes, addMetaData, addReactions, addReplyNotes, addRootNotes, addUserNotes, clearCurrentProfileNotes, clearGlobalNotes, clearUserEvents, setIsRefreshingFeedNotes, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { addGlobalNotes, addReplyNotes, addRootNotes, clearGlobalNotes, setIsRefreshingFeedNotes } from '../redux/slices/eventsSlice';
 import { PoolContext } from '../context/PoolContext';
-import { GetImageFromPost, metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
+import { GetImageFromPost } from '../utils/miscUtils';
 import { addMessage } from '../redux/slices/noteSlice';
 import { defaultRelays } from '../nostr/DefaultRelays';
 
@@ -71,7 +71,7 @@ export const useListEvents = ({}: useListEventsProps) => {
       let eventsBatch: Event[] = [];
 
       sub.on("event", async (event: Event) => {
-        if (hideExplicitContent && eventContainsExplicitContent(event)) return;
+        if (hideExplicitContent && eventContainsExplicitContent(event, note.explicitTags)) return;
         if (imageOnly && GetImageFromPost(event.content)?.length === 0){
           return;
         }

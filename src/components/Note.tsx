@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { nip19, EventTemplate, Event, finishEvent, getEventHash } from 'nostr-tools';
+import { nip19, EventTemplate, Event } from 'nostr-tools';
 import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
@@ -22,17 +22,16 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow, addMessage } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
-import { addZaps, clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
+import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
-import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
 import { defaultRelays } from '../nostr/DefaultRelays';
-import { MetaData } from '../nostr/Types';
-import { getLnurl, getZapCallbackFromLnurl, makeZapRequest, validateZapRequest } from '../nostr/Zaps';
+import { useZapNote } from '../hooks/useZapNote';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -92,6 +91,7 @@ const Note: React.FC<NoteProps> = ({
   const events = useSelector((state: RootState) => state.events);
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
+  const { zapNote } = useZapNote();
 
   const [zappedAmount, setZappedAmount] = useState(0);
 
@@ -173,112 +173,10 @@ const Note: React.FC<NoteProps> = ({
 
   };
 
-  const zapNote = async () => {
-    if (!pool) return;
-    if (!typeof window.webln) {
-      console.log('WebLN is not available');
-      return;
-    }
-    console.log("zapNote");
-
-    let callback = null;
-    let lnurl = null;
-    let amount = 1 * 1000;
-
-    if (events.metaData[event.pubkey]){
-      // Get the lnurl from the metadata
-      lnurl = getLnurl(events.metaData[event.pubkey]);
-      console.log(events.metaData[event.pubkey])
-    } else {
-      // Backup get lnurl from NostrBand metadata
-      const nostrBandMetaData = await fetchNostrBandMetaData(event.pubkey);
-      console.log("nostrBandMetaData", nostrBandMetaData)
-      if (nostrBandMetaData) {
-        lnurl = getLnurl(nostrBandMetaData as MetaData)
-      }
-    }
-      
-    console.log("lnurl", lnurl);
-
-    if (!lnurl) {
-      dispatch(addMessage({ message: "unable to get lnurl", isError: true }));
-      return;
-    }
-      
-    callback = await getZapCallbackFromLnurl(lnurl);
-
-    console.log("callback", callback);
-    if (!callback) {
-      dispatch(addMessage({ message: "unable to get callback from lnurl", isError: true }));
-      return;
-    }
-
-    const zapRequest = makeZapRequest(
-      {
-        profile: event.pubkey,
-        event: event.id,
-        amount: amount,
-        comment: "zap",
-        relays: allRelayUrls
-      }
-    );
-
-    let signedEvent = null;
-    let userPubkey = keys.publicKey.decoded;
-    
-    if (window.nostr){
-      try{
-        signedEvent = await window.nostr.signEvent(zapRequest);
-        console.log("signed by extension");
-      } catch{
-        dispatch(addMessage({ message: "unable to sign event", isError: true }));
-        return;
-      }
-    } else {
-      signedEvent = finishEvent(zapRequest, keys.privateKey.decoded);
-    }
-    if (!signedEvent) {
-      dispatch(addMessage({ message: "unable to sign event", isError: true }));
-      return;
-    }
-    
-    const validation = validateZapRequest(JSON.stringify(signedEvent));
-    console.log("validation", validation);
-    if(validation !== null){
-      dispatch(addMessage({message: validation, isError: true}));
-      return;
-    }
-    console.log("zapRequest", zapRequest);
-
-    // Provide invoice to a lightning wallet client (e.g. Zeus, Breez, alby, etc.)
-    try{
-      const jsonResult = await fetch(`${callback}?amount=${amount}&nostr=${event}&lnurl=${lnurl}`)
-      const invoice = await jsonResult.json();
-      console.log("invoice", invoice.pr)
-      if(typeof window.webln !== 'undefined') {
-        await window.webln.enable();
-        await window.webln.sendPayment(invoice.pr);
-        dispatch(addMessage({message: "zap sent", isError: false}));
-        setZappedAmount((prev) => prev + amount/1000);
-        setZapped(true);
-        dispatch(addMessage({message: "webln unavailable, unable to send payment", isError: true}));
-      }
-
-      let sub = pool.sub(allRelayUrls, [{kinds: [9735], ids: [signedEvent.id]}]);
-      sub.on('event', event => {
-        console.log("zap reciept", event);
-        if (event.kind === 9735) {
-          setZappedAmount((prev) => prev - amount);
-          dispatch(addZaps(event))
-          dispatch(addMessage({message: "zap sent", isError: false}));
-        }
-      });
-    }
-    catch(error) {
-      // User denied permission or cancelled 
-      console.log(error);
-      dispatch(addMessage({message: "unable to send payment", isError: true}));
-    }
+  const handleZapNote = async () => {
+    zapNote(event, 1000)
+    setZappedAmount(zappedAmount + 1)
+    setZapped(true);
   }
 
   useEffect(() => {
@@ -477,7 +375,7 @@ const Note: React.FC<NoteProps> = ({
 
           <ReactionIconButton
             arie-label="zap note"
-            onClick={zapNote}
+            onClick={handleZapNote}
             sx={{ color: zapped ? themeColors.secondary : themeColors.textColor }}
             className={zapped ? 'animateLike' : ''}
             >

@@ -46,42 +46,41 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-    useEffect(() => {
-      if (keys.publicKey.decoded === "") {
+  const getKeyFromNostrExtension = async () => {
+    const pkFromNostr = await window.nostr.getPublicKey();
+    if (pkFromNostr && pkFromNostr !== "")
+    {
+      const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
+      dispatch(setKeys(newKeys));
+    } else {
+      navigate("/start");
+    }
+  }
 
-        const getKeyFromNostrExtension = async () => {
-          const pkFromNostr = await window.nostr.getPublicKey();
-          if (pkFromNostr && pkFromNostr !== "")
-          {
-            const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
-            dispatch(setKeys(newKeys));
-            return true;
-          }
-          return false;
+  useEffect(() => {
+    if (keys.publicKey.decoded === "") {
+      
+      //check if sk is in local storage
+      const skFromStorage = localStorage.getItem("sk");
+      
+      if (skFromStorage && skFromStorage !== ""){
+        const newKeys = generateKeyObject(skFromStorage);
+        if (newKeys){
+          store.dispatch(setKeys(newKeys));
+          return;
         }
-
-
+      } else {
+        //check if nostr extension is installed
         if (window.nostr){
           try {
-            const retrieved = getKeyFromNostrExtension();
+            getKeyFromNostrExtension();
           } catch {}
+        } else {
+          navigate("/start");
         }
-
-
-        //check if sk is in local storage
-        const skFromStorage = localStorage.getItem("sk");
-
-        if (skFromStorage && skFromStorage !== ""){
-            const newKeys = generateKeyObject(skFromStorage);
-            if (newKeys){
-              store.dispatch(setKeys(newKeys));
-              return;
-          }
-        }
-
-        navigate("/start");
       }
-    }, [keys.publicKey.decoded]);
+    }
+  }, [keys.publicKey.decoded]);
 
 
   //Set Settings

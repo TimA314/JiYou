@@ -12,7 +12,11 @@ const initialState: NoteSlice = {
     tabIndex: 0,
     imageOnlyMode: false,
     hideExplicitContent: true,
-    alertMessages: []
+    alertMessages: [],
+    explicitTags: [
+        "nsfw",
+        ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
+        ]
 }
 
 export const noteSlice = createSlice({
@@ -71,7 +75,7 @@ export const {
     setHideExplicitContent,
     removeMessage,
     addMessage,
-    setProfileEventToShow
+    setProfileEventToShow,
 } = noteSlice.actions;
 export default noteSlice.reducer;
 
@@ -84,5 +88,6 @@ export type NoteSlice = {
   tabIndex: number;
   imageOnlyMode: boolean;
   hideExplicitContent: boolean;
-  alertMessages: AlertMessage[]
+  alertMessages: AlertMessage[];
+  explicitTags: string[];
 }
