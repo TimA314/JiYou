@@ -4,7 +4,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { Box, Container } from '@mui/material';
 import Keys from './pages/Keys';
@@ -25,20 +25,26 @@ import NoteModal from './components/NoteModal';
 import { AlertMessages } from './components/AlertMessages';
 import { setHideExplicitContent, setImageOnlyMode } from './redux/slices/noteSlice';
 import useGetZaps from './hooks/useGetZaps';
+import { useGetReactions } from './hooks/useGetReactions';
+import { useGetMetaData } from './hooks/useGetMetaData';
+import { useProfileNotes } from './hooks/useProfileNotes';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
   const note = useSelector((state: RootState) => state.note);
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
-  useGetZaps({});
   const { profile, updateProfile} = useProfile({});
 
+  // Hooks
   useListEvents({});
+  useGetReactions();
+  useProfileNotes();
+  useGetMetaData();
+  useGetZaps({});
   
-    const dispatch = useDispatch();
-
-    const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
     useEffect(() => {
       if (keys.publicKey.decoded === "") {

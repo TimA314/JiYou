@@ -259,7 +259,7 @@ const Note: React.FC<NoteProps> = ({
         await window.webln.enable();
         await window.webln.sendPayment(invoice.pr);
         dispatch(addMessage({message: "zap sent", isError: false}));
-        setZappedAmount((prev) => prev + amount);
+        setZappedAmount((prev) => prev + amount/1000);
         setZapped(true);
         dispatch(addMessage({message: "webln unavailable, unable to send payment", isError: true}));
       }
@@ -482,7 +482,7 @@ const Note: React.FC<NoteProps> = ({
             className={zapped ? 'animateLike' : ''}
             >
               <Typography variant='caption' sx={{color: themeColors.textColor}}>
-                {zappedAmount / 1000}
+                {zappedAmount}
               </Typography>
               <BoltIcon id={"zap-icon-" + event.sig} />
           </ReactionIconButton>

@@ -64,7 +64,9 @@ export function insertEventIntoDescendingList<T extends Event>(
     "nudity",
     "nude",
     "blood",
-    "nudestr"
+    "nudestr",
+    "nudestrband",
+    "sexy",
   ]
 
   export function eventContainsExplicitContent(event: Event): boolean {

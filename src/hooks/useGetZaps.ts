@@ -43,11 +43,28 @@ const useGetZaps = (props: Props) => {
             
             const filter: Filter = {kinds: [9735], '#e': allEventIdsToFetch, '#p': allPubkeysToFetch};
             
-            let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [filter])
+            let sub = pool.sub(allRelayUrls, [filter])
             
-            batch(() => {
-                batchedList.forEach(ev => dispatch(addZaps(sanitizeEvent(ev))));
+            let eventsBatch: Event[] = [];
+            
+            sub.on("event", async (event: Event) => {
+                eventsBatch.push(sanitizeEvent(event));
+                if (eventsBatch.length > 10) {
+                    batch(() => {
+                      eventsBatch.forEach(ev => dispatch(addZaps(ev)));
+                    });
+                    eventsBatch = [];
+                  }
             });
+
+            sub.on("eose", () => {
+                if (eventsBatch.length > 0) {
+                  batch(() => {
+                    eventsBatch.forEach(ev => dispatch(addZaps(ev)));
+                  });
+                  eventsBatch = [];
+                }
+              })
         }
         
         fetchZaps();
