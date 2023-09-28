@@ -7,6 +7,7 @@ import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { PoolContext } from '../context/PoolContext';
+import { addMessage } from '../redux/slices/noteSlice';
 
 type UseProfileProps = {};
 
@@ -62,6 +63,25 @@ export const useProfile = ({}: UseProfileProps) => {
   }, [keys.publicKey.decoded]);
 
   
+  const publishProfileEvent = async (newContent: string) => {
+    const _baseEvent = {
+      kind: 0,
+      content: newContent,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [],
+    } as EventTemplate
+
+    if (window.nostr && keys.privateKey.decoded === "") {
+      const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
+      if (signed) {
+        return;
+      }
+    }
+
+    await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
+  }
+
+
   const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
     if (!pool) return;
     console.log("Updating profile");
@@ -70,42 +90,37 @@ export const useProfile = ({}: UseProfileProps) => {
           // Fetch user profile
         let contentToPost;
         
-        const profileEvent: Event[] = await pool.batchedList('initial',[...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
-        console.log("length: " + profileEvent.length)
+        let sub = pool.sub([...new Set([...allRelayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [0], authors: [keys.publicKey.decoded], limit: 1 }])
         
-        if (profileEvent && profileEvent.length > 0) {
-          const sanitizedEvent = sanitizeEvent(profileEvent[0]);
+        let published = false;
+
+        sub.on("event", async (event: Event) => {
+          if(published) return;
+          const sanitizedEvent = sanitizeEvent(event);
           contentToPost = JSON.parse(sanitizedEvent.content);
           console.log(contentToPost);
-        }
+          contentToPost.name = name;
+          contentToPost.about = about;
+          contentToPost.picture = picture;
+          contentToPost.banner = banner;
+          const newContent = JSON.stringify(contentToPost);  
+          await publishProfileEvent(newContent);
+          published = true;
+        });
 
-        contentToPost.name = name;
-        contentToPost.about = about;
-        contentToPost.picture = picture;
-        contentToPost.banner = banner;
+        sub.on("eose", () => {
+          if(published) return;
+          contentToPost = {
+            name: name,
+            about: about,
+            picture: picture,
+            banner: banner
+          }
+          publishProfileEvent(JSON.stringify(contentToPost));
+        });
 
-        setProfile(contentToPost);
-        
-        const newContent = JSON.stringify(contentToPost);  
-        const _baseEvent = {
-            kind: Kind.Metadata,
-            content: newContent,
-            created_at: Math.floor(Date.now() / 1000),
-            tags: [],
-        } as EventTemplate
-
-         
-      if (window.nostr && keys.privateKey.decoded === "") {
-        const signed = await signEventWithNostr(pool, writableRelayUrls, _baseEvent, dispatch);
-        if (signed) {
-          return;
-        }
-      }
-
-      await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
-
-    } catch (error) {
-        alert(error);
+    } catch {
+        dispatch(addMessage({ message: "Error updating profile", isError: true }));
         return;
     }       
 }

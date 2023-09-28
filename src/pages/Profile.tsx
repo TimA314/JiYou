@@ -60,7 +60,7 @@ useEffect(() => {
             }
         }
 
-        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey));
+        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey) ?? keys.publicKey.encoded);
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
         setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
