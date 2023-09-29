@@ -347,7 +347,14 @@ const Note: React.FC<NoteProps> = ({
         </CardContent>
       )}
 
-      <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end', marginRight: '2.1rem'}}>
+      <Box 
+        sx={{
+          display: 'flex', 
+          alignContent: "flex-end", 
+          justifyContent: 'end', 
+          marginRight: '2.1rem',
+          position: 'relative'
+        }}>
         <ZapAmountModal visible={zapAmountChipsVisible} setVisible={setZapAmountChipsVisible} setZapped={setZapped} setZappedAmount={setZappedAmount} eventToZap={event}/>
       </Box>
 

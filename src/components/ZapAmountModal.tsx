@@ -1,4 +1,4 @@
-import { Chip, Stack } from '@mui/material';
+import { Box, Chip, Stack } from '@mui/material';
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -43,21 +43,30 @@ export const ZapAmountModal = ({ visible, setVisible, setZappedAmount, setZapped
     };
     
     return (
-        <Stack direction="column" spacing={1} alignItems="center">
-            {reversedSettings.map((zapAmountSetting, index) => (
-                <Chip
-                    key={zapAmountSetting}
-                    label={zapAmountSetting} 
-                    color="primary" 
-                    icon={<CustomIcon />} 
-                    onClick={() => handleChipClick(zapAmountSetting)}
-                    style={{
-                        opacity: (selectedAmount === null || selectedAmount === zapAmountSetting) && visible ? 1 : 0,
-                        transform: selectedAmount === zapAmountSetting ? 'scale(1.2)' : 'scale(1)',
-                        transition: `opacity 300ms ease ${ (totalItems - index - 1) * 10}ms, transform 300ms ease ${(totalItems - index - 1) * 10}ms`,
-                    }}
-                />
-            ))}
-        </Stack>
+        <Box 
+            sx={{
+                display: visible ? 'block' : 'none',
+                position: 'absolute', 
+                bottom: 5, 
+                right: 0, 
+            }}>
+            <Stack direction="column" spacing={1} alignItems="center">
+                {reversedSettings.map((zapAmountSetting, index) => (
+                    <Chip
+                        key={zapAmountSetting}
+                        label={zapAmountSetting} 
+                        color="primary" 
+                        icon={<CustomIcon />} 
+                        onClick={() => handleChipClick(zapAmountSetting)}
+                        style={{
+                            cursor: 'pointer',
+                            opacity: (selectedAmount === null || selectedAmount === zapAmountSetting) && visible ? 1 : 0,
+                            transform: selectedAmount === zapAmountSetting ? 'scale(1.2)' : 'scale(1)',
+                            transition: `opacity 300ms ease ${ (totalItems - index - 1) * 10}ms, transform 300ms ease ${(totalItems - index - 1) * 10}ms`,
+                        }}
+                    />
+                ))}
+            </Stack>
+        </Box>
     );
 };
