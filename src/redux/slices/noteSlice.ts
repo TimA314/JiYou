@@ -17,7 +17,7 @@ const initialState: NoteSlice = {
         "nsfw",
         ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
     ],
-    zapAmountSettings: [1, 5, 10, 21, 50, 100, 200, 500, 1000]
+    zapAmountSettings: [1, 12, 21, 210, 2100]
 }
 
 export const noteSlice = createSlice({
@@ -59,7 +59,14 @@ export const noteSlice = createSlice({
         },
         setProfileEventToShow: (state, action: PayloadAction<Event | null>) => {
             state.profileEventToShow = action.payload;
+        },
+        setZapAmountSettings: (state, action: PayloadAction<number>) => {
+            state.zapAmountSettings = [...new Set([...state.zapAmountSettings, action.payload])].sort((a, b) => a - b);
+        },
+        removeZapAmountSettings: (state, action: PayloadAction<number>) => {
+            state.zapAmountSettings = state.zapAmountSettings.filter((zap) => zap !== action.payload).sort((a, b) => a - b);
         }
+
     }
 });
 
@@ -77,6 +84,8 @@ export const {
     removeMessage,
     addMessage,
     setProfileEventToShow,
+    setZapAmountSettings,
+    removeZapAmountSettings
 } = noteSlice.actions;
 export default noteSlice.reducer;
 

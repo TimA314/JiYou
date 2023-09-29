@@ -8,6 +8,7 @@ import { RootState } from '../redux/store';
 import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
 import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import { useNavigate } from 'react-router';
+import ZapSettings from '../components/ZapSettings';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -118,6 +119,10 @@ export default function Settings ({}: SettingsProps) {
               color={themeColors.textColor} />
           </FormGroup>
         </Grid>
+      </Grid>
+
+      <Grid item xs={12}>
+        <ZapSettings />
       </Grid>
 
       <Grid item xs={12}>
