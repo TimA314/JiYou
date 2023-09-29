@@ -21,10 +21,10 @@ export const useZapNote = () => {
     const dispatch = useDispatch();
 
     const zapNote = async (zapEvent: Event, amount: number) => {
-        if (!pool || zapEvent === null) return;
+        if (!pool || zapEvent === null) return false;
         if (!typeof window.webln) {
           console.log('WebLN is not available');
-          return;
+          return false;
         }
         console.log("zapNote");
     
@@ -48,7 +48,7 @@ export const useZapNote = () => {
     
         if (!lnurl) {
           dispatch(addMessage({ message: "unable to get lnurl", isError: true }));
-          return;
+          return false;
         }
           
         callback = await getZapCallbackFromLnurl(lnurl);
@@ -56,7 +56,7 @@ export const useZapNote = () => {
         console.log("callback", callback);
         if (!callback) {
           dispatch(addMessage({ message: "unable to get callback from lnurl", isError: true }));
-          return;
+          return false;
         }
     
         const zapRequest = makeZapRequest(
@@ -77,7 +77,7 @@ export const useZapNote = () => {
             console.log("signed by extension");
           } catch{
             dispatch(addMessage({ message: "unable to sign event", isError: true }));
-            return;
+            return false;
           }
         } else {
           signedEvent = finishEvent(zapRequest, keys.privateKey.decoded);
@@ -85,14 +85,14 @@ export const useZapNote = () => {
     
         if (!signedEvent) {
           dispatch(addMessage({ message: "unable to sign event", isError: true }));
-          return;
+          return false;
         }
         
         const validation = validateZapRequest(JSON.stringify(signedEvent));
     
         if(validation !== null){
           dispatch(addMessage({message: validation, isError: true}));
-          return;
+          return false;
         }
         
         console.log("zapRequest", zapRequest);
@@ -120,12 +120,14 @@ export const useZapNote = () => {
               dispatch(addMessage({message: "zap sent", isError: false}));
             }
           });
-    
+          
+          return true;
         }
         catch(error) {
           // User denied permission or cancelled 
           console.log(error);
           dispatch(addMessage({message: "unable to send payment", isError: true}));
+          return false;
         }
       }
 

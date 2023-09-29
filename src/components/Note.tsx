@@ -32,6 +32,7 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
 import { defaultRelays } from '../nostr/DefaultRelays';
 import { useZapNote } from '../hooks/useZapNote';
+import { ZapAmountModal } from './ZapAmountModal';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -91,7 +92,6 @@ const Note: React.FC<NoteProps> = ({
   const events = useSelector((state: RootState) => state.events);
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
-  const { zapNote } = useZapNote();
 
   const [zappedAmount, setZappedAmount] = useState(0);
 
@@ -99,6 +99,7 @@ const Note: React.FC<NoteProps> = ({
   const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [amountToZap, setAmountToZap] = useState<number>(1);
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
@@ -109,6 +110,8 @@ const Note: React.FC<NoteProps> = ({
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
+  const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
+
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -174,9 +177,11 @@ const Note: React.FC<NoteProps> = ({
   };
 
   const handleZapNote = async () => {
-    zapNote(event, 1000)
-    setZappedAmount(zappedAmount + 1)
-    setZapped(true);
+    if (zapAmountChipsVisible){
+      setZapAmountChipsVisible(false);
+      return;
+    }
+    setZapAmountChipsVisible(true);
   }
 
   useEffect(() => {
@@ -342,6 +347,10 @@ const Note: React.FC<NoteProps> = ({
         </CardContent>
       )}
 
+      <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end', marginRight: '2.1rem'}}>
+        <ZapAmountModal visible={zapAmountChipsVisible} setVisible={setZapAmountChipsVisible} setZapped={setZapped} setZappedAmount={setZappedAmount} eventToZap={event}/>
+      </Box>
+
       <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="subtitle2" sx={{color: themeColors.textColor}}>
           {moment.unix(event.created_at).fromNow()}
@@ -353,6 +362,7 @@ const Note: React.FC<NoteProps> = ({
           </StyledBadge>
         </IconButton>
         </Box>
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <IconButton 
             onClick={() => disableReplyIcon === true ? () => {} : handleReplyToNote()}

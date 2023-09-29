@@ -16,7 +16,8 @@ const initialState: NoteSlice = {
     explicitTags: [
         "nsfw",
         ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
-        ]
+    ],
+    zapAmountSettings: [1, 5, 10, 21, 50, 100, 200, 500, 1000]
 }
 
 export const noteSlice = createSlice({
@@ -90,4 +91,5 @@ export type NoteSlice = {
   hideExplicitContent: boolean;
   alertMessages: AlertMessage[];
   explicitTags: string[];
+  zapAmountSettings: number[];
 }
