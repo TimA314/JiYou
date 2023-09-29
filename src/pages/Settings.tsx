@@ -68,9 +68,10 @@ export default function Settings ({}: SettingsProps) {
 
   const handleSaveSettings = () => {
     localStorage.setItem('JiYouSettings', JSON.stringify({
-      theme: themeColors, 
+      theme: themeColors,
+      zapSettings: note.zapAmountSettings.join(","),
       feedSettings: {hideExplicitContent: note.hideExplicitContent, imagesOnlyMode: note.imageOnlyMode}
-  }));
+    }));
     dispatch(addMessage({message: 'Settings Saved', isError: false}))
     dispatch(toggleRefreshFeedNotes())
     dispatch(toggleRefreshUserNotes())

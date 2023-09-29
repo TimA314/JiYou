@@ -60,13 +60,15 @@ export const noteSlice = createSlice({
         setProfileEventToShow: (state, action: PayloadAction<Event | null>) => {
             state.profileEventToShow = action.payload;
         },
-        setZapAmountSettings: (state, action: PayloadAction<number>) => {
-            state.zapAmountSettings = [...new Set([...state.zapAmountSettings, action.payload])].sort((a, b) => a - b);
+        addZapAmountSettings: (state, action: PayloadAction<number>) => {
+            state.zapAmountSettings = Array.from(new Set([...state.zapAmountSettings, action.payload])).sort((a, b) => a - b);
         },
         removeZapAmountSettings: (state, action: PayloadAction<number>) => {
             state.zapAmountSettings = state.zapAmountSettings.filter((zap) => zap !== action.payload).sort((a, b) => a - b);
+        },
+        setZapAmountSettings: (state, action: PayloadAction<number[]>) => {
+            state.zapAmountSettings = Array.from(new Set(action.payload)).sort((a, b) => a - b);
         }
-
     }
 });
 
@@ -84,7 +86,7 @@ export const {
     removeMessage,
     addMessage,
     setProfileEventToShow,
-    setZapAmountSettings,
+    addZapAmountSettings: setZapAmountSettings,
     removeZapAmountSettings
 } = noteSlice.actions;
 export default noteSlice.reducer;

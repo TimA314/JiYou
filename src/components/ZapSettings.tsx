@@ -36,16 +36,14 @@ const ZapSettings = () => {
 
         <List style={{color: themeColors.textColor}}>
             {note.zapAmountSettings.map((amount, index) => (
-                <Slide direction="left" in={true} mountOnEnter unmountOnExit key={index}>
-                <ListItem>
-                <ListItemText color={themeColors.textColor} primary={amount} />
-                <ListItemSecondaryAction>
-                    <IconButton edge="end" onClick={() => handleDeleteAmount(amount)}>
-                    <DeleteIcon color='error' />
-                    </IconButton>
-                </ListItemSecondaryAction>
+                <ListItem key={index}>
+                    <ListItemText color={themeColors.textColor} primary={amount} />
+                    <ListItemSecondaryAction>
+                        <IconButton edge="end" onClick={() => handleDeleteAmount(amount)}>
+                        <DeleteIcon color='error' />
+                        </IconButton>
+                    </ListItemSecondaryAction>
                 </ListItem>
-            </Slide>
             ))}
         </List>
 

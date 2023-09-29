@@ -53,7 +53,7 @@ export const ZapAmountModal = ({ visible, setVisible, setZappedAmount, setZapped
             <Stack direction="column" spacing={1} alignItems="center">
                 {reversedSettings.map((zapAmountSetting, index) => (
                     <Chip
-                        key={zapAmountSetting}
+                        key={index + eventToZap.sig}
                         label={zapAmountSetting} 
                         color="primary" 
                         icon={<CustomIcon />} 

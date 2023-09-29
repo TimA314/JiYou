@@ -23,7 +23,7 @@ import { setKeys } from './redux/slices/keySlice';
 import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
 import { AlertMessages } from './components/AlertMessages';
-import { setHideExplicitContent, setImageOnlyMode } from './redux/slices/noteSlice';
+import { setHideExplicitContent, setImageOnlyMode, setZapAmountSettings } from './redux/slices/noteSlice';
 import useGetZaps from './hooks/useGetZaps';
 import { useGetReactions } from './hooks/useGetReactions';
 import { useGetMetaData } from './hooks/useGetMetaData';
@@ -92,6 +92,10 @@ function App() {
       if (parsedSettings){
         dispatch(setHideExplicitContent(parsedSettings.feedSettings.hideExplicitContent))
         dispatch(setImageOnlyMode(parsedSettings.feedSettings.imagesOnlyMode))
+        console.log(parsedSettings.zapSettings)
+        if (typeof parsedSettings.zapSettings === "string") {
+          dispatch(setZapAmountSettings(parsedSettings.zapSettings.split(",").map(Number)))
+        }
       }
     }
 
