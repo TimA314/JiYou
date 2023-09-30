@@ -1,6 +1,6 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import './App.css';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
@@ -35,7 +35,9 @@ function App() {
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
-
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   // Hooks
   useListEvents({});
   useGetReactions();
@@ -47,18 +49,20 @@ function App() {
   const navigate = useNavigate();
 
   const getKeyFromNostrExtension = async () => {
-    const pkFromNostr = await window.nostr.getPublicKey();
-    if (pkFromNostr && pkFromNostr !== "")
-    {
-      const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
-      dispatch(setKeys(newKeys));
-    } else {
-      navigate("/start");
-    }
+    try {
+      const pkFromNostr = await window.nostr.getPublicKey();
+      if (pkFromNostr && pkFromNostr !== "")
+      {
+        const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
+        dispatch(setKeys(newKeys));
+        return;
+      }
+    } catch {}
+    navigate("/start");
   }
 
   useEffect(() => {
-    if (keys.publicKey.decoded === "") {
+    if (keys.publicKey.decoded && keys.publicKey.decoded !== "") return;
       
       //check if sk is in local storage
       const skFromStorage = localStorage.getItem("sk");
@@ -74,12 +78,11 @@ function App() {
         if (window.nostr){
           try {
             getKeyFromNostrExtension();
+            return;
           } catch {}
-        } else {
-          navigate("/start");
         }
       }
-    }
+      navigate("/start");
   }, [keys.publicKey.decoded]);
 
 
@@ -98,15 +101,6 @@ function App() {
         }
       }
     }
-
-    const checkWebLN = async () => {
-
-      if (typeof window.webln !== 'undefined') {
-        console.log('WebLN is available!');
-      }
-    }
-    checkWebLN();
-    
   }, []);
 
 
@@ -148,7 +142,7 @@ function App() {
               <About />
             } />
           </Routes>
-          {keys.publicKey.decoded !== "" && 
+          {currentPath !== "/start" && 
           <NavBar profile={profile} />
           }
       </Container>
