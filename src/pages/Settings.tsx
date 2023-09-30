@@ -9,6 +9,7 @@ import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/s
 import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import { useNavigate } from 'react-router';
 import ZapSettings from '../components/ZapSettings';
+import SensitiveContentList from '../components/SensitiveContentList';
 
 const colorLabels: Record<keyof ThemeColors, string> = {
   primary: 'Main Color',
@@ -119,6 +120,7 @@ export default function Settings ({}: SettingsProps) {
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
           </FormGroup>
+            <SensitiveContentList />  
         </Grid>
       </Grid>
 

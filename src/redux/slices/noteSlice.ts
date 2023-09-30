@@ -14,8 +14,7 @@ const initialState: NoteSlice = {
     hideExplicitContent: true,
     alertMessages: [],
     explicitTags: [
-        "nsfw",
-        ...(import.meta.env.VITE_EXPLICIT_TAGS || '').split(',')
+        "nsfw"
     ],
     zapAmountSettings: [1, 12, 21, 210, 2100]
 }
@@ -68,6 +67,12 @@ export const noteSlice = createSlice({
         },
         setZapAmountSettings: (state, action: PayloadAction<number[]>) => {
             state.zapAmountSettings = Array.from(new Set(action.payload)).sort((a, b) => a - b);
+        },
+        addHideExplicitTag: (state, action: PayloadAction<string>) => {
+            state.explicitTags = Array.from(new Set([...state.explicitTags, action.payload]))
+        },
+        removeHideExplicitTag: (state, action: PayloadAction<string>) => {
+            state.explicitTags = state.explicitTags.filter((zap) => zap !== action.payload)
         }
     }
 });
@@ -87,7 +92,8 @@ export const {
     addMessage,
     setProfileEventToShow,
     addZapAmountSettings: setZapAmountSettings,
-    removeZapAmountSettings
+    removeZapAmountSettings,
+    removeHideExplicitTag
 } = noteSlice.actions;
 export default noteSlice.reducer;
 
