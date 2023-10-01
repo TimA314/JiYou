@@ -1,6 +1,6 @@
 import { bech32 } from "bech32";
 import { RelaySetting } from "../nostr/Types";
-import { getPublicKey, nip19 } from "nostr-tools";
+import { getPublicKey, nip19} from "nostr-tools";
 
 export const bech32ToHex = (str: string) => {
   try {
@@ -77,42 +77,50 @@ export const generatePublicKeyOnlyObject = (publicKeyDecoded: string) => {
   }
 } 
   
+const urlRegex = /(https?:\/\/[^\s]+)/g;
+const fileExtensions = new Set(['jpg', 'png', 'gif', 'jpeg']);
 export const GetImageFromPost = (content: string): string[] => {
-  if (!content) return [];
-  const contentAdjusted = content + " ";
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const urlMatches = contentAdjusted.match(urlRegex);
+  try {
+    if (!content || content.trim() === "") return [];
 
-  if (!urlMatches) return [];
-  
-  const checkedUrls: string[] = [];
-  const fileExtensions = ['jpg', 'png', 'gif', 'jpeg'];
+    const urlMatches = content.match(urlRegex);
+    if (!urlMatches) return [];
 
-  for (const url of urlMatches) {
-    const parsedUrl = new URL(url);
+    const checkedUrls = new Set<string>();
 
-    // Check the protocol
-    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-      continue;
+    for (const url of urlMatches) {
+      try {
+        const parsedUrl = new URL(url);
+
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+          continue;
+        }
+
+        const pathParts = parsedUrl.pathname.split('.');
+        const extension = pathParts.length > 1 ? pathParts[pathParts.length - 1] : null;
+
+        if (!extension || !fileExtensions.has(extension)) {
+          continue;
+        }
+
+        if (!checkedUrls.has(url)) {
+          checkedUrls.add(url);
+        }
+      } catch (e) {
+        // Ignore invalid URLs
+      }
     }
 
-    // Check the file extension
-    const extension = parsedUrl.pathname.split('.').pop();
-    if (!extension || !fileExtensions.includes(extension)) {
-      continue;
-    }
-    
-    // Skip the URL if it's already included
-    if (checkedUrls.includes(url)) continue;
-
-    // Add the URL to the checkedUrls array
-    checkedUrls.push(url);
+    return Array.from(checkedUrls);
+  } catch (e) {
+    console.log(`Error getting image from content: ${content}`);
+    console.error(e);
+    return [];
   }
-
-  return checkedUrls;
 };
 
-
+  
+  
   export const getYoutubeVideoFromPost = (content: string): string | null => {
     if (!content) return null;
   

@@ -12,7 +12,11 @@ const initialState: NoteSlice = {
     tabIndex: 0,
     imageOnlyMode: false,
     hideExplicitContent: true,
-    alertMessages: []
+    alertMessages: [],
+    explicitTags: [
+        "nsfw"
+    ],
+    zapAmountSettings: [1, 12, 21, 210, 2100]
 }
 
 export const noteSlice = createSlice({
@@ -40,10 +44,10 @@ export const noteSlice = createSlice({
         setTabIndex: (state, action) => {
             state.tabIndex = action.payload;
         },
-        setImageOnlyMode: (state, action) => {
+        setImageOnlyMode: (state, action: PayloadAction<boolean>) => {
             state.imageOnlyMode = action.payload;
         },
-        setHideExplicitContent: (state, action) => {
+        setHideExplicitContent: (state, action: PayloadAction<boolean>) => {
             state.hideExplicitContent = action.payload;
         },
         removeMessage: (state, action: PayloadAction<AlertMessage>) => {
@@ -54,7 +58,25 @@ export const noteSlice = createSlice({
         },
         setProfileEventToShow: (state, action: PayloadAction<Event | null>) => {
             state.profileEventToShow = action.payload;
-        }
+        },
+        addZapAmountSettings: (state, action: PayloadAction<number>) => {
+            state.zapAmountSettings = Array.from(new Set([...state.zapAmountSettings, action.payload])).sort((a, b) => a - b);
+        },
+        removeZapAmountSettings: (state, action: PayloadAction<number>) => {
+            state.zapAmountSettings = state.zapAmountSettings.filter((zap) => zap !== action.payload).sort((a, b) => a - b);
+        },
+        setZapAmountSettings: (state, action: PayloadAction<number[]>) => {
+            state.zapAmountSettings = Array.from(new Set(action.payload)).sort((a, b) => a - b);
+        },
+        addHideExplicitTag: (state, action: PayloadAction<string>) => {
+            state.explicitTags = Array.from(new Set([...state.explicitTags, action.payload]))
+        },
+        removeHideExplicitTag: (state, action: PayloadAction<string>) => {
+            state.explicitTags = state.explicitTags.filter((zap) => zap !== action.payload)
+        },
+        setHideExplicitTags: (state, action: PayloadAction<string[]>) => {
+            state.explicitTags = action.payload;
+        },
     }
 });
 
@@ -71,7 +93,13 @@ export const {
     setHideExplicitContent,
     removeMessage,
     addMessage,
-    setProfileEventToShow
+    setProfileEventToShow,
+    addZapAmountSettings,
+    removeZapAmountSettings,
+    removeHideExplicitTag,
+    setZapAmountSettings,
+    addHideExplicitTag,
+    setHideExplicitTags
 } = noteSlice.actions;
 export default noteSlice.reducer;
 
@@ -84,5 +112,7 @@ export type NoteSlice = {
   tabIndex: number;
   imageOnlyMode: boolean;
   hideExplicitContent: boolean;
-  alertMessages: AlertMessage[]
+  alertMessages: AlertMessage[];
+  explicitTags: string[];
+  zapAmountSettings: number[];
 }

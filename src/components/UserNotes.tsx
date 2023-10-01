@@ -6,14 +6,13 @@ import { RootState } from '../redux/store';
 type Props = {}
 
 export default function UserNotes({}: Props) {
-    const keys = useSelector((state: RootState) => state.keys);
     const events = useSelector((state: RootState) => state.events);
     const note = useSelector((state: RootState) => state.note);
 
     if (note.profileEventToShow !== null) {
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                {events.currentProfileNotes && events.currentProfileNotes.map((event) => {
+                {events.currentProfileNotes && [...new Set(events.currentProfileNotes)].map((event) => {
         
                     return (
                         <Box key={event.sig}>
@@ -33,10 +32,7 @@ export default function UserNotes({}: Props) {
 
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
-                {events.userNotes && events.userNotes.map((event) => {
-                    if (note.profileEventToShow === null && event.pubkey !== keys.publicKey.decoded) {
-                        return <></>
-                    }
+                {events.userNotes && [...new Set(events.userNotes)].map((event) => {
                     
                     return (
                         <Box key={event.sig}>

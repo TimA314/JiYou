@@ -15,6 +15,7 @@ const root = ReactDOM.createRoot(
 
 const pool = new SimplePool();
 
+
 root.render(
   <React.StrictMode>
     <PoolContext.Provider value={pool}>

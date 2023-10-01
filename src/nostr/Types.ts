@@ -48,6 +48,7 @@ export interface MetaData {
   picture?: string,
   banner?: string,
   nip05?: string,
+  lud06?: string,
   lud16?: string,
 }
 
@@ -58,11 +59,4 @@ export type NoteUrls = {
 
 export interface RelaySwitches {
   [relayUrl: string]: boolean;
-}
-
-export interface ProfileContent {
-  name: string;
-  picture: string;
-  about: string;
-  banner: string;
 }

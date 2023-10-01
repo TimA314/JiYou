@@ -13,16 +13,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleProfileRefreshAnimation, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addMessage, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import { checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
+import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
+import { MetaData } from '../nostr/Types';
 
 
 interface ProfileProps {
-    updateProfile: (name: string, about: string, picture: string, banner: string) => void;
+    updateProfile: (profileContent: MetaData) => void;
 }
 
 export default function Profile({
@@ -37,6 +39,8 @@ const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
+const [lud16Input, setLud16Input] = useState("");
+const [lud06Input, setLud06Input] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
@@ -49,6 +53,7 @@ const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
 useEffect(() => {
     if (note.profileEventToShow !== null) {
+
         if (!events.metaData[note.profileEventToShow.pubkey]){
             const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
             if (nostrBandMetaData) {
@@ -60,12 +65,14 @@ useEffect(() => {
             }
         }
 
-        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey));
+        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey) ?? keys.publicKey.encoded);
         setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
         setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
         setImageSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
+        setLud16Input(events.metaData[note.profileEventToShow.pubkey]?.lud16 ?? "");
+        setLud06Input(events.metaData[note.profileEventToShow.pubkey]?.lud06 ?? "");
         return;
     }
     
@@ -79,6 +86,8 @@ useEffect(() => {
     setBannerUrlInput(userMetaData?.banner ?? "");
     setImageSrc(userMetaData?.picture ?? "");
     setBannerSrc(userMetaData?.banner ?? "");
+    setLud16Input(userMetaData?.lud16 ?? "");
+    setLud06Input(userMetaData?.lud06 ?? "");
     
 }, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
@@ -94,15 +103,34 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     if (profileNameInput === events.metaData[keys.publicKey.decoded]?.name  &&
         profileAboutInput === events.metaData[keys.publicKey.decoded]?.about  &&
         imageUrlInput === events.metaData[keys.publicKey.decoded]?.picture  &&
-        bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner ) return;
+        bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner && 
+        lud16Input === events.metaData[keys.publicKey.decoded]?.lud16 &&
+        lud06Input === events.metaData[keys.publicKey.decoded]?.lud06 ) return;
 
-    if (profileNameInput === "" && profileAboutInput === "" && imageUrlInput === "" && bannerUrlInput === "") return;
-    console.log("Updating profile")
-    updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
+    if (profileNameInput.trim() === "" &&
+        profileAboutInput.trim() === "" && 
+        imageUrlInput.trim() === "" && 
+        bannerUrlInput.trim() === "" &&
+        lud16Input.trim() === "" &&
+        lud06Input.trim() === "") return;
+
+    const profileContent: MetaData = {
+        name: profileNameInput,
+        about: profileAboutInput,
+        picture: imageUrlInput,
+        banner: bannerUrlInput,
+        lud16: lud16Input,
+        lud06: lud06Input,
+    }
+
+    dispatch(addMessage({message: "Updating Profile", isError: false}))
+    updateProfile(profileContent);
     setProfileNameInput(profileNameInput);
     setProfileAboutInput(profileAboutInput);
     setImageUrlInput(imageUrlInput);
     setBannerUrlInput(bannerUrlInput);
+    setLud16Input(lud16Input);
+    setLud06Input(lud06Input);
 }
 
 const handleLogout = () => {
@@ -112,12 +140,14 @@ const handleLogout = () => {
         navigate("/");
         return;
     }
+
     localStorage.removeItem("pk");
     localStorage.removeItem("sk");
+
     dispatch(setKeys({publicKey: {decoded: "", encoded: ""}, privateKey: {decoded: "", encoded: ""}}))
     dispatch(clearUserEvents());
-    console.log("Logged out");
     navigate("/start")
+    console.log("Logged out");
 }
 
 const handleEditOrSaveClick = () => {
@@ -129,10 +159,12 @@ const handleEditOrSaveClick = () => {
 
 const handleRefreshUserNotesClicked = () => {
     if (note.profileEventToShow !== null) {
-        dispatch(setRefreshingCurrentProfileNotes(true));
+        dispatch(setRefreshingCurrentProfileNotes((prev: boolean) => !prev));
         dispatch(toggleRefreshCurrentProfileNotes());
+        dispatch(toggleProfileRefreshAnimation());
         return;
     }
+    dispatch(toggleProfileRefreshAnimation());
     dispatch(setIsRefreshingUserEvents(true));
     dispatch(toggleRefreshUserNotes());
 }
@@ -272,62 +304,100 @@ const handleBannerError = () : string => {
                                                 }}
                                                 />
                                             </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>
-                                                    <TextField 
-                                                    id="profileAboutInput"
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField 
+                                                id="profileAboutInput"
+                                                fullWidth
+                                                label="About"
+                                                InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                color='primary'
+                                                value={profileAboutInput}
+                                                onChange={e => setProfileAboutInput(e.target.value)}
+                                                multiline
+                                                rows={4}
+                                                InputProps={{
+                                                    style: { color: themeColors.textColor},
+                                                    startAdornment: 
+                                                    <InputAdornment position="start">
+                                                        <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
+                                                    </InputAdornment>
+                                                }}
+                                                />  
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>   
+                                                <TextField 
+                                                id="profileImageUrlInput"
+                                                fullWidth
+                                                label="Profile Image URL"
+                                                InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                color='primary'
+                                                value={imageUrlInput}
+                                                onChange={e => setImageUrlInput(e.target.value)}
+                                                InputProps={{
+                                                    style: { color: themeColors.textColor},
+                                                    startAdornment: 
+                                                    <InputAdornment position="start">
+                                                        <ImageIcon sx={{ color: themeColors.textColor }}/>
+                                                    </InputAdornment>
+                                                }}
+                                                />
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="bannerImageUrlInput"
                                                     fullWidth
-                                                    label="About"
-                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                                    color='primary'
-                                                    value={profileAboutInput}
-                                                    onChange={e => setProfileAboutInput(e.target.value)}
-                                                    multiline
-                                                    rows={4}
+                                                    label="Banner Image URL"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={bannerUrlInput}
+                                                    onChange={e => setBannerUrlInput(e.target.value)} 
                                                     InputProps={{
                                                         style: { color: themeColors.textColor},
                                                         startAdornment: 
                                                         <InputAdornment position="start">
-                                                            <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
-                                                        </InputAdornment>
-                                                    }}
-                                                    />  
-                                                </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>   
-                                                    <TextField 
-                                                    id="profileImageUrlInput"
-                                                    fullWidth
-                                                    label="Profile Image URL"
-                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                                    color='primary'
-                                                    value={imageUrlInput}
-                                                    onChange={e => setImageUrlInput(e.target.value)}
-                                                    InputProps={{
-                                                        style: { color: themeColors.textColor},
-                                                        startAdornment: 
-                                                        <InputAdornment position="start">
-                                                            <ImageIcon sx={{ color: themeColors.textColor }}/>
+                                                            <ImageIcon sx={{ color: themeColors.textColor }} />
                                                         </InputAdornment>
                                                     }}
                                                     />
-                                                </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>
-                                                    <TextField
-                                                        id="bannerImageUrlInput"
-                                                        fullWidth
-                                                        label="Banner Image URL"
-                                                        InputLabelProps={{sx: { color: themeColors.textColor }}}
-                                                        color="primary"
-                                                        value={bannerUrlInput}
-                                                        onChange={e => setBannerUrlInput(e.target.value)} 
-                                                        InputProps={{
-                                                            style: { color: themeColors.textColor},
-                                                            startAdornment: 
-                                                            <InputAdornment position="start">
-                                                                <ImageIcon sx={{ color: themeColors.textColor }} />
-                                                            </InputAdornment>
-                                                        }}
-                                                        />
-                                                </Paper>
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="lud16Input"
+                                                    fullWidth
+                                                    label="LUD-16 (ex. ...@walletofsatoshi.com )"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={lud16Input}
+                                                    onChange={e => setLud16Input(e.target.value)} 
+
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <ElectricBoltIcon sx={{ color: themeColors.textColor }} />
+                                                        </InputAdornment>
+                                                    }}
+                                                    />
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="lud06Input"
+                                                    fullWidth
+                                                    label="LNURL (LUD-06)"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={lud06Input}
+                                                    onChange={e => setLud06Input(e.target.value)} 
+
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <ElectricBoltIcon sx={{ color: themeColors.textColor }} />
+                                                        </InputAdornment>
+                                                    }}
+                                                    />
+                                            </Paper>
                                             </Collapse>
                                         </Box>
                                     )}
@@ -347,11 +417,11 @@ const handleBannerError = () : string => {
                         </Tabs>
                         <IconButton
                             onClick={() => handleRefreshUserNotesClicked()}
-                            disabled={events.refreshingUserNotes || events.refreshingCurrentProfileNotes}
+                            disabled={events.profileRefreshAnimation}
                             sx={{
                                 color: themeColors.secondary, 
                                 marginLeft: "auto",
-                                ...((events.refreshingUserNotes || events.refreshingCurrentProfileNotes) && {
+                                ...((events.profileRefreshAnimation) && {
                                     animation: 'spin 1s linear infinite'
                                 })
                             }}>

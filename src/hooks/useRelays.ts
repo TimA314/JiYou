@@ -28,7 +28,7 @@ export const useRelays = ({}: UseRelaysProps) => {
         if (!pool) return;
         try {
             const relayUrls = nostr.relays.map((r) => r.relayUrl);
-            let currentRelaysEvent = await pool.list([...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [keys.publicKey.decoded], limit: 1 }])
+            let currentRelaysEvent = await pool.batchedList('initial', [...new Set([...relayUrls, metaDataAndRelayHelpingRelay])], [{kinds: [10002], authors: [keys.publicKey.decoded], limit: 1 }])
             
 
             if (currentRelaysEvent[0] && currentRelaysEvent[0].tags.length > 0){

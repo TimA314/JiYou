@@ -1,10 +1,12 @@
-import { Event } from "nostr-tools";
+import { Event, EventTemplate, Kind } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
+import { useSelector } from "react-redux";
+import { RootState } from "../redux/store";
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(
-    sortedArray: T[],
-    event: T
+  sortedArray: T[],
+  event: T
   ) {
     let start = 0;
     let end = sortedArray.length - 1;
@@ -58,22 +60,15 @@ export function insertEventIntoDescendingList<T extends Event>(
     return [];
   }
 
-  const explicitTags: string[] = [
-    "nsfw",
-    "gore",
-    "nudity",
-    "nude",
-    "blood",
-    "nudestr"
-  ]
-
-  export function eventContainsExplicitContent(event: Event): boolean {
+  export function eventContainsExplicitContent(event: Event, explicitTags: string[]): boolean {
     return event.tags.filter((t) => t[0] === "content-warning" || explicitTags.includes(t[1].toLowerCase())).length > 0
   }
 
  export const getMediaNostrBandImageUrl = (pubkeyToFetch: string, type: string, size: number) => {
-    return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
-  }
+  const pubkeySubstring = pubkeyToFetch?.substring(pubkeyToFetch.length - 4);
+  if (!pubkeySubstring) return "https://th.bing.com/th/id/OIP.QiAAM1z2YIX52LOQgQlr3gHaHa?pid=ImgDet&rs=1";
+  return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
+}
 
   export const getMetaDataNostrBandUrl = (pubkeyToFetch: string) => {
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
@@ -89,7 +84,6 @@ export function insertEventIntoDescendingList<T extends Event>(
         }
 
         const data = await response.json();
-        console.log(data);
         return data;
 
     } catch (error) {

@@ -8,13 +8,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import "./NavBar.css";
 import NavMenu from './NavMenu';
 import { Avatar, IconButton } from '@mui/material';
-import { ProfileContent } from '../nostr/Types';
 import { setProfileEventToShow } from '../redux/slices/noteSlice';
 import { useDispatch } from 'react-redux';
-import { clearUserEvents } from '../redux/slices/eventsSlice';
+import { MetaData } from '../nostr/Types';
 
 interface NavBarProps {
-  profile: ProfileContent
+  profile: MetaData;
 }
 
 const NavBar = ({profile}: NavBarProps) => {

@@ -92,7 +92,7 @@ dispatch: Dispatch<AnyAction>
 
     switch (signedEvent.kind){
       case 0: {
-        eventKindMessage = "Published Profile MetaData"
+        eventKindMessage = "Updated Profile"
         break;
       }
       case 1: {

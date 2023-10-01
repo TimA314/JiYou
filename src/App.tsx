@@ -1,10 +1,10 @@
 import CssBaseline from '@mui/material/CssBaseline';
 import './App.css';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Profile from './pages/Profile';
 import Relays from './pages/Relays';
 import NavBar from './components/NavBar';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect } from 'react';
 import GlobalFeed from './pages/GlobalFeed';
 import { Box, Container } from '@mui/material';
 import Keys from './pages/Keys';
@@ -23,7 +23,11 @@ import { setKeys } from './redux/slices/keySlice';
 import ReplyToNote from './components/ReplyToNote';
 import NoteModal from './components/NoteModal';
 import { AlertMessages } from './components/AlertMessages';
-import { setHideExplicitContent, setImageOnlyMode } from './redux/slices/noteSlice';
+import { setHideExplicitContent, setImageOnlyMode, setZapAmountSettings } from './redux/slices/noteSlice';
+import useGetZaps from './hooks/useGetZaps';
+import { useGetReactions } from './hooks/useGetReactions';
+import { useGetMetaData } from './hooks/useGetMetaData';
+import { useProfileNotes } from './hooks/useProfileNotes';
 
 function App() {
   const keys = useSelector((state: RootState) => state.keys);
@@ -31,49 +35,55 @@ function App() {
   const { updateRelays } = useRelays({});
   const { updateFollowing } = useFollowing({});
   const { profile, updateProfile} = useProfile({});
-
-  useListEvents({});
+  const location = useLocation();
+  const currentPath = location.pathname;
   
-    const dispatch = useDispatch();
+  // Hooks
+  useListEvents({});
+  useGetReactions();
+  useProfileNotes();
+  useGetMetaData();
+  useGetZaps({});
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const getKeyFromNostrExtension = async () => {
+    try {
+      const pkFromNostr = await window.nostr.getPublicKey();
+      if (pkFromNostr && pkFromNostr !== "")
+      {
+        const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
+        dispatch(setKeys(newKeys));
+        return;
+      }
+    } catch {}
+    navigate("/start");
+  }
 
-    useEffect(() => {
-      if (keys.publicKey.decoded === "") {
-
-        const getKeyFromNostrExtension = async () => {
-          const pkFromNostr = await window.nostr.getPublicKey();
-          if (pkFromNostr && pkFromNostr !== "")
-          {
-            const newKeys = generatePublicKeyOnlyObject(pkFromNostr);
-            dispatch(setKeys(newKeys));
-            return true;
-          }
-          return false;
+  useEffect(() => {
+    if (keys.publicKey.decoded && keys.publicKey.decoded !== "") return;
+      
+      //check if sk is in local storage
+      const skFromStorage = localStorage.getItem("sk");
+      
+      if (skFromStorage && skFromStorage !== ""){
+        const newKeys = generateKeyObject(skFromStorage);
+        if (newKeys){
+          store.dispatch(setKeys(newKeys));
+          return;
         }
-
-
+      } else {
+        //check if nostr extension is installed
         if (window.nostr){
           try {
-            const retrieved = getKeyFromNostrExtension();
+            getKeyFromNostrExtension();
+            return;
           } catch {}
         }
-
-
-        //check if sk is in local storage
-        const skFromStorage = localStorage.getItem("sk");
-
-        if (skFromStorage && skFromStorage !== ""){
-            const newKeys = generateKeyObject(skFromStorage);
-            if (newKeys){
-              store.dispatch(setKeys(newKeys));
-              return;
-          }
-        }
-
-        navigate("/start");
       }
-    }, [keys.publicKey.decoded]);
+      navigate("/start");
+  }, [keys.publicKey.decoded]);
 
 
   //Set Settings
@@ -85,6 +95,10 @@ function App() {
       if (parsedSettings){
         dispatch(setHideExplicitContent(parsedSettings.feedSettings.hideExplicitContent))
         dispatch(setImageOnlyMode(parsedSettings.feedSettings.imagesOnlyMode))
+        console.log(parsedSettings.zapSettings)
+        if (typeof parsedSettings.zapSettings === "string") {
+          dispatch(setZapAmountSettings(parsedSettings.zapSettings.split(",").map(Number)))
+        }
       }
     }
   }, []);
@@ -128,7 +142,7 @@ function App() {
               <About />
             } />
           </Routes>
-          {keys.publicKey.decoded !== "" && 
+          {currentPath !== "/start" && 
           <NavBar profile={profile} />
           }
       </Container>

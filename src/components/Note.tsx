@@ -13,8 +13,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
 import { useCallback, useContext, useEffect, useState } from 'react';
-import { nip19, EventTemplate, Kind, Event } from 'nostr-tools';
-import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost } from '../utils/miscUtils';
+import { nip19, EventTemplate, Event } from 'nostr-tools';
+import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import RateReviewIcon from '@mui/icons-material/RateReview';
@@ -28,7 +28,11 @@ import { useNavigate } from 'react-router-dom';
 import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
-
+import BoltIcon from '@mui/icons-material/Bolt';
+import * as invoice from 'light-bolt11-decoder'
+import { defaultRelays } from '../nostr/DefaultRelays';
+import { useZapNote } from '../hooks/useZapNote';
+import { ZapAmountModal } from './ZapAmountModal';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
@@ -46,11 +50,10 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
 }));
 
 //Styles
-const FavoriteIconButton = styled(IconButton)(({ theme }) => ({
+const ReactionIconButton = styled(IconButton)(({ }) => ({
   '&.animateLike': {
-    animation: '$scaleAnimation 0.3s ease-in-out',
-    color: 'purple',
-  },
+    animation: '$scaleAnimation 0.3s ease-in-out'
+    },
   '@keyframes scaleAnimation': {
     '0%': { transform: 'scale(1)' },
     '50%': { transform: 'scale(1.3)' },
@@ -90,10 +93,13 @@ const Note: React.FC<NoteProps> = ({
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
 
+  const [zappedAmount, setZappedAmount] = useState(0);
+
   const [liked, setLiked] = useState(false);
+  const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const dicebear = DiceBears();
+  const [amountToZap, setAmountToZap] = useState<number>(1);
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
@@ -101,10 +107,35 @@ const Note: React.FC<NoteProps> = ({
   const youtubeFromPost = getYoutubeVideoFromPost(event.content);
   const images = GetImageFromPost(event.content);
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
-  const navigate = useNavigate();
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
+  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
+  const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
+
+
+  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const dicebear = DiceBears();
+  
+  useEffect(() => {
+    const zapsForNote: Event[] | null = events.zaps[event.id];
+    if(!zapsForNote) return;
+
+    let amount = 0;
+    zapsForNote.forEach(z => {
+      const bolt = z.tags.find(t => t[0] === "bolt11")?.[1]
+      if (bolt) {
+        const decoded = invoice.decode(bolt);
+        if(!decoded) return;
+        const amountSection = decoded.sections.find((section: { name: string; }) => section.name === 'amount');
+        const decodedAmount = amountSection ? Number(amountSection.value) / 1000 : 0;
+        amount += decodedAmount;
+      }
+    });
+    setZappedAmount(amount);
+  
+  },[events.zaps]);
+
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
@@ -115,12 +146,12 @@ const Note: React.FC<NoteProps> = ({
     setIsFollowing((isFollowing) => !isFollowing);
   }, [updateFollowing, event.pubkey]);
   
-  const likeNote = useCallback(async () => {
+  const likeNote = async () => {
     if (!pool) return;
     
     //Construct the event
     const _baseEvent = {
-      kind: Kind.Reaction,
+      kind: 7,
       content: "+",
       created_at: Math.floor(Date.now() / 1000),
       tags: [
@@ -143,7 +174,15 @@ const Note: React.FC<NoteProps> = ({
     const signedManually = await signEventWithStoredSk(pool, keys, writableRelayUrls, _baseEvent, dispatch);
     setLiked(signedManually);
 
-  }, [pool, nostr.relays, event]);
+  };
+
+  const handleZapNote = async () => {
+    if (zapAmountChipsVisible){
+      setZapAmountChipsVisible(false);
+      return;
+    }
+    setZapAmountChipsVisible(true);
+  }
 
   useEffect(() => {
     const checkFollowing = nostr.following.includes(event.pubkey);
@@ -161,7 +200,6 @@ const Note: React.FC<NoteProps> = ({
   }
 
   const handleReplyToNote = () => {
-    console.log("reply to note modal open", event);
     dispatch(setReplyToNoteEvent(event));
   }
 
@@ -309,6 +347,17 @@ const Note: React.FC<NoteProps> = ({
         </CardContent>
       )}
 
+      <Box 
+        sx={{
+          display: 'flex', 
+          alignContent: "flex-end", 
+          justifyContent: 'end', 
+          marginRight: '2.1rem',
+          position: 'relative'
+        }}>
+        <ZapAmountModal visible={zapAmountChipsVisible} setVisible={setZapAmountChipsVisible} setZapped={setZapped} setZappedAmount={setZappedAmount} eventToZap={event}/>
+      </Box>
+
       <CardActions disableSpacing sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="subtitle2" sx={{color: themeColors.textColor}}>
           {moment.unix(event.created_at).fromNow()}
@@ -320,6 +369,7 @@ const Note: React.FC<NoteProps> = ({
           </StyledBadge>
         </IconButton>
         </Box>
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <IconButton 
             onClick={() => disableReplyIcon === true ? () => {} : handleReplyToNote()}
@@ -327,10 +377,10 @@ const Note: React.FC<NoteProps> = ({
           >
             <RateReviewIcon />
           </IconButton>
-          <FavoriteIconButton 
+
+          <ReactionIconButton 
             aria-label="Upvote note" 
             onClick={likeNote} 
-            disabled={liked} 
             sx={{ color: liked ? themeColors.primary : themeColors.textColor }}
             className={liked ? 'animateLike' : ''}
           >
@@ -338,7 +388,20 @@ const Note: React.FC<NoteProps> = ({
             {(events.reactions[event.id]?.length ?? 0) + (liked ? 1 : 0)}
           </Typography>
             <FavoriteIcon id={"favorite-icon-" + event.sig} />
-          </FavoriteIconButton>
+          </ReactionIconButton>
+
+          <ReactionIconButton
+            arie-label="zap note"
+            onClick={handleZapNote}
+            sx={{ color: zapped ? themeColors.secondary : themeColors.textColor }}
+            className={zapped ? 'animateLike' : ''}
+            >
+              <Typography variant='caption' sx={{color: themeColors.textColor}}>
+                {zappedAmount}
+              </Typography>
+              <BoltIcon id={"zap-icon-" + event.sig} />
+          </ReactionIconButton>
+
           <ExpandMore
             expand={expanded}
             onClick={handleExpandClick}
@@ -382,7 +445,11 @@ const Note: React.FC<NoteProps> = ({
             Sig: {event.sig}
           </Typography>
           <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Tags: <ul >{event.tags.map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
+            Lud16: {events.metaData[event.pubkey]?.lud16 ?? ""}
+          </Typography>
+          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
+            Tags: <ul >{[...new Set(event.tags)].map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
+            Tags: <ul >{[...new Set(event.tags)].map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
           </Typography>
         </CardContent>
       </Collapse>
