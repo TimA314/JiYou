@@ -12,7 +12,7 @@ const SensitiveContentList = (props: Props) => {
     const { themeColors } = useContext(ThemeContext);
     const note = useSelector((state: RootState) => state.note);
     const dispatch = useDispatch();
-    const [tag, setTag] = useState<string>();
+    const [tag, setTag] = useState<string>("");
     const [showTags, setShowTags] = useState(false); 
 
     const handleDeleteTag = (tag: string) => {

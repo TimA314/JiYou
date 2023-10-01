@@ -13,7 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
-import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
+import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleProfileRefreshAnimation, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { addMessage, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
@@ -53,7 +53,7 @@ const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
 useEffect(() => {
     if (note.profileEventToShow !== null) {
-        
+
         if (!events.metaData[note.profileEventToShow.pubkey]){
             const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
             if (nostrBandMetaData) {
@@ -159,10 +159,12 @@ const handleEditOrSaveClick = () => {
 
 const handleRefreshUserNotesClicked = () => {
     if (note.profileEventToShow !== null) {
-        dispatch(setRefreshingCurrentProfileNotes(true));
+        dispatch(setRefreshingCurrentProfileNotes((prev: boolean) => !prev));
         dispatch(toggleRefreshCurrentProfileNotes());
+        dispatch(toggleProfileRefreshAnimation());
         return;
     }
+    dispatch(toggleProfileRefreshAnimation());
     dispatch(setIsRefreshingUserEvents(true));
     dispatch(toggleRefreshUserNotes());
 }
@@ -415,11 +417,11 @@ const handleBannerError = () : string => {
                         </Tabs>
                         <IconButton
                             onClick={() => handleRefreshUserNotesClicked()}
-                            disabled={events.refreshingUserNotes || events.refreshingCurrentProfileNotes}
+                            disabled={events.profileRefreshAnimation}
                             sx={{
                                 color: themeColors.secondary, 
                                 marginLeft: "auto",
-                                ...((events.refreshingUserNotes || events.refreshingCurrentProfileNotes) && {
+                                ...((events.profileRefreshAnimation) && {
                                     animation: 'spin 1s linear infinite'
                                 })
                             }}>

@@ -1,6 +1,6 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useRef } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
-import { addCurrentProfileNotes, addUserNotes, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes } from "../redux/slices/eventsSlice";
+import { addCurrentProfileNotes, addUserNotes, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleProfileRefreshAnimation } from "../redux/slices/eventsSlice";
 import { RootState } from "../redux/store";
 import { PoolContext } from '../context/PoolContext';
 import { defaultRelays } from "../nostr/DefaultRelays";
@@ -15,7 +15,8 @@ export const useProfileNotes = () => {
     const nostr = useSelector((state: RootState) => state.nostr);
     const events = useSelector((state: RootState) => state.events);
     const note = useSelector((state: RootState) => state.note);
-
+    const fetchingUserNotes = useRef<boolean>(false);
+    const fetchingCurrentProfileNotes = useRef<boolean>(false);
     const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
 
 
@@ -23,27 +24,52 @@ export const useProfileNotes = () => {
   useEffect(() => {
     
     const fetchUserNotes = async () => {
-      if (!pool) return;
-
+      if (!pool || fetchingUserNotes.current) return;
       dispatch(clearUserEvents());
+      console.log("fetching user notes")
 
-      const batchedList = await pool.batchedList('initial', allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [keys.publicKey.decoded]}])
       let eventsBatch: Event[] = [];
 
-      batch(() => {
-        eventsBatch.forEach((ev) => {
-          if (keys.publicKey.decoded === ev.pubkey) {
-            dispatch(addUserNotes(sanitizeEvent(ev)));
-          } else {
-            dispatch(addCurrentProfileNotes(sanitizeEvent(ev)));
-          }
-        });
+      sub.on("event", (event: Event) => {
+        const existingInBatch = eventsBatch.some((e: Event) => e.sig === event.sig);
+        const existingInStore = events.userNotes.some((e: Event) => e.sig === event.sig);
+        const isUsersEvent = keys.publicKey.decoded === event.pubkey;
+        if (existingInBatch || existingInStore || !isUsersEvent) {
+          fetchingUserNotes.current = false;
+          return;
+        }
+
+        eventsBatch.push(sanitizeEvent(event));
+
+        if (eventsBatch.length > 10) {
+          batch(async () => {
+            eventsBatch.forEach((ev) => {
+              dispatch(addUserNotes(ev));
+            });
+          });
+        }
       });
 
-      dispatch(setIsRefreshingUserEvents(false))
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0){
+          
+          batch(() => {
+            eventsBatch.forEach((ev) => {
+              dispatch(addUserNotes(ev));
+            });
+          });
+          
+          dispatch(toggleProfileRefreshAnimation());
+          dispatch(setIsRefreshingUserEvents(false));
+          fetchingUserNotes.current = false;
+        }
+      });
     }
 
-    fetchUserNotes();
+    if (!events.refreshingUserNotes){
+      fetchUserNotes();
+    }
   }, [keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
   
 
@@ -51,11 +77,11 @@ export const useProfileNotes = () => {
   useEffect(() => {
     
     const fetchCurrentProfileNotes = () => {
-      dispatch(clearCurrentProfileNotes());
-
       if (!pool || note.profileEventToShow === null) {
         return;
       }
+      fetchingCurrentProfileNotes.current = true;
+      dispatch(clearCurrentProfileNotes());
 
       const profileNotesAlreadyFetched = events.globalNotes.filter((e: Event) => e.pubkey === note.profileEventToShow?.pubkey)
       if (profileNotesAlreadyFetched.length > 0) {
@@ -70,12 +96,12 @@ export const useProfileNotes = () => {
       
       let eventsBatch: Event[] = [];
 
-      sub.on("event", async (event: Event) => {
+      sub.on("event", (event: Event) => {
         if (profileNotesAlreadyFetched.length > 0 && profileNotesAlreadyFetched.some((e: Event) => e.id === event.id)) {
           return; 
         }
         
-        eventsBatch.push(await sanitizeEvent(event));
+        eventsBatch.push(sanitizeEvent(event));
 
         if (eventsBatch.length > 2) {
           batch(() => {
@@ -98,8 +124,9 @@ export const useProfileNotes = () => {
           });
           eventsBatch = [];
         }
+        dispatch(toggleProfileRefreshAnimation());
         dispatch(setRefreshingCurrentProfileNotes(false));
-
+        fetchingCurrentProfileNotes.current = false;
       })
     }
     

@@ -13,6 +13,7 @@ const initialState: EventsType = {
     zaps: {},
     refreshUserNotes: false,
     refreshingUserNotes: false,
+    profileRefreshAnimation: false,
     refreshFeedNotes: true,
     refreshingFeedNotes: false,
     refreshCurrentProfileNotes: false,
@@ -102,6 +103,9 @@ export const eventsSlice = createSlice({
         },
         toggleRefreshCurrentProfileNotes: (state) => {
             state.refreshCurrentProfileNotes = !state.refreshCurrentProfileNotes;
+        },
+        toggleProfileRefreshAnimation: (state) => {
+            state.profileRefreshAnimation = !state.profileRefreshAnimation;
         }
     }
 });
@@ -125,7 +129,8 @@ export const {
     addCurrentProfileNotes,
     clearCurrentProfileNotes,
     toggleRefreshCurrentProfileNotes,
-    setRefreshingCurrentProfileNotes
+    setRefreshingCurrentProfileNotes,
+    toggleProfileRefreshAnimation
 } = eventsSlice.actions;
 
 export default eventsSlice.reducer;
@@ -142,6 +147,7 @@ export type EventsType = {
     refreshUserNotes: boolean,
     refreshFeedNotes: boolean,
     refreshingUserNotes: boolean,
+    profileRefreshAnimation: boolean,
     refreshingFeedNotes: boolean,
     refreshCurrentProfileNotes: boolean,
     refreshingCurrentProfileNotes: boolean,

@@ -65,8 +65,10 @@ export function insertEventIntoDescendingList<T extends Event>(
   }
 
  export const getMediaNostrBandImageUrl = (pubkeyToFetch: string, type: string, size: number) => {
-    return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
-  }
+  const pubkeySubstring = pubkeyToFetch.substring(pubkeyToFetch.length - 4);
+  if (!pubkeySubstring) return "";
+  return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
+}
 
   export const getMetaDataNostrBandUrl = (pubkeyToFetch: string) => {
     return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}.json`;
