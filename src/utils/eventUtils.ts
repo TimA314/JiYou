@@ -65,8 +65,8 @@ export function insertEventIntoDescendingList<T extends Event>(
   }
 
  export const getMediaNostrBandImageUrl = (pubkeyToFetch: string, type: string, size: number) => {
-  const pubkeySubstring = pubkeyToFetch.substring(pubkeyToFetch.length - 4);
-  if (!pubkeySubstring) return "";
+  const pubkeySubstring = pubkeyToFetch?.substring(pubkeyToFetch.length - 4);
+  if (!pubkeySubstring) return "https://th.bing.com/th/id/OIP.QiAAM1z2YIX52LOQgQlr3gHaHa?pid=ImgDet&rs=1";
   return `https://media.nostr.band/thumbs/${pubkeyToFetch.substring(pubkeyToFetch.length - 4)}/${pubkeyToFetch}-${type}-${size}`;
 }
 

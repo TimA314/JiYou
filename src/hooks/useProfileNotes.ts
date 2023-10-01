@@ -24,7 +24,8 @@ export const useProfileNotes = () => {
   useEffect(() => {
     
     const fetchUserNotes = async () => {
-      if (!pool || fetchingUserNotes.current) return;
+      if (!pool || fetchingUserNotes.current || note.profileEventToShow !== null) return;
+
       dispatch(clearUserEvents());
       console.log("fetching user notes")
 
@@ -67,9 +68,8 @@ export const useProfileNotes = () => {
       });
     }
 
-    if (!events.refreshingUserNotes){
-      fetchUserNotes();
-    }
+    fetchUserNotes();
+
   }, [keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
   
 
@@ -77,7 +77,7 @@ export const useProfileNotes = () => {
   useEffect(() => {
     
     const fetchCurrentProfileNotes = () => {
-      if (!pool || note.profileEventToShow === null) {
+      if (!pool || note.profileEventToShow === null || fetchingCurrentProfileNotes.current) {
         return;
       }
       fetchingCurrentProfileNotes.current = true;
