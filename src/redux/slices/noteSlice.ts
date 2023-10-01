@@ -73,7 +73,10 @@ export const noteSlice = createSlice({
         },
         removeHideExplicitTag: (state, action: PayloadAction<string>) => {
             state.explicitTags = state.explicitTags.filter((zap) => zap !== action.payload)
-        }
+        },
+        setHideExplicitTags: (state, action: PayloadAction<string[]>) => {
+            state.explicitTags = action.payload;
+        },
     }
 });
 
@@ -91,9 +94,12 @@ export const {
     removeMessage,
     addMessage,
     setProfileEventToShow,
-    addZapAmountSettings: setZapAmountSettings,
+    addZapAmountSettings,
     removeZapAmountSettings,
-    removeHideExplicitTag
+    removeHideExplicitTag,
+    setZapAmountSettings,
+    addHideExplicitTag,
+    setHideExplicitTags
 } = noteSlice.actions;
 export default noteSlice.reducer;
 

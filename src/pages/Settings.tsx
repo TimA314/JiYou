@@ -5,7 +5,7 @@ import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import { MuiColorInput } from 'mui-color-input';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addMessage, setHideExplicitContent, setImageOnlyMode } from '../redux/slices/noteSlice';
+import { addMessage, setHideExplicitContent, setImageOnlyMode, setZapAmountSettings } from '../redux/slices/noteSlice';
 import { toggleRefreshFeedNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import { useNavigate } from 'react-router';
 import ZapSettings from '../components/ZapSettings';
@@ -65,6 +65,11 @@ export default function Settings ({}: SettingsProps) {
     setThemeColors(defaultThemeColors);
     dispatch(setHideExplicitContent(true))
     dispatch(setImageOnlyMode(false))
+    dispatch(setZapAmountSettings([1, 12, 21, 210, 2100]))
+    dispatch(setHideExplicitContent([
+      "nsfw"
+    ]))
+    dispatch(addMessage({message: 'Default Setting Set', isError: false}))
   };
 
   const handleSaveSettings = () => {
@@ -109,6 +114,7 @@ export default function Settings ({}: SettingsProps) {
         </Grid>
         <Grid>
           <FormGroup>
+            <SensitiveContentList />  
             <FormControlLabel
               control={<Checkbox checked={note?.hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
               label="Hide Sensetive Content"
@@ -120,7 +126,6 @@ export default function Settings ({}: SettingsProps) {
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
           </FormGroup>
-            <SensitiveContentList />  
         </Grid>
       </Grid>
 

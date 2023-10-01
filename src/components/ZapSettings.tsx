@@ -4,7 +4,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { ThemeContext } from '../theme/ThemeContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { removeZapAmountSettings, setZapAmountSettings } from '../redux/slices/noteSlice';
+import { removeZapAmountSettings, addZapAmountSettings } from '../redux/slices/noteSlice';
 
 const ZapSettings = () => {
     const { themeColors } = useContext(ThemeContext);
@@ -14,7 +14,7 @@ const ZapSettings = () => {
 
     const handleAddAmount = () => {
         if (newAmount && typeof(newAmount) === 'number' && newAmount > 0) {
-            dispatch(setZapAmountSettings(newAmount));
+            dispatch(addZapAmountSettings(newAmount));
         }
     };
 
@@ -24,8 +24,8 @@ const ZapSettings = () => {
 
   return (
     <Box>
-      <Typography variant='h6' color={themeColors.textColor}>
-        Chip Amounts
+      <Typography variant='body1' color={themeColors.textColor}>
+        Zap Amounts
       </Typography>
 
       <Box
@@ -54,12 +54,13 @@ const ZapSettings = () => {
           type="number"
           label="New Amount"
           variant="outlined"
+          size='small'
           value={newAmount}
           sx={{ marginRight: '1rem', color: themeColors.textColor }}
           InputLabelProps={{sx: {color: themeColors.textColor}}}
           onChange={e => {
             const val = Number(e.target.value);
-            if (val >= 1 || e.target.value === '') {
+            if (val >= 1 || e.target.value !== '') {
               setNewAmount(val);
             }
           }}
