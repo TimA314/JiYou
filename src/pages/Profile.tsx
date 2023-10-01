@@ -15,14 +15,15 @@ import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
 import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addMessage, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import { checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
+import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 
 
 interface ProfileProps {
-    updateProfile: (name: string, about: string, picture: string, banner: string) => void;
+    updateProfile: (name: string, about: string, picture: string, banner: string, lud16: string) => void;
 }
 
 export default function Profile({
@@ -37,6 +38,7 @@ const [profileNameInput, setProfileNameInput] = useState("");
 const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
+const [lud16Input, setLud16Input] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
@@ -94,15 +96,21 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
     if (profileNameInput === events.metaData[keys.publicKey.decoded]?.name  &&
         profileAboutInput === events.metaData[keys.publicKey.decoded]?.about  &&
         imageUrlInput === events.metaData[keys.publicKey.decoded]?.picture  &&
-        bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner ) return;
+        bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner && 
+        lud16Input === events.metaData[keys.publicKey.decoded]?.lud16 ) return;
 
-    if (profileNameInput === "" && profileAboutInput === "" && imageUrlInput === "" && bannerUrlInput === "") return;
-    console.log("Updating profile")
-    updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput);
+    if (profileNameInput.trim() === "" &&
+        profileAboutInput.trim() === "" && 
+        imageUrlInput.trim() === "" && 
+        bannerUrlInput.trim() === "" &&
+        lud16Input.trim() === "") return;
+    dispatch(addMessage({message: "Updating Profile", isError: false}))
+    updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput, lud16Input);
     setProfileNameInput(profileNameInput);
     setProfileAboutInput(profileAboutInput);
     setImageUrlInput(imageUrlInput);
     setBannerUrlInput(bannerUrlInput);
+    setLud16Input(lud16Input);
 }
 
 const handleLogout = () => {
@@ -274,62 +282,81 @@ const handleBannerError = () : string => {
                                                 }}
                                                 />
                                             </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>
-                                                    <TextField 
-                                                    id="profileAboutInput"
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField 
+                                                id="profileAboutInput"
+                                                fullWidth
+                                                label="About"
+                                                InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                color='primary'
+                                                value={profileAboutInput}
+                                                onChange={e => setProfileAboutInput(e.target.value)}
+                                                multiline
+                                                rows={4}
+                                                InputProps={{
+                                                    style: { color: themeColors.textColor},
+                                                    startAdornment: 
+                                                    <InputAdornment position="start">
+                                                        <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
+                                                    </InputAdornment>
+                                                }}
+                                                />  
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>   
+                                                <TextField 
+                                                id="profileImageUrlInput"
+                                                fullWidth
+                                                label="Profile Image URL"
+                                                InputLabelProps={{style: {color: themeColors.textColor}}} 
+                                                color='primary'
+                                                value={imageUrlInput}
+                                                onChange={e => setImageUrlInput(e.target.value)}
+                                                InputProps={{
+                                                    style: { color: themeColors.textColor},
+                                                    startAdornment: 
+                                                    <InputAdornment position="start">
+                                                        <ImageIcon sx={{ color: themeColors.textColor }}/>
+                                                    </InputAdornment>
+                                                }}
+                                                />
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="bannerImageUrlInput"
                                                     fullWidth
-                                                    label="About"
-                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                                    color='primary'
-                                                    value={profileAboutInput}
-                                                    onChange={e => setProfileAboutInput(e.target.value)}
-                                                    multiline
-                                                    rows={4}
+                                                    label="Banner Image URL"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={bannerUrlInput}
+                                                    onChange={e => setBannerUrlInput(e.target.value)} 
                                                     InputProps={{
                                                         style: { color: themeColors.textColor},
                                                         startAdornment: 
                                                         <InputAdornment position="start">
-                                                            <AutoStoriesIcon sx={{ color: themeColors.textColor }}/>
-                                                        </InputAdornment>
-                                                    }}
-                                                    />  
-                                                </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>   
-                                                    <TextField 
-                                                    id="profileImageUrlInput"
-                                                    fullWidth
-                                                    label="Profile Image URL"
-                                                    InputLabelProps={{style: {color: themeColors.textColor}}} 
-                                                    color='primary'
-                                                    value={imageUrlInput}
-                                                    onChange={e => setImageUrlInput(e.target.value)}
-                                                    InputProps={{
-                                                        style: { color: themeColors.textColor},
-                                                        startAdornment: 
-                                                        <InputAdornment position="start">
-                                                            <ImageIcon sx={{ color: themeColors.textColor }}/>
+                                                            <ImageIcon sx={{ color: themeColors.textColor }} />
                                                         </InputAdornment>
                                                     }}
                                                     />
-                                                </Paper>
-                                                <Paper sx={{marginTop: "1rem"}}>
-                                                    <TextField
-                                                        id="bannerImageUrlInput"
-                                                        fullWidth
-                                                        label="Banner Image URL"
-                                                        InputLabelProps={{sx: { color: themeColors.textColor }}}
-                                                        color="primary"
-                                                        value={bannerUrlInput}
-                                                        onChange={e => setBannerUrlInput(e.target.value)} 
-                                                        InputProps={{
-                                                            style: { color: themeColors.textColor},
-                                                            startAdornment: 
-                                                            <InputAdornment position="start">
-                                                                <ImageIcon sx={{ color: themeColors.textColor }} />
-                                                            </InputAdornment>
-                                                        }}
-                                                        />
-                                                </Paper>
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="lud16Input"
+                                                    fullWidth
+                                                    label="LUD-16 (ex. ...@walletofsatoshi.com )"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={lud16Input}
+                                                    onChange={e => setLud16Input(e.target.value)} 
+
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <ElectricBoltIcon sx={{ color: themeColors.textColor }} />
+                                                        </InputAdornment>
+                                                    }}
+                                                    />
+                                            </Paper>
                                             </Collapse>
                                         </Box>
                                     )}

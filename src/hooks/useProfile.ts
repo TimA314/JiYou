@@ -82,7 +82,7 @@ export const useProfile = ({}: UseProfileProps) => {
   }
 
 
-  const updateProfile = async (name: string, about: string, picture: string, banner: string) => {
+  const updateProfile = async (name: string, about: string, picture: string, banner: string, lud16: string) => {
     if (!pool) return;
     console.log("Updating profile");
 
@@ -103,6 +103,7 @@ export const useProfile = ({}: UseProfileProps) => {
           contentToPost.about = about;
           contentToPost.picture = picture;
           contentToPost.banner = banner;
+          contentToPost.lud16 = lud16;
           const newContent = JSON.stringify(contentToPost);  
           await publishProfileEvent(newContent);
           published = true;
@@ -114,7 +115,8 @@ export const useProfile = ({}: UseProfileProps) => {
             name: name,
             about: about,
             picture: picture,
-            banner: banner
+            banner: banner,
+            lud16: lud16
           }
           publishProfileEvent(JSON.stringify(contentToPost));
         });
