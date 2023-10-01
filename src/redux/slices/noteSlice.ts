@@ -44,10 +44,10 @@ export const noteSlice = createSlice({
         setTabIndex: (state, action) => {
             state.tabIndex = action.payload;
         },
-        setImageOnlyMode: (state, action) => {
+        setImageOnlyMode: (state, action: PayloadAction<boolean>) => {
             state.imageOnlyMode = action.payload;
         },
-        setHideExplicitContent: (state, action) => {
+        setHideExplicitContent: (state, action: PayloadAction<boolean>) => {
             state.hideExplicitContent = action.payload;
         },
         removeMessage: (state, action: PayloadAction<AlertMessage>) => {

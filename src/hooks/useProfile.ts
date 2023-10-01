@@ -1,13 +1,13 @@
 import { useContext, useEffect, useState } from 'react';
 import { Event, EventTemplate, Kind } from 'nostr-tools';
 import { sanitizeEvent } from '../utils/sanitizeUtils';
-import { ProfileContent } from '../nostr/Types';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
 import { metaDataAndRelayHelpingRelay } from '../utils/miscUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { PoolContext } from '../context/PoolContext';
 import { addMessage } from '../redux/slices/noteSlice';
+import { MetaData } from '../nostr/Types';
 
 type UseProfileProps = {};
 
@@ -16,11 +16,13 @@ export const useProfile = ({}: UseProfileProps) => {
   const nostr = useSelector((state: RootState) => state.nostr);
   const keys = useSelector((state: RootState) => state.keys);
   const dispatch = useDispatch();
-  const [profile, setProfile] = useState<ProfileContent>({
+  const [profile, setProfile] = useState<MetaData>({
     name: "",
     picture: "",
     about: "",
-    banner: ""
+    banner: "",
+    lud16: "",
+    lud06: ""
   });
 
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
@@ -38,11 +40,13 @@ export const useProfile = ({}: UseProfileProps) => {
     const sanitizedEvent = sanitizeEvent(profileEvent[0]);
     const content = JSON.parse(sanitizedEvent.content);
 
-    const profileContent: ProfileContent = {
+    const profileContent: MetaData = {
       name: content.name ? content.name : "",
       picture: content.picture ? content.picture : "",
       about: content.about ? content.about : "",
-      banner: content.banner ? content.banner : ""
+      banner: content.banner ? content.banner : "",
+      lud16: content.lud16 ? content.lud16 : "",
+      lud06: content.lud06 ? content.lud06 : ""
     }
     
     setProfile(profileContent);
@@ -54,7 +58,9 @@ export const useProfile = ({}: UseProfileProps) => {
         name: "",
         picture: "",
         about: "",
-        banner: ""
+        banner: "",
+        lud16: "",
+        lud06: ""
       });
       return;
     }
@@ -82,7 +88,7 @@ export const useProfile = ({}: UseProfileProps) => {
   }
 
 
-  const updateProfile = async (name: string, about: string, picture: string, banner: string, lud16: string) => {
+  const updateProfile = async (profileContent: MetaData) => {
     if (!pool) return;
     console.log("Updating profile");
 
@@ -99,11 +105,12 @@ export const useProfile = ({}: UseProfileProps) => {
           const sanitizedEvent = sanitizeEvent(event);
           contentToPost = JSON.parse(sanitizedEvent.content);
           console.log(contentToPost);
-          contentToPost.name = name;
-          contentToPost.about = about;
-          contentToPost.picture = picture;
-          contentToPost.banner = banner;
-          contentToPost.lud16 = lud16;
+          contentToPost.name = profileContent.name;
+          contentToPost.about = profileContent.about;
+          contentToPost.picture = profileContent.picture;
+          contentToPost.banner = profileContent.banner;
+          contentToPost.lud16 = profileContent.lud16;
+          contentToPost.lud06 = profileContent.lud06;
           const newContent = JSON.stringify(contentToPost);  
           await publishProfileEvent(newContent);
           published = true;
@@ -112,11 +119,12 @@ export const useProfile = ({}: UseProfileProps) => {
         sub.on("eose", () => {
           if(published) return;
           contentToPost = {
-            name: name,
-            about: about,
-            picture: picture,
-            banner: banner,
-            lud16: lud16
+            name: profileContent.name,
+            about: profileContent.about,
+            picture: profileContent.picture,
+            banner: profileContent.banner,
+            lud16: profileContent.lud16,
+            lud06: profileContent.lud06
           }
           publishProfileEvent(JSON.stringify(contentToPost));
         });

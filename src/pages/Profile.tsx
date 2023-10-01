@@ -20,10 +20,11 @@ import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/even
 import { checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
+import { MetaData } from '../nostr/Types';
 
 
 interface ProfileProps {
-    updateProfile: (name: string, about: string, picture: string, banner: string, lud16: string) => void;
+    updateProfile: (profileContent: MetaData) => void;
 }
 
 export default function Profile({
@@ -39,6 +40,7 @@ const [profileAboutInput, setProfileAboutInput] = useState("");
 const [imageUrlInput, setImageUrlInput] = useState("");
 const [bannerUrlInput, setBannerUrlInput] = useState("");
 const [lud16Input, setLud16Input] = useState("");
+const [lud06Input, setLud06Input] = useState("");
 const { themeColors } = useContext(ThemeContext);
 const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
@@ -51,6 +53,7 @@ const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
 useEffect(() => {
     if (note.profileEventToShow !== null) {
+        
         if (!events.metaData[note.profileEventToShow.pubkey]){
             const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
             if (nostrBandMetaData) {
@@ -68,6 +71,8 @@ useEffect(() => {
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
         setImageSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
         setBannerSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
+        setLud16Input(events.metaData[note.profileEventToShow.pubkey]?.lud16 ?? "");
+        setLud06Input(events.metaData[note.profileEventToShow.pubkey]?.lud06 ?? "");
         return;
     }
     
@@ -81,6 +86,8 @@ useEffect(() => {
     setBannerUrlInput(userMetaData?.banner ?? "");
     setImageSrc(userMetaData?.picture ?? "");
     setBannerSrc(userMetaData?.banner ?? "");
+    setLud16Input(userMetaData?.lud16 ?? "");
+    setLud06Input(userMetaData?.lud06 ?? "");
     
 }, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
 
@@ -97,20 +104,33 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
         profileAboutInput === events.metaData[keys.publicKey.decoded]?.about  &&
         imageUrlInput === events.metaData[keys.publicKey.decoded]?.picture  &&
         bannerUrlInput === events.metaData[keys.publicKey.decoded]?.banner && 
-        lud16Input === events.metaData[keys.publicKey.decoded]?.lud16 ) return;
+        lud16Input === events.metaData[keys.publicKey.decoded]?.lud16 &&
+        lud06Input === events.metaData[keys.publicKey.decoded]?.lud06 ) return;
 
     if (profileNameInput.trim() === "" &&
         profileAboutInput.trim() === "" && 
         imageUrlInput.trim() === "" && 
         bannerUrlInput.trim() === "" &&
-        lud16Input.trim() === "") return;
+        lud16Input.trim() === "" &&
+        lud06Input.trim() === "") return;
+
+    const profileContent: MetaData = {
+        name: profileNameInput,
+        about: profileAboutInput,
+        picture: imageUrlInput,
+        banner: bannerUrlInput,
+        lud16: lud16Input,
+        lud06: lud06Input,
+    }
+
     dispatch(addMessage({message: "Updating Profile", isError: false}))
-    updateProfile(profileNameInput, profileAboutInput, imageUrlInput, bannerUrlInput, lud16Input);
+    updateProfile(profileContent);
     setProfileNameInput(profileNameInput);
     setProfileAboutInput(profileAboutInput);
     setImageUrlInput(imageUrlInput);
     setBannerUrlInput(bannerUrlInput);
     setLud16Input(lud16Input);
+    setLud06Input(lud06Input);
 }
 
 const handleLogout = () => {
@@ -347,6 +367,25 @@ const handleBannerError = () : string => {
                                                     color="primary"
                                                     value={lud16Input}
                                                     onChange={e => setLud16Input(e.target.value)} 
+
+                                                    InputProps={{
+                                                        style: { color: themeColors.textColor},
+                                                        startAdornment: 
+                                                        <InputAdornment position="start">
+                                                            <ElectricBoltIcon sx={{ color: themeColors.textColor }} />
+                                                        </InputAdornment>
+                                                    }}
+                                                    />
+                                            </Paper>
+                                            <Paper sx={{marginTop: "1rem"}}>
+                                                <TextField
+                                                    id="lud06Input"
+                                                    fullWidth
+                                                    label="LNURL (LUD-06)"
+                                                    InputLabelProps={{sx: { color: themeColors.textColor }}}
+                                                    color="primary"
+                                                    value={lud06Input}
+                                                    onChange={e => setLud06Input(e.target.value)} 
 
                                                     InputProps={{
                                                         style: { color: themeColors.textColor},
