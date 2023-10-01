@@ -187,10 +187,26 @@ export const useListEvents = ({}: useListEventsProps) => {
         return;
       }
 
-      let batchedList = await pool.batchedList('noteDetails', allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
-      console.log("RootEvents: " + batchedList.length)
-      batch(() => {
-        batchedList.forEach(ev => dispatch(addRootNotes(sanitizeEvent(ev))));
+      let sub = pool.sub(allRelayUrls, [{ kinds: [1], ids: idsToFetch}]);
+
+      let eventsBatch: Event[] = [];
+
+      sub.on("event", async (event: Event) => {
+        eventsBatch.push(sanitizeEvent(event));
+        if (eventsBatch.length > 10) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
+          })
+        }
+      });
+
+      sub.on("eose", () => {
+        if (eventsBatch.length > 0) {
+          batch(() => {
+            eventsBatch.forEach(ev => dispatch(addRootNotes(ev)));
+          });
+          eventsBatch = [];
+        }
       })
     }
 
