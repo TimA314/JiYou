@@ -30,8 +30,6 @@ import { addFollowing } from '../redux/slices/nostrSlice';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
-import { defaultRelays } from '../nostr/DefaultRelays';
-import { useZapNote } from '../hooks/useZapNote';
 import { ZapAmountModal } from './ZapAmountModal';
 
 //Expand Note
@@ -99,7 +97,6 @@ const Note: React.FC<NoteProps> = ({
   const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const [amountToZap, setAmountToZap] = useState<number>(1);
   const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
   let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
   const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
@@ -109,7 +106,6 @@ const Note: React.FC<NoteProps> = ({
   if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
-  const allRelayUrls = [...new Set([...nostr.relays.map((r) => r.relayUrl), ...defaultRelays.map((r) => r.relayUrl)])];
   const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
 
 
@@ -218,6 +214,7 @@ const Note: React.FC<NoteProps> = ({
             aria-label="recipe" 
             src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} 
             alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
+            sizes="small"
           </Avatar>
         }
         title={events.metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 8) + "..." }
@@ -241,6 +238,7 @@ const Note: React.FC<NoteProps> = ({
               component="img"
               image={img}
               alt="picture"
+              sizes='medium'
               key={img + event.sig}
               sx={{maxHeight: "600px", padding: 0, marginTop: "2px", width: "100%", objectFit: "contain", color: themeColors.textColor,
             }}
@@ -250,7 +248,7 @@ const Note: React.FC<NoteProps> = ({
           {youtubeFromPost && (
             <iframe 
             src={youtubeFromPost} 
-            title="YouTube video player" 
+            title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             style={{ width: '100%', height: '350px' }}
           />
@@ -329,6 +327,7 @@ const Note: React.FC<NoteProps> = ({
                       component="img"
                       image={img}
                       alt="picture"
+                      sizes='medium'
                       key={img + event.sig + "previewEventImage" + isInModal}
                       sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
                     />

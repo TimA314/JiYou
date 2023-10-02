@@ -1,7 +1,5 @@
-import { Event, EventTemplate, Kind } from "nostr-tools";
+import { Event } from "nostr-tools";
 import { MetaData } from "../nostr/Types";
-import { useSelector } from "react-redux";
-import { RootState } from "../redux/store";
 
 //binary search to find the index to insert the event into the array
 export function insertEventIntoDescendingList<T extends Event>(
