@@ -12,7 +12,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
 import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { nip19, EventTemplate, Event } from 'nostr-tools';
 import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
 import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
@@ -39,12 +39,13 @@ interface ExpandMoreProps extends IconButtonProps {
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
   return <IconButton {...other} />;
-  })(({ theme, expand }) => ({
-  transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
-  marginLeft: 'auto',
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.shortest,
-  }),
+
+    })(({ theme, expand }) => ({
+    transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+    marginLeft: 'auto',
+    transition: theme.transitions.create('transform', {
+      duration: theme.transitions.duration.shortest,
+    }),
 }));
 
 //Styles
@@ -75,6 +76,8 @@ interface NoteProps {
   disableReplyIcon?: boolean;
   isInModal?: boolean;
   disableImagesOnly?: Boolean;
+  onNoteHeightChange: (index: number, height: number) => void;
+  noteIndex: number;
 }
 
 const Note: React.FC<NoteProps> = ({
@@ -82,7 +85,9 @@ const Note: React.FC<NoteProps> = ({
     disableReplyIcon, 
     updateFollowing,
     isInModal = false,
-    disableImagesOnly
+    disableImagesOnly,
+    onNoteHeightChange,
+    noteIndex
   }: NoteProps) => {
   const { themeColors } = useContext(ThemeContext);
   const pool = useContext(PoolContext);
@@ -107,12 +112,14 @@ const Note: React.FC<NoteProps> = ({
   const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
   const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
   const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
+  const [cardHeight, setCardHeight] = useState<number | null>(null);
 
+  const noteContainerRef = useRef<HTMLDivElement | null>(null);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const dicebear = DiceBears();
-  
+
   useEffect(() => {
     const zapsForNote: Event[] | null = events.zaps[event.id];
     if(!zapsForNote) return;
@@ -135,7 +142,12 @@ const Note: React.FC<NoteProps> = ({
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
-  
+
+  useEffect(() => {
+    calculateHeight();
+  }, [expanded]);
+
+
   const handleFollowButtonClicked = useCallback(() => {
     dispatch(addFollowing(event.pubkey));
     updateFollowing(event.pubkey);
@@ -199,9 +211,31 @@ const Note: React.FC<NoteProps> = ({
     dispatch(setReplyToNoteEvent(event));
   }
 
+  useEffect(() => {
+    if (previewEvent !== undefined) calculateHeight();
+  }, [previewEvent]);
 
+  const calculateHeight = () => {  
+    if (noteContainerRef.current) {
+      const height = noteContainerRef.current.getBoundingClientRect().height;
+      console.log("Height: ", height)
+      setCardHeight(height);
+      onNoteHeightChange(noteIndex, height);
+    }
+  };
+  
   return (
-    <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
+    <Card 
+      elevation={3}  
+      sx={{ 
+        marginTop: "1rem", 
+        width: "100%", 
+        alignItems: "flex-start", 
+        borderRadius: "15px",
+        height: cardHeight || 'auto',
+      }}
+      ref={noteContainerRef}
+      >
       <CardHeader
         onClick={() => {
           dispatch(setProfileEventToShow(event))
@@ -213,7 +247,8 @@ const Note: React.FC<NoteProps> = ({
           <Avatar 
             aria-label="recipe" 
             src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} 
-            alt={events.metaData[event.pubkey]?.picture ?? dicebear}>
+            alt={events.metaData[event.pubkey]?.picture ?? dicebear}
+            onLoad={calculateHeight}>
             sizes="small"
           </Avatar>
         }
@@ -240,14 +275,22 @@ const Note: React.FC<NoteProps> = ({
               alt="picture"
               sizes='medium'
               key={img + event.sig}
-              sx={{maxHeight: "600px", padding: 0, marginTop: "2px", width: "100%", objectFit: "contain", color: themeColors.textColor,
-            }}
+              onLoad={calculateHeight}
+              sx={{
+                maxHeight: "600px", 
+                padding: 0, 
+                marginTop: "2px", 
+                width: "100%", 
+                objectFit: "contain", 
+                color: themeColors.textColor,
+              }}
             />
             ))
           )}
           {youtubeFromPost && (
             <iframe 
-            src={youtubeFromPost} 
+            src={youtubeFromPost}
+            onLoad={calculateHeight}
             title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             style={{ width: '100%', height: '350px' }}
@@ -302,7 +345,12 @@ const Note: React.FC<NoteProps> = ({
                                   }
                                 }}
                                 avatar={
-                                  <Avatar src={getMediaNostrBandImageUrl(previewEvent.pubkey, "picture", 64)}  alt={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} sx={{width: 24, height: 24}}/>
+                                  <Avatar 
+                                    src={getMediaNostrBandImageUrl(previewEvent.pubkey, "picture", 64)}  
+                                    alt={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} 
+                                    sx={{width: 24, height: 24}}
+                                    onLoad={calculateHeight}
+                                    />
                                 }
                                 title={events.metaData[previewEvent.pubkey]?.name ?? ""}
                                 subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
@@ -328,6 +376,7 @@ const Note: React.FC<NoteProps> = ({
                       image={img}
                       alt="picture"
                       sizes='medium'
+                      onLoad={calculateHeight}
                       key={img + event.sig + "previewEventImage" + isInModal}
                       sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
                     />
@@ -336,7 +385,8 @@ const Note: React.FC<NoteProps> = ({
                   {previewEventVideo && (
                     <iframe 
                     src={previewEventVideo} 
-                    title="YouTube video player" 
+                    title="YouTube video player"
+                    onLoad={calculateHeight}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     style={{ width: '100%', height: '315px', marginBottom: "10px" }}
                   />

@@ -1,6 +1,6 @@
 import { bech32 } from "bech32";
 import { RelaySetting } from "../nostr/Types";
-import { getPublicKey, nip19} from "nostr-tools";
+import { getPublicKey, nip19, Event} from "nostr-tools";
 
 export const bech32ToHex = (str: string) => {
   try {
@@ -207,4 +207,18 @@ export const GetImageFromPost = (content: string): string[] => {
     //never reach here
     return "";
   }
+
+  export const addEventIfNotExist = (array: Event[], newItem: Event) => {
+    if (!array.some(item => item.id === newItem.id)) {
+      array.push(newItem);
+    }
+  };
+
+  export const addEventToRecord = (record: Record<string, Event[]>, key: string, newItem: Event) => {
+    if (!record[key]) {
+      record[key] = [];
+    }
+    addEventIfNotExist(record[key], newItem);
+  };
+  
   

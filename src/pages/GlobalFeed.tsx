@@ -1,5 +1,5 @@
 import { Box, Fab, IconButton, Modal, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SearchFilter from '../components/SearchFilter';
 import Note from '../components/Note';
 import "./GlobalFeed.css";
@@ -13,6 +13,7 @@ import { RootState } from '../redux/store';
 import { clearGlobalNotes, setIsRefreshingFeedNotes, toggleRefreshFeedNotes } from '../redux/slices/eventsSlice';
 import { setTabIndex } from '../redux/slices/noteSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import { VariableSizeList as List } from 'react-window';
 
 const createNoteStyle = {
     position: 'absolute' as 'absolute',
@@ -38,7 +39,8 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
     const dispatch = useDispatch();
     const [createNoteOpen, setCreateNoteOpen] = useState(false);
     const { themeColors } = useContext(ThemeContext);
-
+    const listRef = useRef<List>(null);
+    const [heights, setHeights] = useState<Record<number, number>>({});
 
     //global or followers
     const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -55,25 +57,64 @@ const GlobalFeed: React.FC<GlobalFeedProps> = ({
         setCreateNoteOpen(false)
     }
 
+    const onNoteHeightChange = (index: number, height: number) => {
+        setHeights((prev) => ({ ...prev, [index]: height }));
+    }
+
+    const observeHeight = (index: number) => {
+        let resizeObserver: ResizeObserver | null = null;
+        return (node: HTMLElement | null) => {
+            if (resizeObserver) {
+                resizeObserver.disconnect();
+                resizeObserver = null;
+            }
+            if (node !== null) {
+                resizeObserver = new ResizeObserver(([entry]) => {
+                    setHeights((prev) => {
+                        const newHeights = { ...prev, [index]: Math.ceil(entry.contentRect.height) };
+                        if (listRef.current) {
+                            listRef.current.resetAfterIndex(index);
+                        }
+                        return newHeights;
+                    });
+                });
+                resizeObserver.observe(node);
+            }
+        };
+    };
+    
+    
+    const Row = ({ index, style }: { index: number, style: React.CSSProperties }) => {
+        return (
+          <div ref={observeHeight(index)} key={events.globalNotes[index].sig}>
+            <Note 
+              event={events.globalNotes[index]}
+              onNoteHeightChange={onNoteHeightChange} // Pass the callback here
+              updateFollowing={updateFollowing} 
+              noteIndex={index} 
+            />
+          </div>
+        );
+      };
+
+
     const renderFeed = () => {
         if (events.globalNotes.length === 0) {
-            return (
-                    <></>
-            )
+            return <></>;
         } else {
             return (
-                events.globalNotes.map((event) => {
-                    return (
-                        <Note
-                            event={event}
-                            updateFollowing={updateFollowing} 
-                            key={event.sig}
-                        />
-                    )
-                })
-            )
+                <List
+                ref={listRef}
+                height={window.innerHeight - 100}
+                width="100%"
+                itemCount={events.globalNotes.length}
+                itemSize={index => heights[index] ?? 225}  // default height if not available
+                >
+                    {Row}
+                </List>
+            );
         }
-    }
+    };
 
 
     //render

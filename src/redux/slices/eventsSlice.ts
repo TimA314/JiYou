@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { MetaData } from "../../nostr/Types";
 import { Event } from "nostr-tools";
+import { addEventIfNotExist, addEventToRecord } from "../../utils/miscUtils";
 
 const initialState: EventsType = {
     globalNotes: [],
@@ -26,32 +27,27 @@ export const eventsSlice = createSlice({
     initialState,
     reducers: {
         addGlobalNotes: (state, action) => {
-            if (!state.globalNotes.find(event => event && event.id && event.id === action.payload.id)) {
-                state.globalNotes.push(action.payload);
-            }
+            addEventIfNotExist(state.globalNotes, action.payload);
         },
         clearGlobalNotes: (state) => {
             state.globalNotes = [];
         },
         addRootNotes: (state, action) => {
-            if (!state.rootNotes.find(event => event.id === action.payload.id)) {
-                state.rootNotes.push(action.payload);
-            }
+            addEventIfNotExist(state.rootNotes, action.payload);
         },
         addReplyNotes: (state, action) => {
             const repliedToEventIds = action.payload.tags.filter((t: string[]) => t[0] === "e" && t[1]);
-            if (!repliedToEventIds || repliedToEventIds.length === 0) return;
+            if (repliedToEventIds.length === 0) return;
 
             repliedToEventIds.forEach((id: string) => {
-                const prevReplies = state.replyNotes[id] ? [...state.replyNotes[id]] : [];
-                state.replyNotes[id] = [...new Set([...prevReplies, action.payload])];
-            })
+                addEventToRecord(state.replyNotes, id, action.payload);
+            });
         },
         addUserNotes: (state, action) => {
-            state.userNotes = [...new Set([...state.userNotes, action.payload])]
+            addEventIfNotExist(state.userNotes, action.payload);
         },
         addCurrentProfileNotes: (state, action) => {
-            state.currentProfileNotes = [...new Set([...state.currentProfileNotes, action.payload])]
+            addEventIfNotExist(state.currentProfileNotes, action.payload);
         },
         clearCurrentProfileNotes: (state) => {
             state.currentProfileNotes = [];
@@ -65,23 +61,15 @@ export const eventsSlice = createSlice({
         addReactions: (state, action) => {
             // Get the last 'e' tag, which should be the event ID.
             const likedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e");
-            if (!likedEventId || !likedEventId[1]) return;
-        
-            const prevReactionEvents = state.reactions[likedEventId[1]] ? [...state.reactions[likedEventId[1]]] : [];
-
-            if(!prevReactionEvents.some(event => event.id === action.payload.id)) {
-                state.reactions[likedEventId[1]] = [...prevReactionEvents, action.payload];
+            if (likedEventId && likedEventId[1]) {
+                addEventToRecord(state.reactions, likedEventId[1], action.payload);
             }
         },
         addZaps: (state, action) => {
-            console.log("adding zaps")
             const zappedEventId = action.payload.tags.reverse().find((t: string[]) => t[0] === "e");
-            if (!zappedEventId || !zappedEventId[1]) return;
-
-            const prevZapEvents = state.zaps[zappedEventId[1]] ? [...state.zaps[zappedEventId[1]]] : [];
-
-            state.zaps[zappedEventId[1]] = [...prevZapEvents, action.payload];
-            
+            if (zappedEventId && zappedEventId[1]) {
+                addEventToRecord(state.zaps, zappedEventId[1], action.payload);
+            } 
         },
         toggleRefreshUserNotes: (state) => {
             state.refreshUserNotes = !state.refreshUserNotes;
