@@ -79,7 +79,7 @@ export const useListEvents = ({}: useListEventsProps) => {
 
         eventsBatch.push(await sanitizeEvent(event));
 
-        if (eventsBatch.length > 10) {
+        if (eventsBatch.length > 15) {
           batch(() => {
             eventsBatch.forEach(ev => dispatch(addGlobalNotes(ev)));
           });

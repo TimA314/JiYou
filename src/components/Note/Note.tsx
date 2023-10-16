@@ -1,7 +1,6 @@
 import { styled } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
-import CardMedia from '@mui/material/CardMedia';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import Collapse from '@mui/material/Collapse';
@@ -11,30 +10,34 @@ import Typography from '@mui/material/Typography';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import moment from 'moment/moment';
-import { Badge, BadgeProps, Box, Button, Grid } from '@mui/material';
+import { Badge, BadgeProps, Box } from '@mui/material';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { nip19, EventTemplate, Event } from 'nostr-tools';
-import { DiceBears, GetImageFromPost, getYoutubeVideoFromPost} from '../utils/miscUtils';
-import { signEventWithNostr, signEventWithStoredSk } from '../nostr/FeedEvents';
+import { DiceBears} from '../../utils/miscUtils';
+import { signEventWithNostr, signEventWithStoredSk } from '../../nostr/FeedEvents';
 import ForumIcon from '@mui/icons-material/Forum';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import { ThemeContext } from '../theme/ThemeContext';
+import { ThemeContext } from '../../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
-import { PoolContext } from '../context/PoolContext';
+import { RootState } from '../../redux/store';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../../redux/slices/noteSlice';
+import { PoolContext } from '../../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
-import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
-import { addFollowing } from '../redux/slices/nostrSlice';
-import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
+import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../../redux/slices/eventsSlice';
+import { addFollowing } from '../../redux/slices/nostrSlice';
+import { getMediaNostrBandImageUrl } from '../../utils/eventUtils';
 import BoltIcon from '@mui/icons-material/Bolt';
 import * as invoice from 'light-bolt11-decoder'
-import { ZapAmountModal } from './ZapAmountModal';
+import { ZapAmountModal } from '../ZapAmountModal';
+import NoteDetails from './NoteDetails';
+import PreviewEvent from './PreviewEvent';
+import NoteMedia from './NoteMedia';
 
 //Expand Note
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
+
 }
 const ExpandMore = styled((props: ExpandMoreProps) => {
   const { expand, ...other } = props;
@@ -89,36 +92,36 @@ const Note: React.FC<NoteProps> = ({
     onNoteHeightChange,
     noteIndex
   }: NoteProps) => {
+
   const { themeColors } = useContext(ThemeContext);
   const pool = useContext(PoolContext);
+
   const keys = useSelector((state: RootState) => state.keys);
   const events = useSelector((state: RootState) => state.events);
   const note = useSelector((state: RootState) => state.note);
   const nostr = useSelector((state: RootState) => state.nostr);
-
+  
+  const [zapped, setZapped] = useState(false);
   const [zappedAmount, setZappedAmount] = useState(0);
+  const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
 
   const [liked, setLiked] = useState(false);
-  const [zapped, setZapped] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
-  const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
-  let previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
-  const previewEventImages = GetImageFromPost(previewEvent?.content ?? "");
-  const previewEventVideo = getYoutubeVideoFromPost(previewEvent?.content ?? "");
-  const youtubeFromPost = getYoutubeVideoFromPost(event.content);
-  const images = GetImageFromPost(event.content);
-  if(!disableImagesOnly && note.imageOnlyMode && images.length === 0 && !youtubeFromPost) return <></>
-  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
-  const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
-  const [zapAmountChipsVisible, setZapAmountChipsVisible] = useState(false);
-  const [cardHeight, setCardHeight] = useState<number | null>(null);
 
+  const [shouldCalculateHeight, setShouldCalculateHeight] = useState(false);
   const noteContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const dicebear = DiceBears();
+  const noteAvatar = getMediaNostrBandImageUrl(event.pubkey, "picture", 64);
+  const hashTagsFromNote = event.tags?.filter((t) => t[0] === 't').map((t) => t[1]);
+  const writableRelayUrls = nostr.relays.filter((r) => r.write).map((r) => r.relayUrl);
+  
+  const rootEventTagToPreview = event.tags?.filter((t) => t[0] === "e" && t[1])?.map((t) => t[1]);
+  const previewEvent = events.rootNotes.find((e: Event)  => (rootEventTagToPreview && e.id === rootEventTagToPreview[0]));
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const dicebear = DiceBears();
 
   useEffect(() => {
     const zapsForNote: Event[] | null = events.zaps[event.id];
@@ -138,14 +141,10 @@ const Note: React.FC<NoteProps> = ({
     setZappedAmount(amount);
   
   },[events.zaps]);
-
+  
   const handleExpandClick = useCallback(() => {
     setExpanded((expanded) => !expanded);
   }, []);
-
-  useEffect(() => {
-    calculateHeight();
-  }, [expanded]);
 
 
   const handleFollowButtonClicked = useCallback(() => {
@@ -211,45 +210,54 @@ const Note: React.FC<NoteProps> = ({
     dispatch(setReplyToNoteEvent(event));
   }
 
+  const handleNoteHeaderClicked = () => {
+    dispatch(setProfileEventToShow(event))
+    dispatch(clearCurrentProfileNotes());
+    dispatch(setRefreshingCurrentProfileNotes(true));
+    navigate("/profile");
+  }
+
+  // React Window Height Calculation
+  
   useEffect(() => {
-    if (previewEvent !== undefined) calculateHeight();
-  }, [previewEvent]);
+    if (shouldCalculateHeight) return;
+    setShouldCalculateHeight(true);
+  }, [previewEvent, expanded]);
+
+  useEffect(() => {
+    if (shouldCalculateHeight) {
+      calculateHeight();
+      setShouldCalculateHeight(false);
+    }
+  }, [shouldCalculateHeight]);
 
   const calculateHeight = () => {  
-    if (noteContainerRef.current) {
-      const height = noteContainerRef.current.getBoundingClientRect().height;
-      console.log("Height: ", height)
-      setCardHeight(height);
-      onNoteHeightChange(noteIndex, height);
-    }
+
+      if (noteContainerRef.current) {
+          const height = noteContainerRef.current.getBoundingClientRect().height;
+          onNoteHeightChange(noteIndex, height);
+      }
   };
   
+  // End React Window Height Calculation
+
   return (
     <Card 
       elevation={3}  
-      sx={{ 
-        marginTop: "1rem", 
+      sx={{
         width: "100%", 
         alignItems: "flex-start", 
         borderRadius: "15px",
-        height: cardHeight || 'auto',
       }}
-      ref={noteContainerRef}
       >
       <CardHeader
-        onClick={() => {
-          dispatch(setProfileEventToShow(event))
-          dispatch(clearCurrentProfileNotes());
-          dispatch(setRefreshingCurrentProfileNotes(true));
-          navigate("/profile");
-        }}
+        onClick={handleNoteHeaderClicked}
         avatar={
           <Avatar 
             aria-label="recipe" 
-            src={getMediaNostrBandImageUrl(event.pubkey, "picture", 64)} 
+            src={noteAvatar} 
             alt={events.metaData[event.pubkey]?.picture ?? dicebear}
-            onLoad={calculateHeight}>
-            sizes="small"
+            sizes="small">
           </Avatar>
         }
         title={events.metaData[event.pubkey]?.name ?? nip19.npubEncode(event.pubkey).slice(0, 8) + "..." }
@@ -265,38 +273,12 @@ const Note: React.FC<NoteProps> = ({
             </Typography>
           </Box>
          }
-        
-        <Box>
-          {(images?.length ?? 0) > 0 && (
-            images.map((img) => (
-            <CardMedia
-              component="img"
-              image={img}
-              alt="picture"
-              sizes='medium'
-              key={img + event.sig}
-              onLoad={calculateHeight}
-              sx={{
-                maxHeight: "600px", 
-                padding: 0, 
-                marginTop: "2px", 
-                width: "100%", 
-                objectFit: "contain", 
-                color: themeColors.textColor,
-              }}
-            />
-            ))
-          )}
-          {youtubeFromPost && (
-            <iframe 
-            src={youtubeFromPost}
-            onLoad={calculateHeight}
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            style={{ width: '100%', height: '350px' }}
-          />
-          )}
-        </Box>
+          
+      <NoteMedia 
+        setShouldCalculateHeight={setShouldCalculateHeight} 
+        event={event} 
+      />
+          
       </CardContent>
       <CardContent>
         {hashTagsFromNote?.length > 0 && hashTagsFromNote
@@ -323,76 +305,7 @@ const Note: React.FC<NoteProps> = ({
 
       {previewEvent && (!note.imageOnlyMode || disableImagesOnly) && (
         <CardContent sx={{padding: 2}}>
-          <Card 
-            elevation={4}
-            sx={{ 
-              marginBottom: "10px", 
-              color: themeColors.textColor, 
-              backgroundColor: themeColors.background, 
-              fontSize: themeColors.textSize,
-              borderRadius: "20px"
-              }}>
-                <Grid container direction="column" > 
-
-                    <Grid item xs={4}>
-                        <CardHeader
-                                onClick={() => {
-                                  if (previewEvent !== undefined){
-                                    dispatch(setProfileEventToShow(previewEvent))
-                                    dispatch(clearCurrentProfileNotes());
-                                    dispatch(setRefreshingCurrentProfileNotes(true));
-                                    navigate("/profile");
-                                  }
-                                }}
-                                avatar={
-                                  <Avatar 
-                                    src={getMediaNostrBandImageUrl(previewEvent.pubkey, "picture", 64)}  
-                                    alt={events.metaData[previewEvent.pubkey]?.picture ?? dicebear} 
-                                    sx={{width: 24, height: 24}}
-                                    onLoad={calculateHeight}
-                                    />
-                                }
-                                title={events.metaData[previewEvent.pubkey]?.name ?? ""}
-                                subheader={events.metaData[previewEvent.pubkey]?.nip05 ?? ""}
-                                subheaderTypographyProps={{color: themeColors.textColor}}
-                                style={{color: themeColors.textColor}}>
-                        </CardHeader>
-                    </Grid>
-
-                    <Grid item xs={8}>
-                        <CardContent >
-                            <Typography variant="body2">
-                                {previewEvent.content}
-                            </Typography>
-                        </CardContent>
-                    </Grid>
-                </Grid>
-
-                <Box>
-                  {(previewEventImages?.length ?? 0) > 0 && (
-                    previewEventImages.map((img) => (
-                    <CardMedia
-                      component="img"
-                      image={img}
-                      alt="picture"
-                      sizes='medium'
-                      onLoad={calculateHeight}
-                      key={img + event.sig + "previewEventImage" + isInModal}
-                      sx={{maxHeight: "250px", objectFit: "contain", color: themeColors.textColor, marginBottom: "10px"}}
-                    />
-                    ))
-                  )}
-                  {previewEventVideo && (
-                    <iframe 
-                    src={previewEventVideo} 
-                    title="YouTube video player"
-                    onLoad={calculateHeight}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    style={{ width: '100%', height: '315px', marginBottom: "10px" }}
-                  />
-                  )}
-              </Box>
-          </Card>
+          <PreviewEvent previewEvent={previewEvent} setShouldCalculateHeight={setShouldCalculateHeight} />
         </CardContent>
       )}
 
@@ -464,42 +377,14 @@ const Note: React.FC<NoteProps> = ({
       </CardActions>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <CardContent>
-        {note.imageOnlyMode &&
-          <Typography variant="body2" sx={{color: themeColors.textColor, fontSize: themeColors.textSize ,overflowWrap: 'normal' }}>
-          {event.content}
-          </Typography>
-         }
-          <Box sx={{display: 'flex', alignContent: "flex-end", justifyContent: 'end'}}>
-            <Button variant="outlined" color={isFollowing ? "primary" : "success"} onClick={handleFollowButtonClicked}>
-              {isFollowing ? "UnFollow" : "Follow"}
-            </Button>
-          </Box>
-          <Typography paragraph display="h6" color={themeColors.textColor}>MetaData:</Typography>
-          <Typography variant="caption" display="block" color={themeColors.textColor}>
-            Event Id: {event.id}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            PubKey: {nip19.npubEncode(event.pubkey) ?? ""}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            PubKey hex: {event.pubkey}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Created: {moment.unix(event.created_at).format("LLLL")}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            UnixTime: {event.created_at}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Sig: {event.sig}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Lud16: {events.metaData[event.pubkey]?.lud16 ?? ""}
-          </Typography>
-          <Typography variant="caption" display="block" gutterBottom color={themeColors.textColor}>
-            Tags: <ul >{[...new Set(event.tags)].map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
-            Tags: <ul >{[...new Set(event.tags)].map((tag) => <li key={tag[1]}>{tag[0]}: {tag[1]}, {tag[2]}, {tag[3]}</li>)}</ul>
-          </Typography>
+          {
+            note.imageOnlyMode && 
+              <NoteDetails 
+                event={event} 
+                isFollowing={isFollowing} 
+                handleFollowButtonClicked={handleFollowButtonClicked}
+                />
+          }
         </CardContent>
       </Collapse>
     </Card>

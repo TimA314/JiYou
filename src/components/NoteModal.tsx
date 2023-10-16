@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import { Event } from 'nostr-tools';
-import Note from './Note';
+import Note from './Note/Note';
 import { Stack } from '@mui/material';
 import SouthIcon from '@mui/icons-material/South';
 import { useContext } from 'react';

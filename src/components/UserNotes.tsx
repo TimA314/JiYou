@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import Note from './Note'
+import Note from './Note/Note'
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
