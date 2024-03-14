@@ -42,7 +42,7 @@ export default function Settings ({}: SettingsProps) {
     dispatch(setImageOnlyMode(event.target.checked))
   };
 
-  const handleHideExplicitContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHideExplicitContentCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked === note.hideExplicitContent) return;
     dispatch(setHideExplicitContent(event.target.checked))
   };
@@ -114,7 +114,7 @@ export default function Settings ({}: SettingsProps) {
           <FormGroup>
             <SensitiveContentList />  
             <FormControlLabel
-              control={<Checkbox checked={note?.hideExplicitContent ?? true} onChange={handleHideExplicitContentChange}/>} 
+              control={<Checkbox checked={note?.hideExplicitContent ?? true} onChange={handleHideExplicitContentCheckboxChange}/>} 
               label="Hide Sensetive Content"
               style={{color: themeColors.textColor}}
               color={themeColors.textColor} />
@@ -125,11 +125,11 @@ export default function Settings ({}: SettingsProps) {
               color={themeColors.textColor} />
           </FormGroup>
         </Grid>
+        <Grid item xs={12}>
+          <ZapSettings />
+        </Grid>
       </Grid>
 
-      <Grid item xs={12}>
-        <ZapSettings />
-      </Grid>
 
       <Grid item xs={12}>
         <Typography variant="h5" style={{color: themeColors.textColor}}>
