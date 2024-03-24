@@ -17,7 +17,7 @@ import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, set
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { addMessage, setProfileToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
-import { DiceBears, checkImageUrl } from '../utils/miscUtils';
+import { checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import { MetaData } from '../nostr/Types';
@@ -53,17 +53,15 @@ const theme = useTheme();
 const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
+
 useEffect(() => {
     // Set Profile To Show
     if (note.profilePublicKeyToShow !== null) {
         
         let profileToShowMetaData = events.metaData[note.profilePublicKeyToShow];
-        if (profileNameInput == profileToShowMetaData?.name && 
-            profileAboutInput == profileToShowMetaData?.about) {
-            return;
-        }
 
         if (!profileToShowMetaData){
+            // First Try to get data from NostrBand
             const nostrBandMetaData = fetchNostrBandMetaData(note.profilePublicKeyToShow);
             if (nostrBandMetaData) {
                 nostrBandMetaData.then((data) => {
@@ -72,6 +70,11 @@ useEffect(() => {
                         dispatch(addMetaData(data))
                     }
                 })
+            } else {
+                // Call for Metadata from relays
+                dispatch(clearCurrentProfileNotes());
+                dispatch(setRefreshingCurrentProfileNotes(true));
+                return;
             }
         }
 
@@ -88,7 +91,10 @@ useEffect(() => {
     
     // Set User Profile
     const userMetaData = events.metaData[keys.publicKey.decoded];
-    if (!pool || !events.metaData[keys.publicKey.decoded] || (profileNameInput == userMetaData?.name && profileAboutInput == userMetaData?.about)) return;
+    if (!userMetaData){
+        dispatch(clearCurrentProfileNotes());
+        dispatch(setRefreshingCurrentProfileNotes(true));
+    }
     
     setProfileNameInput(userMetaData?.name ?? nip19.npubEncode(keys.publicKey.decoded));
     setProfileAboutInput(userMetaData?.about ?? "");
