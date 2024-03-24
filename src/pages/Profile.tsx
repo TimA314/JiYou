@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, Chip, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar, Typography} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar, Typography} from '@mui/material'
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -17,10 +17,11 @@ import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, set
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { addMessage, setProfileEventToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
-import { checkImageUrl } from '../utils/miscUtils';
+import { DiceBears, checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
 import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import { MetaData } from '../nostr/Types';
+import FollowChip from '../components/FollowChip';
 
 
 interface ProfileProps {
@@ -46,7 +47,6 @@ const navigate = useNavigate();
 const [tabIndex, setTabIndex] = useState(0);
 const dispatch = useDispatch();
 const [showEditProfile, setShowEditProfile] = useState(false);
-
 const [imageSrc, setImageSrc] = useState(imageUrlInput);
 const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
@@ -169,6 +169,7 @@ const handleRefreshUserNotesClicked = () => {
     dispatch(toggleRefreshUserNotes());
 }
 
+
 const handleBannerError = () : string => {
     if (note.profileEventToShow !== null && events.metaData[note.profileEventToShow.pubkey]?.banner !== undefined) {
         console.log("banner " + events.metaData[note.profileEventToShow.pubkey]?.banner)
@@ -247,20 +248,11 @@ const handleBannerError = () : string => {
                     <Box sx={{marginTop: "1rem", marginBottom: "1rem"}}>
                         <Stack direction="column" spacing={3} marginTop="1rem">
                             <Box>
-                                <Box sx={{ 
-                                        color: themeColors.textColor,
-                                        textAlign: 'center',
-                                        marginBottom: "0.5rem",
-                                    }}>
-                                    <Chip 
-                                        label={"Following: " + (note.profileEventToShow ? nostr.currentProfileFollowing.length : nostr.following.length)}
-                                        sx={{ margin: "0.5rem", color: themeColors.textColor }}
-                                        />
-                                    <Chip
-                                        label={"Followers: " + (note.profileEventToShow ? nostr.currentProfileFollowers.length : nostr.followers.length)}
-                                        sx={{ margin: "0.5rem", color: themeColors.textColor }}
-                                        />
-                                </Box>
+                                <Stack direction="row">
+                                    <FollowChip followPks={note.profileEventToShow ? nostr.currentProfileFollowing : nostr.following}/>
+                                    <FollowChip followPks={note.profileEventToShow ? nostr.currentProfileFollowers: nostr.followers}/>
+                                </Stack>
+
                                 <Box sx={{ 
                                         color: themeColors.textColor,
                                         textAlign: 'center',
