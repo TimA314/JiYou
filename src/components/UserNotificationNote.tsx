@@ -54,7 +54,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                     <Grid item xs={4}>
                         <CardHeader
                             onClick={() => {
-                                dispatch(setProfileToShow(event))
+                                dispatch(setProfileToShow(event.pubkey))
                                 dispatch(setRefreshingCurrentProfileNotes(true));
                                 }}
                             avatar={
@@ -157,7 +157,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
             <Grid item xs={3}>
                 <CardHeader
                     onClick={() => {
-                        dispatch(setProfileToShow(event))
+                        dispatch(setProfileToShow(event.pubkey))
                         dispatch(setRefreshingCurrentProfileNotes(true));
                     }}
                     avatar={
