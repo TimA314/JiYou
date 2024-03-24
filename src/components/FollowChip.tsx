@@ -38,7 +38,7 @@ const FollowChip = ({followPks, chipName} : Props) => {
                 marginBottom: "0.5rem", 
                 color: themeColors.textColor, 
                 backgroundColor: expand ? themeColors.secondary : themeColors.background,
-                width: "15rem"
+                width: "20rem"
             }}
         />
             {expand && <Box sx={{
@@ -54,7 +54,7 @@ const FollowChip = ({followPks, chipName} : Props) => {
                             <Box 
                                 sx={{
                                     borderRadius: "50px;", 
-                                    width: "300px", 
+                                    width: "20rem", 
                                     height: "35px", 
                                     backgroundColor: themeColors.paper, 
                                     cursor: "pointer"
