@@ -15,7 +15,7 @@ export default function Notifications({}: Props) {
   useEffect(() => {
     const reactionEvents: Event[] = [];
 
-    if(note.profileEventToShow !== null){
+    if(note.profilePublicKeyToShow !== null){
 
       events.currentProfileNotes.forEach((e: Event) => {
         if (events.reactions[e.id]?.length > 0){
@@ -42,7 +42,7 @@ export default function Notifications({}: Props) {
     
     setReactionNotes([...new Set([...reactionEvents])])
 
-  },[events.userNotes, events.currentProfileNotes, events.reactions, note.profileEventToShow])
+  },[events.userNotes, events.currentProfileNotes, events.reactions, note.profilePublicKeyToShow])
   return (
     <Stack>
       {reactionNotes.map((r: Event) => {

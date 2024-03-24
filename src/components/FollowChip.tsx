@@ -1,5 +1,5 @@
-import { Accordion, AccordionSummary, Avatar, Box, Button, Card, CardActionArea, CardContent, CardHeader, Chip, Grid, Stack, Typography } from '@mui/material'
-import React, { useContext, useState } from 'react'
+import { Avatar, Box, Chip, Grid, Stack, Tooltip, Typography } from '@mui/material'
+import { useContext, useState } from 'react'
 import { ThemeContext } from '../theme/ThemeContext';
 import { getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +7,7 @@ import { RootState } from '../redux/store';
 import { EventsType, clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
 import { DiceBears } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
-import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { setProfileToShow } from '../redux/slices/noteSlice';
 
 type Props = {
     followPks: string[];
@@ -36,7 +36,13 @@ const FollowChip = ({followPks} : Props) => {
             onClick={handleChipClicked}
             sx={{ margin: "0.5rem", color: themeColors.textColor, backgroundColor: expand ? themeColors.secondary : themeColors.background}}
         />
-            {expand && <Box sx={{display: "flex", alignContent: "center", justifyContent: "center"}}>
+            {expand && <Box sx={{
+                display: "flex", 
+                alignContent: "center", 
+                justifyContent: "center", 
+                maxHeight: '50rem;',
+                overflowY: 'auto',
+                }}>
                 <Stack spacing={1}>
                     {followPks.map(followPk => {
                         return (
@@ -44,12 +50,12 @@ const FollowChip = ({followPks} : Props) => {
                                 sx={{
                                     borderRadius: "50px;", 
                                     width: "300px", 
-                                    height: "60px", 
+                                    height: "50px", 
                                     backgroundColor: themeColors.paper, 
                                     cursor: "pointer"
                                 }}
                                 onClick={() => {
-                                    // dispatch(setProfileEventToShow(events.)) //change setProfileEventToShow to store pubkey instead of event
+                                    dispatch(setProfileToShow(followPk))
                                     dispatch(clearCurrentProfileNotes());
                                     dispatch(setRefreshingCurrentProfileNotes(true));
                                     }}>
@@ -59,12 +65,18 @@ const FollowChip = ({followPks} : Props) => {
                                             aria-label="follow avatar" 
                                             src={getMediaNostrBandImageUrl(followPk, "picture", 64)} 
                                             alt={events.metaData[followPk]?.picture ?? dicebear}
-                                            sx={{width: 50, height: 50}}>
+                                            sx={{width: 40, height: 40}}>
                                         </Avatar>
                                     </Grid>
                                     <Grid item xs={8}>
                                         <Typography variant='subtitle1' color={themeColors.textColor}>{events.metaData[followPk]?.name ?? nip19.npubEncode(followPk).slice(0, 8) + "..."}</Typography>
-                                        <Typography variant='subtitle1' color={themeColors.textColor} >{events.metaData[followPk]?.nip05 ?? ""}</Typography>
+                                        <Tooltip title={events.metaData[followPk]?.nip05 ?? ""}>
+                                            <Typography variant='subtitle2' color={themeColors.textColor} >
+                                                {
+                                                    events.metaData[followPk]?.nip05 ? events.metaData[followPk]?.nip05?.slice(0, 25) + ".." : ""
+                                                }
+                                            </Typography>
+                                        </Tooltip>
                                     </Grid>
                                 </Grid>
                             </Box>

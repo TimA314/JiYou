@@ -6,7 +6,7 @@ import { AlertMessage } from "../../components/AlertMessages";
 const initialState: NoteSlice = {
     noteModalEvent: null,
     replyToNoteEvent: null,
-    profileEventToShow: null,
+    profilePublicKeyToShow: null,
     searchEventIds: [],
     hashTags: [],
     tabIndex: 0,
@@ -56,8 +56,8 @@ export const noteSlice = createSlice({
         addMessage: (state, action: PayloadAction<AlertMessage>) => {
             state.alertMessages.push(action.payload);
         },
-        setProfileEventToShow: (state, action: PayloadAction<Event | null>) => {
-            state.profileEventToShow = action.payload;
+        setProfileToShow: (state, action: PayloadAction<string | null>) => {
+            state.profilePublicKeyToShow = action.payload;
         },
         addZapAmountSettings: (state, action: PayloadAction<number>) => {
             state.zapAmountSettings = Array.from(new Set([...state.zapAmountSettings, action.payload])).sort((a, b) => a - b);
@@ -93,7 +93,7 @@ export const {
     setHideExplicitContent,
     removeMessage,
     addMessage,
-    setProfileEventToShow,
+    setProfileToShow,
     addZapAmountSettings,
     removeZapAmountSettings,
     removeHideExplicitTag,
@@ -106,7 +106,7 @@ export default noteSlice.reducer;
 export type NoteSlice = {
   noteModalEvent: Event | null
   replyToNoteEvent: Event | null
-  profileEventToShow: Event | null
+  profilePublicKeyToShow: string | null
   searchEventIds: string[];
   hashTags: string[];
   tabIndex: number;

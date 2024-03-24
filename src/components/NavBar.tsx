@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import "./NavBar.css";
 import NavMenu from './NavMenu';
 import { Avatar, IconButton } from '@mui/material';
-import { setProfileEventToShow } from '../redux/slices/noteSlice';
+import { setProfileToShow } from '../redux/slices/noteSlice';
 import { useDispatch } from 'react-redux';
 import { MetaData } from '../nostr/Types';
 
@@ -38,7 +38,7 @@ const NavBar = ({profile}: NavBarProps) => {
         <CellTowerIcon color="primary"/>
       </Link>
       <IconButton  className="nav-link" onClick={() => {
-        dispatch(setProfileEventToShow(null));
+        dispatch(setProfileToShow(null));
         navigate("/profile");
       }}>
         {profile.picture !== "" ? <Avatar src={profile.picture} /> : <AccountCircleIcon color="primary" />}

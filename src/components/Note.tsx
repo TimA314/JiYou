@@ -22,7 +22,7 @@ import { ThemeContext } from '../theme/ThemeContext';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addHashTag, setNoteModalEvent, setReplyToNoteEvent, setProfileToShow } from '../redux/slices/noteSlice';
 import { PoolContext } from '../context/PoolContext';
 import { useNavigate } from 'react-router-dom';
 import { clearCurrentProfileNotes, setRefreshingCurrentProfileNotes } from '../redux/slices/eventsSlice';
@@ -208,7 +208,7 @@ const Note: React.FC<NoteProps> = ({
     <Card elevation={3}  sx={{ width: "100%", marginTop: "5px", alignItems: "flex-start", borderRadius: "15px"}} >
       <CardHeader
         onClick={() => {
-          dispatch(setProfileEventToShow(event))
+          dispatch(setProfileToShow(event.pubkey))
           dispatch(clearCurrentProfileNotes());
           dispatch(setRefreshingCurrentProfileNotes(true));
           navigate("/profile");
@@ -297,7 +297,7 @@ const Note: React.FC<NoteProps> = ({
                         <CardHeader
                                 onClick={() => {
                                   if (previewEvent !== undefined){
-                                    dispatch(setProfileEventToShow(previewEvent))
+                                    dispatch(setProfileToShow(previewEvent.pubkey))
                                     dispatch(clearCurrentProfileNotes());
                                     dispatch(setRefreshingCurrentProfileNotes(true));
                                     navigate("/profile");

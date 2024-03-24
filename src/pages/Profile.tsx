@@ -15,7 +15,7 @@ import { setKeys } from '../redux/slices/keySlice';
 import { PoolContext } from '../context/PoolContext';
 import { EventsType, addMetaData, clearCurrentProfileNotes, clearUserEvents, setIsRefreshingUserEvents, setRefreshingCurrentProfileNotes, toggleProfileRefreshAnimation, toggleRefreshCurrentProfileNotes, toggleRefreshUserNotes } from '../redux/slices/eventsSlice';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import { addMessage, setProfileEventToShow } from '../redux/slices/noteSlice';
+import { addMessage, setProfileToShow } from '../redux/slices/noteSlice';
 import { fetchNostrBandMetaData, getMediaNostrBandImageUrl } from '../utils/eventUtils';
 import { DiceBears, checkImageUrl } from '../utils/miscUtils';
 import { nip19 } from 'nostr-tools';
@@ -52,10 +52,10 @@ const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
 
 
 useEffect(() => {
-    if (note.profileEventToShow !== null) {
+    if (note.profilePublicKeyToShow !== null) {
 
-        if (!events.metaData[note.profileEventToShow.pubkey]){
-            const nostrBandMetaData = fetchNostrBandMetaData(note.profileEventToShow.pubkey);
+        if (!events.metaData[note.profilePublicKeyToShow]){
+            const nostrBandMetaData = fetchNostrBandMetaData(note.profilePublicKeyToShow);
             if (nostrBandMetaData) {
                 nostrBandMetaData.then((data) => {
                     if (data) {
@@ -65,14 +65,14 @@ useEffect(() => {
             }
         }
 
-        setProfileNameInput(events.metaData[note.profileEventToShow.pubkey]?.name ?? nip19.npubEncode(note.profileEventToShow.pubkey) ?? keys.publicKey.encoded);
-        setProfileAboutInput(events.metaData[note.profileEventToShow.pubkey]?.about ?? "");
-        setImageUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
-        setBannerUrlInput(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
-        setImageSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "picture", 192));
-        setBannerSrc(getMediaNostrBandImageUrl(note.profileEventToShow.pubkey, "banner", 1200));
-        setLud16Input(events.metaData[note.profileEventToShow.pubkey]?.lud16 ?? "");
-        setLud06Input(events.metaData[note.profileEventToShow.pubkey]?.lud06 ?? "");
+        setProfileNameInput(events.metaData[note.profilePublicKeyToShow]?.name ?? nip19.npubEncode(note.profilePublicKeyToShow) ?? keys.publicKey.encoded);
+        setProfileAboutInput(events.metaData[note.profilePublicKeyToShow]?.about ?? "");
+        setImageUrlInput(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "picture", 192));
+        setBannerUrlInput(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "banner", 1200));
+        setImageSrc(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "picture", 192));
+        setBannerSrc(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "banner", 1200));
+        setLud16Input(events.metaData[note.profilePublicKeyToShow]?.lud16 ?? "");
+        setLud06Input(events.metaData[note.profilePublicKeyToShow]?.lud06 ?? "");
         return;
     }
     
@@ -89,7 +89,7 @@ useEffect(() => {
     setLud16Input(userMetaData?.lud16 ?? "");
     setLud06Input(userMetaData?.lud06 ?? "");
     
-}, [pool,events.metaData, keys.publicKey.decoded, note.profileEventToShow])
+}, [pool,events.metaData, keys.publicKey.decoded, note.profilePublicKeyToShow])
 
 
 const handleTabChange = (event: any, newValue: number) => {
@@ -134,8 +134,8 @@ const handleFormSubmit = (e: { preventDefault: () => void; }) => {
 }
 
 const handleLogout = () => {
-    if (note.profileEventToShow !== null) {
-        dispatch(setProfileEventToShow(null));
+    if (note.profilePublicKeyToShow !== null) {
+        dispatch(setProfileToShow(null));
         dispatch(clearCurrentProfileNotes());
         navigate("/");
         return;
@@ -158,7 +158,7 @@ const handleEditOrSaveClick = () => {
 }
 
 const handleRefreshUserNotesClicked = () => {
-    if (note.profileEventToShow !== null) {
+    if (note.profilePublicKeyToShow !== null) {
         dispatch(setRefreshingCurrentProfileNotes((prev: boolean) => !prev));
         dispatch(toggleRefreshCurrentProfileNotes());
         dispatch(toggleProfileRefreshAnimation());
@@ -171,17 +171,17 @@ const handleRefreshUserNotesClicked = () => {
 
 
 const handleBannerError = () : string => {
-    if (note.profileEventToShow !== null && events.metaData[note.profileEventToShow.pubkey]?.banner !== undefined) {
-        console.log("banner " + events.metaData[note.profileEventToShow.pubkey]?.banner)
-        checkImageUrl(events.metaData[note.profileEventToShow.pubkey]?.banner ?? "").then(isWorking => {
+    if (note.profilePublicKeyToShow !== null && events.metaData[note.profilePublicKeyToShow]?.banner !== undefined) {
+        console.log("banner " + events.metaData[note.profilePublicKeyToShow]?.banner)
+        checkImageUrl(events.metaData[note.profilePublicKeyToShow]?.banner ?? "").then(isWorking => {
             if (isWorking) {
-                setBannerSrc(events.metaData[note.profileEventToShow!.pubkey].banner!);
-                return events.metaData[note.profileEventToShow!.pubkey].banner!;
+                setBannerSrc(events.metaData[note.profilePublicKeyToShow!].banner!);
+                return events.metaData[note.profilePublicKeyToShow!].banner!;
             };
         })
     } 
 
-    if (note.profileEventToShow === null && events.metaData[keys.publicKey.decoded]?.banner !== undefined) {
+    if (note.profilePublicKeyToShow === null && events.metaData[keys.publicKey.decoded]?.banner !== undefined) {
         checkImageUrl(events.metaData[keys.publicKey.decoded].banner!).then(isWorking => {
             if (isWorking) {
                 setBannerSrc(events.metaData[keys.publicKey.decoded].banner!);
@@ -226,7 +226,7 @@ const handleBannerError = () : string => {
                             } 
                         <Box sx={{display: "flex", justifyContent: "flex-end", padding: "1rem"}}>
                             <Button variant='contained' color="secondary" onClick={handleLogout}>
-                                {note.profileEventToShow !== null ? "Back" : "Logout"}
+                                {note.profilePublicKeyToShow !== null ? "Back" : "Logout"}
                             </Button>
                         </Box>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
@@ -239,7 +239,7 @@ const handleBannerError = () : string => {
                             <Avatar
                                 src={imageSrc}
                                 sx={{ width: 200, height: 200 }}
-                                onError={() => note.profileEventToShow ? setImageSrc(events.metaData[note.profileEventToShow?.pubkey ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
+                                onError={() => note.profilePublicKeyToShow ? setImageSrc(events.metaData[note.profilePublicKeyToShow ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
                                 />
                         </div>
                         </AppBar>
@@ -249,8 +249,8 @@ const handleBannerError = () : string => {
                         <Stack direction="column" spacing={3} marginTop="1rem">
                             <Box>
                                 <Stack direction="row">
-                                    <FollowChip followPks={note.profileEventToShow ? nostr.currentProfileFollowing : nostr.following}/>
-                                    <FollowChip followPks={note.profileEventToShow ? nostr.currentProfileFollowers: nostr.followers}/>
+                                    <FollowChip followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowing : nostr.following}/>
+                                    <FollowChip followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowers: nostr.followers}/>
                                 </Stack>
 
                                 <Box sx={{ 
@@ -266,7 +266,7 @@ const handleBannerError = () : string => {
                                     </Typography>
                                 </Box>
 
-                                {note.profileEventToShow === null && (
+                                {note.profilePublicKeyToShow === null && (
                                     <Box>
                                         <Button 
                                             variant="contained" 

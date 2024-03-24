@@ -9,7 +9,7 @@ export default function UserNotes({}: Props) {
     const events = useSelector((state: RootState) => state.events);
     const note = useSelector((state: RootState) => state.note);
 
-    if (note.profileEventToShow !== null) {
+    if (note.profilePublicKeyToShow !== null) {
         return (
             <Box style={{marginBottom: "15px", marginTop: "15px"}}>
                 {events.currentProfileNotes && [...new Set(events.currentProfileNotes)].map((event) => {
