@@ -57,7 +57,7 @@ export const eventsSlice = createSlice({
             state.currentProfileNotes = [];
         },
         addMetaData: (state, action) => {
-            state.metaData[action.payload.pubkey] = JSON.parse(action.payload.content) as MetaData;
+            state.metaData[action.payload.pubkey] = action.payload;
         },
         addParsedMetaData: (state, action) => {
             state.metaData[action.payload.pubkey] = action.payload as MetaData;

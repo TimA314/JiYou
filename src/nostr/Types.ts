@@ -50,6 +50,7 @@ export interface MetaData {
   nip05?: string,
   lud06?: string,
   lud16?: string,
+  lastUpdated?: string,
 }
 
 export type NoteUrls = {
