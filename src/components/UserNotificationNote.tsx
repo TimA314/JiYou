@@ -9,7 +9,7 @@ import moment from "moment";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import { setProfileEventToShow } from "../redux/slices/noteSlice";
+import { setProfileToShow } from "../redux/slices/noteSlice";
 import { setRefreshingCurrentProfileNotes } from "../redux/slices/eventsSlice";
 import { getMediaNostrBandImageUrl } from "../utils/eventUtils";
 
@@ -54,7 +54,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
                     <Grid item xs={4}>
                         <CardHeader
                             onClick={() => {
-                                dispatch(setProfileEventToShow(event))
+                                dispatch(setProfileToShow(event.pubkey))
                                 dispatch(setRefreshingCurrentProfileNotes(true));
                                 }}
                             avatar={
@@ -157,7 +157,7 @@ export default function UserNotificationNote({event, userNote}: Props) {
             <Grid item xs={3}>
                 <CardHeader
                     onClick={() => {
-                        dispatch(setProfileEventToShow(event))
+                        dispatch(setProfileToShow(event.pubkey))
                         dispatch(setRefreshingCurrentProfileNotes(true));
                     }}
                     avatar={

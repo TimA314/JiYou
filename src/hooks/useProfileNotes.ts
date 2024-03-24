@@ -24,7 +24,7 @@ export const useProfileNotes = () => {
   useEffect(() => {
     
     const fetchUserNotes = async () => {
-      if (!pool || fetchingUserNotes.current || note.profileEventToShow !== null) return;
+      if (!pool || fetchingUserNotes.current || note.profilePublicKeyToShow !== null) return;
 
       dispatch(clearUserEvents());
       console.log("fetching user notes")
@@ -70,20 +70,20 @@ export const useProfileNotes = () => {
 
     fetchUserNotes();
 
-  }, [keys.publicKey.decoded, events.refreshUserNotes, note.profileEventToShow]);
+  }, [keys.publicKey.decoded, events.refreshUserNotes, note.profilePublicKeyToShow]);
   
 
      //Curent Profile Notes
   useEffect(() => {
     
     const fetchCurrentProfileNotes = () => {
-      if (!pool || note.profileEventToShow === null || fetchingCurrentProfileNotes.current) {
+      if (!pool || note.profilePublicKeyToShow === null || fetchingCurrentProfileNotes.current) {
         return;
       }
       fetchingCurrentProfileNotes.current = true;
       dispatch(clearCurrentProfileNotes());
 
-      const profileNotesAlreadyFetched = events.globalNotes.filter((e: Event) => e.pubkey === note.profileEventToShow?.pubkey)
+      const profileNotesAlreadyFetched = events.globalNotes.filter((e: Event) => e.pubkey === note.profilePublicKeyToShow)
       if (profileNotesAlreadyFetched.length > 0) {
         batch(() => {
           profileNotesAlreadyFetched.forEach((ev) => {
@@ -92,7 +92,7 @@ export const useProfileNotes = () => {
         });
       }
 
-      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [note.profileEventToShow.pubkey]}])
+      const sub = pool.sub(allRelayUrls, [{ kinds: [1], authors: [note.profilePublicKeyToShow]}])
       
       let eventsBatch: Event[] = [];
 
@@ -131,6 +131,6 @@ export const useProfileNotes = () => {
     }
     
     fetchCurrentProfileNotes();
-  }, [note.profileEventToShow, events.refreshCurrentProfileNotes]);
+  }, [note.profilePublicKeyToShow, events.refreshCurrentProfileNotes]);
 
 };

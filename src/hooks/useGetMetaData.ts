@@ -36,6 +36,9 @@ import { metaDataAndRelayHelpingRelay } from "../utils/miscUtils";
       events.currentProfileNotes.filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 
+      nostr.following.filter((followPk) => metadataFetched.current[followPk] !== true)
+        .forEach((followPk) => pubkeysToFetch.push(followPk));
+
       Object.values(events.reactions).flat().filter((event) => metadataFetched.current[event.pubkey] !== true)
         .forEach((event) => pubkeysToFetch.push(event.pubkey));
 

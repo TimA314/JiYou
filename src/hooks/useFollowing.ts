@@ -77,9 +77,9 @@ export const useFollowing = ({}: UseFollowingProps) => {
   }
   
   useEffect(() => {
-    getFollowers(note.profileEventToShow !== null ? note.profileEventToShow.pubkey : keys.publicKey.decoded);
-    getFollowing(note.profileEventToShow !== null ? note.profileEventToShow.pubkey : keys.publicKey.decoded);
-  }, [pool, nostr.relays, keys.publicKey.decoded, note.profileEventToShow]);
+    getFollowers(note.profilePublicKeyToShow !== null ? note.profilePublicKeyToShow : keys.publicKey.decoded);
+    getFollowing(note.profilePublicKeyToShow !== null ? note.profilePublicKeyToShow : keys.publicKey.decoded);
+  }, [pool, nostr.relays, keys.publicKey.decoded, note.profilePublicKeyToShow]);
   
   const updateFollowing = async (followPubkey: string) => {
     if (!pool) return;
