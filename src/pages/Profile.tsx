@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Box, Button, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar, Typography} from '@mui/material'
+import { AppBar, Avatar, Box, Button, Collapse, IconButton, InputAdornment, MenuItem, Paper, Stack, Tab, Tabs, TextField, Toolbar, Typography, useMediaQuery, useTheme} from '@mui/material'
 import { useEffect, useState } from 'react'
 import ImageIcon from '@mui/icons-material/Image';
 import BadgeIcon from '@mui/icons-material/Badge';
@@ -49,6 +49,8 @@ const dispatch = useDispatch();
 const [showEditProfile, setShowEditProfile] = useState(false);
 const [imageSrc, setImageSrc] = useState(imageUrlInput);
 const [bannerSrc, setBannerSrc] = useState(bannerUrlInput);
+const theme = useTheme();
+const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
 useEffect(() => {
@@ -245,12 +247,12 @@ const handleBannerError = () : string => {
                         </AppBar>
                     </Box>
 
-                    <Box sx={{marginTop: "1rem", marginBottom: "1rem"}}>
-                        <Stack direction="column" spacing={3} marginTop="1rem">
+                    <Box sx={{marginTop: "0.1rem", marginBottom: "1rem", alignItems: 'center', justifyContent: "center", display: "flex"}}>
+                        <Stack direction="column" spacing={1} marginTop="1rem">
                             <Box>
-                                <Stack direction="row">
-                                    <FollowChip followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowing : nostr.following}/>
-                                    <FollowChip followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowers: nostr.followers}/>
+                                <Stack direction={isMobile ? "column" : "row"} spacing={1} >
+                                    <FollowChip chipName='Following' followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowing : nostr.following}/>
+                                    <FollowChip chipName="Followers" followPks={note.profilePublicKeyToShow ? nostr.currentProfileFollowers: nostr.followers}/>
                                 </Stack>
 
                                 <Box sx={{ 

@@ -11,9 +11,10 @@ import { setProfileToShow } from '../redux/slices/noteSlice';
 
 type Props = {
     followPks: string[];
+    chipName: string;
 }
 
-const FollowChip = ({followPks} : Props) => {
+const FollowChip = ({followPks, chipName} : Props) => {
     const { themeColors } = useContext(ThemeContext);
     const events: EventsType = useSelector((state: RootState) => state.events);
     const [expand, setExpand] = useState(false);
@@ -27,14 +28,18 @@ const FollowChip = ({followPks} : Props) => {
   return (
     <Box sx={{ 
         color: themeColors.textColor,
-        textAlign: 'center',
-        marginBottom: "0.5rem",
+        textAlign: 'center'
     }}>
 
         <Chip 
-            label={"Following: " + (followPks.length)}
+            label={chipName + ": " + (followPks.length)}
             onClick={handleChipClicked}
-            sx={{ margin: "0.5rem", color: themeColors.textColor, backgroundColor: expand ? themeColors.secondary : themeColors.background}}
+            sx={{ 
+                marginBottom: "0.5rem", 
+                color: themeColors.textColor, 
+                backgroundColor: expand ? themeColors.secondary : themeColors.background,
+                width: "15rem"
+            }}
         />
             {expand && <Box sx={{
                 display: "flex", 
@@ -50,7 +55,7 @@ const FollowChip = ({followPks} : Props) => {
                                 sx={{
                                     borderRadius: "50px;", 
                                     width: "300px", 
-                                    height: "50px", 
+                                    height: "35px", 
                                     backgroundColor: themeColors.paper, 
                                     cursor: "pointer"
                                 }}
@@ -65,15 +70,21 @@ const FollowChip = ({followPks} : Props) => {
                                             aria-label="follow avatar" 
                                             src={getMediaNostrBandImageUrl(followPk, "picture", 64)} 
                                             alt={events.metaData[followPk]?.picture ?? dicebear}
-                                            sx={{width: 40, height: 40}}>
+                                            sx={{width: 25, height: 25}}>
                                         </Avatar>
                                     </Grid>
                                     <Grid item xs={8}>
-                                        <Typography variant='subtitle1' color={themeColors.textColor}>{events.metaData[followPk]?.name ?? nip19.npubEncode(followPk).slice(0, 8) + "..."}</Typography>
+                                        <Typography 
+                                            variant='subtitle1'  
+                                            fontSize={12} 
+                                            color={themeColors.textColor}
+                                            >
+                                                {events.metaData[followPk]?.name ?? nip19.npubEncode(followPk).slice(0, 8) + "..."}
+                                        </Typography>
                                         <Tooltip title={events.metaData[followPk]?.nip05 ?? ""}>
-                                            <Typography variant='subtitle2' color={themeColors.textColor} >
+                                            <Typography variant='subtitle2' color={themeColors.textColor} fontSize={10} >
                                                 {
-                                                    events.metaData[followPk]?.nip05 ? events.metaData[followPk]?.nip05?.slice(0, 25) + ".." : ""
+                                                    events.metaData[followPk]?.nip05 ? ((events.metaData[followPk].nip05?.length ?? 0) > 25) ? events.metaData[followPk]?.nip05?.slice(0, 25) + ".." : events.metaData[followPk].nip05 : ""
                                                 }
                                             </Typography>
                                         </Tooltip>
