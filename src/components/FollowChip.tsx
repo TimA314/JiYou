@@ -84,7 +84,7 @@ const FollowChip = ({followPks, chipName} : Props) => {
                                         <Tooltip title={events.metaData[followPk]?.nip05 ?? ""}>
                                             <Typography variant='subtitle2' color={themeColors.textColor} fontSize={10} >
                                                 {
-                                                    events.metaData[followPk]?.nip05 ? ((events.metaData[followPk].nip05?.length ?? 0) > 25) ? events.metaData[followPk]?.nip05?.slice(0, 25) + ".." : events.metaData[followPk].nip05 : ""
+                                                    events.metaData[followPk]?.nip05 ? ((events.metaData[followPk].nip05?.length ?? 0) > 30) ? events.metaData[followPk]?.nip05?.slice(0, 30) + ".." : events.metaData[followPk].nip05 : ""
                                                 }
                                             </Typography>
                                         </Tooltip>

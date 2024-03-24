@@ -54,33 +54,41 @@ const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
 
 useEffect(() => {
+    // Set Profile To Show
     if (note.profilePublicKeyToShow !== null) {
+        
+        let profileToShowMetaData = events.metaData[note.profilePublicKeyToShow];
+        if (profileNameInput == profileToShowMetaData.name && 
+            profileAboutInput == profileToShowMetaData.about) {
+            return;
+        }
 
-        if (!events.metaData[note.profilePublicKeyToShow]){
+        if (!profileToShowMetaData){
             const nostrBandMetaData = fetchNostrBandMetaData(note.profilePublicKeyToShow);
             if (nostrBandMetaData) {
                 nostrBandMetaData.then((data) => {
                     if (data) {
+                        profileToShowMetaData = data;
                         dispatch(addMetaData(data))
                     }
                 })
             }
         }
 
-        setProfileNameInput(events.metaData[note.profilePublicKeyToShow]?.name ?? nip19.npubEncode(note.profilePublicKeyToShow) ?? keys.publicKey.encoded);
-        setProfileAboutInput(events.metaData[note.profilePublicKeyToShow]?.about ?? "");
+        setProfileNameInput(profileToShowMetaData?.name ?? nip19.npubEncode(note.profilePublicKeyToShow));
+        setProfileAboutInput(profileToShowMetaData?.about ?? "");
         setImageUrlInput(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "picture", 192));
         setBannerUrlInput(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "banner", 1200));
         setImageSrc(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "picture", 192));
         setBannerSrc(getMediaNostrBandImageUrl(note.profilePublicKeyToShow, "banner", 1200));
-        setLud16Input(events.metaData[note.profilePublicKeyToShow]?.lud16 ?? "");
-        setLud06Input(events.metaData[note.profilePublicKeyToShow]?.lud06 ?? "");
+        setLud16Input(profileToShowMetaData?.lud16 ?? "");
+        setLud06Input(profileToShowMetaData?.lud06 ?? "");
         return;
     }
     
-    if (!pool || !events.metaData[keys.publicKey.decoded]) return;
-    
+    // Set User Profile
     const userMetaData = events.metaData[keys.publicKey.decoded];
+    if (!pool || !events.metaData[keys.publicKey.decoded] || (profileNameInput == userMetaData.name && profileAboutInput == userMetaData.about)) return;
     
     setProfileNameInput(userMetaData?.name ?? nip19.npubEncode(keys.publicKey.decoded));
     setProfileAboutInput(userMetaData?.about ?? "");
@@ -91,7 +99,7 @@ useEffect(() => {
     setLud16Input(userMetaData?.lud16 ?? "");
     setLud06Input(userMetaData?.lud06 ?? "");
     
-}, [pool,events.metaData, keys.publicKey.decoded, note.profilePublicKeyToShow])
+}, [pool, events.metaData, keys.publicKey.decoded, note.profilePublicKeyToShow])
 
 
 const handleTabChange = (event: any, newValue: number) => {
@@ -232,18 +240,18 @@ const handleBannerError = () : string => {
                             </Button>
                         </Box>
                         <AppBar position="static" style={{ background: 'transparent', boxShadow: 'none'}} >
-                        <Toolbar >
-                            <IconButton edge="start" color="inherit" aria-label="menu">
-                                <MenuItem />
-                            </IconButton>
-                        </Toolbar>
-                        <div className="avatarContainer">
-                            <Avatar
-                                src={imageSrc}
-                                sx={{ width: 200, height: 200 }}
-                                onError={() => note.profilePublicKeyToShow ? setImageSrc(events.metaData[note.profilePublicKeyToShow ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
-                                />
-                        </div>
+                            <Toolbar >
+                                <IconButton edge="start" color="inherit" aria-label="menu">
+                                    <MenuItem />
+                                </IconButton>
+                            </Toolbar>
+                            <Box className="avatarContainer">
+                                <Avatar
+                                    src={imageSrc}
+                                    sx={{ width: 200, height: 200 }}
+                                    onError={() => note.profilePublicKeyToShow ? setImageSrc(events.metaData[note.profilePublicKeyToShow ?? ""]?.picture ?? "") : setImageSrc(events.metaData[keys.publicKey.decoded]?.picture ?? "")}
+                                    />
+                            </Box>
                         </AppBar>
                     </Box>
 
