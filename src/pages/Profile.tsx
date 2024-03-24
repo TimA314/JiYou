@@ -58,8 +58,8 @@ useEffect(() => {
     if (note.profilePublicKeyToShow !== null) {
         
         let profileToShowMetaData = events.metaData[note.profilePublicKeyToShow];
-        if (profileNameInput == profileToShowMetaData.name && 
-            profileAboutInput == profileToShowMetaData.about) {
+        if (profileNameInput == profileToShowMetaData?.name && 
+            profileAboutInput == profileToShowMetaData?.about) {
             return;
         }
 
@@ -88,7 +88,7 @@ useEffect(() => {
     
     // Set User Profile
     const userMetaData = events.metaData[keys.publicKey.decoded];
-    if (!pool || !events.metaData[keys.publicKey.decoded] || (profileNameInput == userMetaData.name && profileAboutInput == userMetaData.about)) return;
+    if (!pool || !events.metaData[keys.publicKey.decoded] || (profileNameInput == userMetaData?.name && profileAboutInput == userMetaData?.about)) return;
     
     setProfileNameInput(userMetaData?.name ?? nip19.npubEncode(keys.publicKey.decoded));
     setProfileAboutInput(userMetaData?.about ?? "");

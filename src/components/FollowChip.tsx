@@ -51,7 +51,8 @@ const FollowChip = ({followPks, chipName} : Props) => {
                 <Stack spacing={1}>
                     {followPks.map(followPk => {
                         return (
-                            <Box 
+                            <Box
+                                key={followPk + chipName}
                                 sx={{
                                     borderRadius: "50px;", 
                                     width: "20rem", 

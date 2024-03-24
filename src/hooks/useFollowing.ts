@@ -29,6 +29,11 @@ export const useFollowing = ({}: UseFollowingProps) => {
     }
     fetchingFollowing.current = true;
 
+    // Clear Following State
+    dispatch(setFollowing([]));
+    followingPks.current = [];
+
+    // Sub for following
     const sub = pool.sub(allRelayUrls, [{kinds: [3], authors: [pubkey], limit: 1 }])
 
     sub.on("event", (event: Event) => {
@@ -54,18 +59,23 @@ export const useFollowing = ({}: UseFollowingProps) => {
   };
 
   const getFollowers = async (pubkey: string) => {
-    if(!pool || pubkey === ""){
+    if(!pool || pubkey === "" || fetchingFollowers.current){
       return;
     }
     fetchingFollowers.current = true;
+
+    // Clear Follower state
+    dispatch(setFollowers([]));
+    followerPks.current = [];
+
+    // Sub for followers
     const sub = pool.sub(allRelayUrls, [{kinds: [3], ["#p"]: [pubkey] }])
-    
+
     sub.on("event", (event: Event) => {
       followerPks.current = [...new Set([...followerPks.current, event.pubkey])];
     });
 
     sub.on("eose", () => {
-      fetchingFollowers.current = false;
 
       if(pubkey !== keys.publicKey.decoded){
         dispatch(setCurrentProfileFollowers(followerPks.current));
@@ -73,12 +83,15 @@ export const useFollowing = ({}: UseFollowingProps) => {
       }
       
       dispatch(setFollowers(followerPks.current));
+      fetchingFollowers.current = false;
     });
   }
   
   useEffect(() => {
-    getFollowers(note.profilePublicKeyToShow !== null ? note.profilePublicKeyToShow : keys.publicKey.decoded);
-    getFollowing(note.profilePublicKeyToShow !== null ? note.profilePublicKeyToShow : keys.publicKey.decoded);
+    const pubkeyToGet = note.profilePublicKeyToShow !== null ? note.profilePublicKeyToShow : keys.publicKey.decoded;
+
+    getFollowers(pubkeyToGet);
+    getFollowing(pubkeyToGet);
   }, [pool, nostr.relays, keys.publicKey.decoded, note.profilePublicKeyToShow]);
   
   const updateFollowing = async (followPubkey: string) => {
